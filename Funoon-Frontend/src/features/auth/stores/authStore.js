@@ -144,7 +144,7 @@ export const useAuthStore = create(
       },
     }),
     {
-      name: "opalart-auth",
+      name: "funoon-auth",
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

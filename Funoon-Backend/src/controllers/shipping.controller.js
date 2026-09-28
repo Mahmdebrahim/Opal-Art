@@ -141,7 +141,7 @@ const createOtoOrder = catchAsync(async (req, res, next) => {
     throw new BadRequestError(M.shipping.missingAddressInfo);
   }
 
-  const opalOrderId = `OPALART-${order._id}`;
+  const opalOrderId = `OPAL-${order._id}`;
 
   // ✅ الأبعاد الخام (مجموع اللوحات)
   const rawDims = order.items.reduce(
@@ -577,9 +577,7 @@ const getAWBUrl = catchAsync(async (req, res, next) => {
   if (!order.shipping?.awbUrl) {
     // ✅ محاولة 1: نجيب الـ awbUrl من orderStatus (الأفضل)
     try {
-      const orderStatus = await otoService.getOrderStatus(
-        `OPALART-${order._id}`,
-      );
+      const orderStatus = await otoService.getOrderStatus(`OPAL-${order._id}`);
 
       if (orderStatus?.printAWBURL) {
         order.shipping.awbUrl = orderStatus.printAWBURL;
@@ -608,7 +606,7 @@ const getAWBUrl = catchAsync(async (req, res, next) => {
 
     // ✅ محاولة 2 (fallback): نجرب printAWB endpoint
     try {
-      const awbResponse = await otoService.printAWB(`OPALART-${order._id}`);
+      const awbResponse = await otoService.printAWB(`OPAL-${order._id}`);
       if (awbResponse?.printAWBURL || awbResponse?.awbUrl) {
         const awbUrl = awbResponse.printAWBURL || awbResponse.awbUrl;
         order.shipping.awbUrl = awbUrl;
@@ -839,7 +837,7 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
   // ═══ تحديد الطلب ═══
   let opalOrderId = null;
   if (orderId) {
-    const rawId = String(orderId).replace("OPALART-", "");
+    const rawId = String(orderId).replace("OPAL-", "");
     if (mongoose.Types.ObjectId.isValid(rawId)) {
       opalOrderId = rawId;
     } else {

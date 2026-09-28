@@ -528,7 +528,7 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
     };
     invoice = await MoyasarService.createInvoice({
       amount: Math.round(amountToPay * 100),
-      description: `اوبال ارت - اشتراك ${plan.label} (${scenarioLabels[quote.scenario] || "اشتراك"})`,
+      description: `أوبال جاليري - اشتراك ${plan.label} (${scenarioLabels[quote.scenario] || "اشتراك"})`,
       callbackUrl: `${process.env.NGROK_URL}/api/v1/webhooks/moyasar`,
       successUrl: `${process.env.FRONTEND_URL}/subscription/success`,
       backUrl: `${process.env.FRONTEND_URL}/subscription/cancel`,
@@ -599,7 +599,6 @@ const validateCoupon = catchAsync(async (req, res) => {
     "Coupon is valid",
   );
 });
-
 
 // @desc    Get subscription quote for a plan
 // @route   GET /api/v1/subscriptions/quote/:planId
@@ -1207,7 +1206,7 @@ const handleSubscriptionWebhook = catchAsync(async (req, res, next) => {
   const moyasarTransactionId = event.id;
 
   // ═══════════════════════════════════════════════════
-  //  IDEMPOTENCY CHECK 
+  //  IDEMPOTENCY CHECK
   // ═══════════════════════════════════════════════════
   if (moyasarTransactionId) {
     const existingPayment = await SubscriptionPayment.findOne({
@@ -1254,7 +1253,7 @@ const handleSubscriptionWebhook = catchAsync(async (req, res, next) => {
   }
 
   // ═══════════════════════════════════════════════════
-  //  IDEMPOTENCY CHECK 
+  //  IDEMPOTENCY CHECK
   // ═══════════════════════════════════════════════════
   const existingPayment = await SubscriptionPayment.findById(
     subscriptionPaymentId,

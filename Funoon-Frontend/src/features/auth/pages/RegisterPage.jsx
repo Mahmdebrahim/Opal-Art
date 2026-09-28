@@ -306,7 +306,7 @@ export default function RegisterPage() {
               >
                 الشروط والأحكام
               </Link>{" "}
-              وسياسة العرض والبيع والشحن المعتمدة في منصة اوبال ارت
+              وسياسة العرض والبيع والشحن المعتمدة في منصة أوبال جاليري
             </label>
           </div>
           {errors.termsAccepted && (

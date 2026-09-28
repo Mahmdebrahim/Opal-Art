@@ -250,7 +250,7 @@ export default function CartPage() {
           element: container,
           amount: Math.round(checkoutData.grandTotal * 100),
           currency: "SAR",
-          description: "طلب شراء لوحات فنية - منصة اوبال ارت",
+          description: "طلب شراء لوحات فنية - منصة أوبال جاليري",
           publishable_api_key: import.meta.env.VITE_MOYASAR_PUBLISHABLE_KEY,
           callback_url: `${window.location.origin}/payment/success`,
           invoice_id: checkoutData.invoiceId,

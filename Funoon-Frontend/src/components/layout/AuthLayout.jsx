@@ -43,8 +43,8 @@ export default function AuthLayout() {
 
         {/* Footer */}
         <div className="text-xs text-on-surface-variant/60 font-body">
-          © {new Date().getFullYear()} اوبال ارت جميع الحقوق محفوظة. منصة مخصصة
-          للفنون التشكيلية السعودية.
+          © {new Date().getFullYear()} أوبال جاليري جميع الحقوق محفوظة. منصة
+          مخصصة للفنون التشكيلية السعودية.
         </div>
       </div>
 

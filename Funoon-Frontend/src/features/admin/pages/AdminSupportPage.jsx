@@ -479,15 +479,15 @@ function InfoItem({ icon: Icon, label, value, isEmail }) {
 function QuickReply({ email, name, topic }) {
   const template = `مرحباً ${name}،
 
-شكراً لتواصلك مع منصة اوبال ارت بخصوص "${topic}".
+شكراً لتواصلك مع منصة أوبال جاليري بخصوص "${topic}".
 
 [اكتب ردك هنا]
 
 مع تحيات،
-فريق دعم اوبال ارت`;
+فريق دعم أوبال جاليري`;
 
   const mailto = `mailto:${email}?subject=${encodeURIComponent(
-    `[اوبال ارت] رد: ${topic}`,
+    `[أوبال جاليري] رد: ${topic}`,
   )}&body=${encodeURIComponent(template)}`;
 
   return (

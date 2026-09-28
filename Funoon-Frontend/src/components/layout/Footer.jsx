@@ -27,7 +27,7 @@ export default function Footer() {
           <div className="lg:col-span-4">
             <Link to={ROUTES.HOME} className="inline-block mb-2">
               <img
-                src="/src/assets/opalLogo.png"
+                src="/src/assets/opalLogoWhite.png"
                 alt="Opal"
                 className="h-15 w-auto"
               />
@@ -209,7 +209,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             {/* Copyright */}
             <div className="text-xs text-white/50 text-center md:text-right">
-              © 2026 OPAL ART — جميع الحقوق محفوظة. صُنع بـ{" "}
+              © 2026 OPAL GALLERY — جميع الحقوق محفوظة. صُنع بـ{" "}
               <span className="text-[var(--color-secondary)]">بحب</span> في
               المملكة العربية السعودية
             </div>

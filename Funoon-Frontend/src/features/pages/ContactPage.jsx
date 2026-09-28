@@ -161,8 +161,8 @@ export default function ContactPage() {
                 وصلتنا رسالتك
               </h2>
               <p className="text-sm text-[var(--color-on-surface-variant)] leading-relaxed mb-6 max-w-sm">
-                شكراً لتواصلك مع اوبال ارت — سيرد عليك الفريق خلال 24 ساعة عمل
-                على بريدك الإلكتروني.
+                شكراً لتواصلك مع أوبال جاليري — سيرد عليك الفريق خلال 24 ساعة
+                عمل على بريدك الإلكتروني.
               </p>
 
               {ticketId && (

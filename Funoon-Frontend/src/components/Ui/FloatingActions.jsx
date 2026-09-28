@@ -4,7 +4,7 @@ import { ChevronUp } from "lucide-react";
 // ✅ غيّر الرقم ده لرقم المنصة الحقيقي (بصيغة دولية بدون +)
 const WHATSAPP_NUMBER = "966500000000";
 const WHATSAPP_MSG = encodeURIComponent(
-  "مرحباً فريق اوبال ارت، لدي استفسار بخصوص المنصة.",
+  "مرحباً فريق أوبال جاليري، لدي استفسار بخصوص المنصة.",
 );
 
 export default function FloatingActions() {

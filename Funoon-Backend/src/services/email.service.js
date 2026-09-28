@@ -33,7 +33,7 @@ const baseTemplate = (content) => `
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>اوبال ارت | opalart.sa</title>
+<title>أوبال جاليري | opalart.sa</title>
 </head>
 <body style="margin:0;padding:0;background:#F3F0EC;font-family:'IBM Plex Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;-webkit-text-size-adjust:100%;">
   <center style="width:100%;background:#F3F0EC;">
@@ -44,7 +44,7 @@ const baseTemplate = (content) => `
             <td style="background:${BRAND.primary};padding:28px 36px 24px;border-bottom:3px solid ${BRAND.gold};">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
                 <td style="color:#FFFFFF;font-size:22px;font-weight:700;line-height:1.2;">
-                  اوبال ارت
+                  أوبال جاليري
                 </td>
                 <td align="left" dir="ltr" style="color:#EADFD8;font-size:11px;letter-spacing:1.5px;line-height:1.2;">
                   opalart.sa
@@ -61,7 +61,7 @@ const baseTemplate = (content) => `
             <td style="background:#E9E3DC;padding:22px 36px;border:1px solid ${BRAND.border};border-top:0;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
                 <td style="color:${BRAND.primary};font-size:12px;font-weight:700;line-height:1.8;">
-                  منصة اوبال ارت
+                  منصة أوبال جاليري
                 </td>
               </tr></table>
               <p style="margin:12px 0 0;color:${BRAND.muted};font-size:10px;line-height:1.7;text-align:center;">
@@ -196,11 +196,11 @@ class EmailService {
   // ═══════════════════════════════════════════════════
   static async sendWelcomeEmail(user) {
     const roleLabel = user.role === "artist" ? "فنان" : "مقتني أعمال فنية";
-    const subject = "مرحباً بك في اوبال ارت";
+    const subject = "مرحباً بك في أوبال جاليري";
     const html = baseTemplate(`
       <h2 style="margin-top:0;color:${BRAND.primary};">مرحباً ${escapeHtml(user.name)}</h2>
       <p style="color:#444;line-height:1.8;">
-        يسعدنا انضمامك إلينا كـ <strong>${roleLabel}</strong> في منصة اوبال ارت.
+        يسعدنا انضمامك إلينا كـ <strong>${roleLabel}</strong> في منصة أوبال جاليري.
       </p>
       <p style="color:#444;line-height:1.8;">
         تصفح واكتشف أرقى الأعمال الفنية السعودية.
@@ -214,7 +214,7 @@ class EmailService {
     if (process.env.NODE_ENV === "development") {
       console.log(`🔑 [DEV] OTP for ${user.email}: ${otp}`);
     }
-    const subject = "رمز تأكيد بريدك الإلكتروني في اوبال ارت";
+    const subject = "رمز تأكيد بريدك الإلكتروني في أوبال جاليري";
     const html = baseTemplate(`
       <h2 style="margin-top:0;color:${BRAND.text};">أهلاً ${escapeHtml(user.name)}</h2>
       <p style="color:#444;line-height:1.8;">
@@ -240,7 +240,7 @@ class EmailService {
       console.log(`🔑 [DEV] Reset URL for ${user.email}: ${url}`);
     }
     const safeUrl = escapeHtml(url);
-    const subject = "رابط استعادة كلمة المرور | اوبال ارت";
+    const subject = "رابط استعادة كلمة المرور | أوبال جاليري";
     const html = baseTemplate(`
       <h2 style="margin-top:0;color:${BRAND.text};">طلب استعادة كلمة المرور</h2>
       <p style="color:#444;line-height:1.8;">
@@ -625,7 +625,7 @@ class EmailService {
     ${btn(`${FRONTEND_URL}/support`, "تواصل مع الدعم", BRAND.info)}
 
     <p style="color:${BRAND.muted};font-size:12px;margin-top:24px;padding-top:16px;border-top:1px solid ${BRAND.border};text-align:center;">
-      فريق منصة اوبال ارت
+      فريق منصة أوبال جاليري
     </p>
     `,
       BRAND.warning,
@@ -806,7 +806,7 @@ class EmailService {
       <h2 style="margin-top:0;color:${BRAND.success};">مبروك يا ${escapeHtml(user.name)}</h2>
       <p style="color:#444;line-height:1.8;">
         تم تفعيل اشتراكك بنجاح في باقة <strong style="color:${BRAND.primary};">${escapeHtml(planLabel)}</strong>
-        وأصبحت الآن فناناً معتمداً في منصة اوبال ارت.
+        وأصبحت الآن فناناً معتمداً في منصة أوبال جاليري.
       </p>
 
       <div style="background:${BRAND.bg};border-right:4px solid ${BRAND.gold};border-radius:8px;padding:18px;margin:24px 0;">
@@ -913,20 +913,20 @@ class EmailService {
       return false;
     }
 
-    const subject = "تنبيه هام: حالة حسابك في منصة اوبال ارت";
+    const subject = "تنبيه هام: حالة حسابك في منصة أوبال جاليري";
     const html = baseTemplate(
       `
       <div style="text-align:center;margin-bottom:24px;">
       </div>
 
-      <h2 style="margin-top:0;color:${BRAND.danger};text-align:center;">تم حظر حسابك في منصة اوبال ارت</h2>
+      <h2 style="margin-top:0;color:${BRAND.danger};text-align:center;">تم حظر حسابك في منصة أوبال جاليري</h2>
 
       <p style="color:#444;line-height:1.8;">
         مرحباً <strong>${escapeHtml(name)}</strong>،
       </p>
 
       <p style="color:#444;line-height:1.8;">
-        نأسف لإبلاغك بأن حسابك في منصة اوبال ارت قد تم حظره.
+        نأسف لإبلاغك بأن حسابك في منصة أوبال جاليري قد تم حظره.
       </p>
 
       ${
@@ -956,7 +956,7 @@ class EmailService {
       ${btn(`${FRONTEND_URL}/support`, "تواصل مع الدعم", BRAND.danger)}
 
       <p style="color:${BRAND.muted};font-size:12px;margin-top:24px;padding-top:16px;border-top:1px solid ${BRAND.border};text-align:center;">
-        فريق منصة اوبال ارت
+        فريق منصة أوبال جاليري
       </p>
       `,
       BRAND.danger,
@@ -969,7 +969,7 @@ class EmailService {
       logger.error(`❌ sendBanNotice: invalid email type: ${typeof email}`);
       return false;
     }
-    const subject = "تم إلغاء حظر حسابك في منصة اوبال ارت";
+    const subject = "تم إلغاء حظر حسابك في منصة أوبال جاليري";
     const html = baseTemplate(
       `
       <h2 style="margin-top:0;color:${BRAND.success};">تم إلغاء حظر حسابك</h2>

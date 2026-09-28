@@ -25,7 +25,7 @@ import {
   TicketPercent,
 } from "lucide-react";
 import { getMediaUrl } from "../../utils/media";
-import logo2 from "../../assets/logo2.png";
+import opalLogoWhite from "../../assets/opalLogoWhite.png";
 
 export default function DashboardLayout() {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -144,11 +144,11 @@ export default function DashboardLayout() {
             to={ROUTES.HOME}
             className="flex items-center gap-3 overflow-hidden"
           >
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0">
+            <div className={`w-18 h-12 rounded-lg flex items-center ${isDesktopOpen ? "justify-start" : "justify-center"}  shrink-0`}>
               <img
-                src={logo2}
+                src={opalLogoWhite}
                 alt="Logo"
-                className="w-full h-full object-cover"
+                className="w-11 h-10 object-cover"
               />
             </div>
           </Link>

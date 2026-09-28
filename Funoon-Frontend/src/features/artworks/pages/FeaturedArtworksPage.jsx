@@ -70,7 +70,7 @@ export default function FeaturedArtworksPage() {
             </h2>
             <p className="text-sm text-[var(--color-on-surface-variant)] mb-6 leading-relaxed">
               ترقّ لباقة Opal Prestige وكن أول من يقدم لوحته المميزة ليراها جميع
-              زوار منصة اوبال ارت!
+              زوار منصة أوبال جاليري!
             </p>
             <Link to={ROUTES.SUBSCRIPTIONS}>
               <Button variant="primary">ترقية اشتراكك كفنان</Button>

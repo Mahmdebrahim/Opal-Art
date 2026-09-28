@@ -21,7 +21,7 @@ export default function ReviewCard({
     isHidden,
     hiddenReason,
   } = review;
-  const reviewerName = reviewer?.name || "مشتري اوبال ارت";
+  const reviewerName = reviewer?.name || "مشتري أوبال جاليري";
   const avatarUrl = getMediaUrl(reviewer?.avatar);
 
   let formattedDate = "";

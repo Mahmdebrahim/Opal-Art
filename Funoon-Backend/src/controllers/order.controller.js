@@ -933,7 +933,7 @@ const checkout = catchAsync(async (req, res, next) => {
 
     const invoiceData = {
       amount: grandTotal * 100,
-      description: `اوبال ارت - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
+      description: `أوبال جاليري - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
       successUrl: `${process.env.FRONTEND_URL}/payment/success`,
       backUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
       expired_at: new Date(Date.now() + INVOICE_DURATION).toISOString(),
@@ -1577,7 +1577,6 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
 
   return res.status(200).json({ received: true });
 });
-
 
 // @desc    Artist processes order (PAID → PROCESSING)
 // @route   PUT /api/v1/orders/:orderId/process

@@ -120,7 +120,7 @@ export default function Navbar() {
                 <img
                   src="/src/assets/opalLogo.png"
                   alt="Opal"
-                  className="h-12 w-auto transition-premium group-hover:opacity-80"
+                  className="h-13 w-auto transition-premium group-hover:opacity-80"
                 />
               </Link>
 

@@ -134,11 +134,11 @@ export default function HowItWorksPage() {
       {/* ═══ Hero ═══ */}
       <div className="bg-gradient-to-b from-[var(--color-surface-container-low)] to-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/40">
         <div className="max-w-5xl mx-auto px-5 lg:px-8 py-16 lg:py-20 text-center">
-          <span className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.2em] uppercase text-[var(--color-secondary)] bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 px-4 py-1.5 rounded-full">
+          <span className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.2em] uppercase text-[var(--color-secondary)] bg-[var(--color-secondary)]/10 border border-[var(--color-secondary)]/20 px-4 py-1.5 rounded-full mb-10">
             دليلك المختصر
           </span>
           <h1 className="font-display text-4xl md:text-6xl text-[var(--color-on-surface)] tracking-tight leading-tight mb-4">
-            كيف تعمل منصة اوبال ارت؟
+            كيف تعمل منصة أوبال جاليري؟
           </h1>
           <p className="text-[var(--color-on-surface-variant)] text-sm md:text-base max-w-2xl mx-auto leading-relaxed mb-8">
             من رفع اللوحة إلى وصولها لباب المشتري — رحلة واضحة ومبسطة نشرحها لك
@@ -343,7 +343,7 @@ export default function HowItWorksPage() {
           </h2>
           <p className="text-sm text-[var(--color-on-surface-variant)] max-w-md mx-auto leading-relaxed mb-8">
             سواء كنت فناناً يبحث عن منصته، أو مقتنياً يبحث عن قطعته القادمة —
-            اوبال ارت وجهتك.
+            أوبال جاليري وجهتك.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link to={ROUTES.SUBSCRIPTIONS}>

@@ -32,7 +32,7 @@ import { artistService } from "../../artist/services/artist.service";
 import { reviewService } from "../../reviews/services/review.service";
 import { getMediaUrl } from "../../../utils/media";
 import badge from "../../../assets/badge.png";
-import banner from "../../../assets/banner.jpg";
+import banner from "../../../assets/opalBanner.jpg";
 import { useAuthStore } from "../../../features/auth/stores/authStore";
 
 // ═══════════════════════════════════════════════════
@@ -430,7 +430,7 @@ function FeaturedArtistsSection() {
 
               <p className="text-xs text-[var(--color-on-surface-variant)] px-6 text-center leading-relaxed mt-3 line-clamp-2 min-h-[2rem]">
                 {artist.bio ||
-                  "فنان تشكيلي سعودي يعرض أعماله الأصلية عبر منصة اوبال ارت."}
+                  "فنان تشكيلي سعودي يعرض أعماله الأصلية عبر منصة أوبال جاليري."}
               </p>
 
               <div className="flex justify-center items-center gap-2 pt-4">
@@ -500,7 +500,7 @@ function WhyUsSection() {
   return (
     <section className="py-16 bg-[var(--color-surface-container-low)]/50 border-y border-[var(--color-outline-variant)]/30">
       <div className="max-w-[1280px] mx-auto px-5 lg:px-16 flex items-center flex-col">
-        <SectionHeader center eyebrow="لماذا اوبال ارت" title="ما يميزنا" />
+        <SectionHeader center eyebrow="لماذا أوبال جاليري" title="ما يميزنا" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f, i) => {
@@ -734,7 +734,7 @@ function PlatformStatsSection() {
             أرقام تتحدث
           </span>
           <h2 className="text-3xl font-display font-bold">
-            اوبال ارت بالأرقام
+            أوبال جاليري بالأرقام
           </h2>
         </div>
 
@@ -783,7 +783,7 @@ function JoinCTASection() {
             منصة الفن السعودي
           </span>
           <h2 className="text-3xl md:text-4xl font-display font-bold text-white mb-4">
-            كن جزءاً من اوبال ارت
+            كن جزءاً من أوبال جاليري
           </h2>
           <p className="text-sm md:text-base text-stone-300 leading-relaxed max-w-2xl mx-auto">
             سواء كنت فناناً يبحث عمّن يقدّر إبداعك، أو مقتنياً يبحث عن قطعة لا

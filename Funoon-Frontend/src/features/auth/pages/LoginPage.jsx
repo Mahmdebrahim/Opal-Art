@@ -120,7 +120,8 @@ export default function LoginPage() {
           تسجيل الدخول
         </h1>
         <p className="text-sm text-on-surface-variant font-body">
-          أهلاً بك مجدداً في معرض اوبال ارت! يرجى إدخال بيانات حسابك للمتابعة.
+          أهلاً بك مجدداً في معرض أوبال جاليري! يرجى إدخال بيانات حسابك
+          للمتابعة.
         </p>
       </div>
 
