@@ -1,0 +1,31 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "../../auth/stores/authStore";
+import toast from "../../../services/toast.service";
+import { subscriptionsService } from "../services/subscriptions.service";
+
+export const useMySubscription = () => {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  return useQuery({
+    queryKey: ["mySubscription"],
+    queryFn: subscriptionsService.getMySubscription,
+    enabled: isAuthenticated,
+    staleTime: 0,
+    refetchOnMount: true,
+    retry: false,
+  });
+};
+
+export function usePurchaseSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (planId) => subscriptionsService.purchase(planId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mySubscription"] });
+    },
+    onError: (error) => {
+      toast.error(error?.message || "فشل إنشاء عملية الاشتراك");
+    },
+  });
+}

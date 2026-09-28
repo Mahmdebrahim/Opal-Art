@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Env
+.env
+.env.local
+.env.development
+.env.production
+*.local
+
+# Build
+dist/
+dist-ssr
+build/
+.next/
+.vite/
+out/
+
+# Logs & Uploads
+logs/
+uploads/
+*.log
+npm-debug.log*
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+
+# Testing
+coverage/
+.nyc_output/

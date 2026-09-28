@@ -1,0 +1,707 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Libre Caslon Text", "Amiri", serif;
+  --font-body: "Plus Jakarta Sans", "IBM Plex Sans Arabic", sans-serif;
+
+  /* Brand Colors */
+  --color-primary: #3d0006; /* Nabeeti (Deep Maroon) */
+  --color-secondary: #775a19; /* Dahabi (Elegant Gold) */
+  --color-tertiary: #191a19; /* Ink Black */
+
+  /* Material/Gallery Surface Colors */
+  --color-surface: #fcf9f8;
+  --color-surface-dim: #dcd9d9;
+  --color-surface-bright: #fcf9f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0eded;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-on-surface: #1c1b1b;
+  --color-on-surface-variant: #554241;
+  --color-inverse-surface: #313030;
+  --color-inverse-on-surface: #f3f0ef;
+  --color-outline: #887271;
+  --color-outline-variant: #dbc0bf;
+  --color-surface-tint: #9d4042;
+  
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* Legacy brand support (mapping to new ones) */
+  --color-brand-50: var(--color-surface-container-low);
+  --color-brand-100: #fed488;
+  --color-brand-500: #775a19;
+  --color-brand-600: #3d0006;
+  --color-brand-700: #260004;
+}
+@media print {
+  /* بيخفي الـ sidebar والـ buttons لما يطبع */
+  /* بيخلي الصفحة عمود واحد */
+  /* بيحول الألوان لأبيض وأسود */
+}
+
+@media screen {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* smooth scroll للـ jump links */
+  html {
+    scroll-padding-top: 6rem;
+  }
+
+  /* عشان الـ section ما يختفيش تحت الـ navbar */
+}
+@layer base {
+  html, body {
+    font-family: var(--font-body);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Font styling utilities */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+
+  /* Premium animations and micro-interactions */
+  .transition-premium {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Glassmorphism utility */
+  .glass-card {
+    background: rgba(252, 249, 248, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(136, 114, 113, 0.15);
+  }
+
+  .glass-card-dark {
+    background: rgba(25, 26, 25, 0.85);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-container-low);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-dim);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+  }
+    .btn-underline-effect::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--color-secondary);
+      /* Dahabi Gold */
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  
+    .btn-underline-effect:hover::after {
+      transform: scaleX(1);
+    }
+
+        .glass-card {
+          background: rgba(252, 249, 248, 0.75);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(136, 114, 113, 0.15);
+        }
+    
+        .transition-premium {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+}
+
+/* ── Button Fill Hover Effects ── */
+
+/* Fill من اليمين للشمال (RTL-friendly) */
+.btn-fill-rtl {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.btn-fill-rtl::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary);
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+
+.btn-fill-rtl:hover::before {
+  transform: translateX(0);
+}
+
+/* Fill من تحت لفوق */
+.btn-fill-up {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.btn-fill-up::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary);
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+
+.btn-fill-up:hover::before {
+  transform: translateY(0);
+}
+
+/* Fill من اليسار للشمال */
+.btn-fill-ltr {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.btn-fill-ltr::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary);
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+
+.btn-fill-ltr:hover::before {
+  transform: translateX(0);
+}
+
+/* ═══════════════════════════════════════════════════
+   Moyasar - Overrides (نهائي وبسيط)
+   ═══════════════════════════════════════════════════ */
+
+.moyasar-wrapper {
+  width: 100%;
+  font-family: "IBM Plex Sans Arabic", "Plus Jakarta Sans", sans-serif;
+}
+
+.moyasar-wrapper,
+.moyasar-wrapper * {
+  box-sizing: border-box;
+}
+
+/* ─── 1. حل الضيق: مدّد كل الـ containers ─── */
+.moyasar-wrapper.mysr-form-fixedWidth,
+.moyasar-wrapper.mysr-form-moyasarForm,
+.moyasar-wrapper .mysr-form-method,
+.moyasar-wrapper .mysr-form-method form,
+.moyasar-wrapper .mysr-form-inputGroup {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* ─── 2. الـ labels ─── */
+.moyasar-wrapper label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: #78716c !important;
+  text-align: right !important;
+}
+
+/* ─── 3. الـ inputs (styling بس، من غير layout) ─── */
+.moyasar-wrapper input {
+  border: 1px solid var(--color-outline-variant, #e7e5e4) !important;
+  border-radius: 0 !important;
+  background: var(--color-surface-container-low, #f5f5f4) !important;
+  font-family: inherit !important;
+  font-size: 15px !important;
+  color: #1c1917 !important;
+  box-shadow: none !important;
+}
+
+.moyasar-wrapper input:focus {
+  border-color: var(--color-primary, #7c2d12) !important;
+  background: #fff !important;
+  outline: none !important;
+}
+
+.moyasar-wrapper input::placeholder {
+  color: #a8a29e !important;
+}
+
+/* ─── 4. زرار الدفع ─── */
+.moyasar-wrapper .mysr-form-button,
+.moyasar-wrapper button[type="submit"],
+.moyasar-wrapper button {
+  background: var(--color-primary, #7c2d12) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 0 !important;
+  font-family: inherit !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  padding: 16px 24px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: opacity 0.25s ease !important;
+}
+
+.moyasar-wrapper button:hover {
+  opacity: 0.92 !important;
+}
+
+/* ─── 5. الفوتر + رسائل الـ validation ─── */
+.moyasar-wrapper .mysr-form-footer {
+  margin-top: 16px !important;
+  text-align: center !important;
+  font-size: 11px !important;
+  color: #a8a29e !important;
+}
+
+.moyasar-wrapper [class*="error"],
+.moyasar-wrapper [class*="required"],
+.moyasar-wrapper [class*="Error"] {
+  color: #dc2626 !important;
+  font-size: 11px !important;
+}
+
+/* ─── 6. شيل الـ rounded corners الافتراضية بس ─── */
+.moyasar-wrapper input,
+.moyasar-wrapper button {
+  border-radius: 0 !important;
+}
+
+/* ─── الشاشات الكبيرة: أكبر شوية ─── */
+@media (min-width: 1024px) {
+  .moyasar-wrapper input {
+    font-size: 16px !important;
+  }
+
+  .moyasar-wrapper button {
+    font-size: 17px !important;
+    padding: 18px 24px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   Marquee Seamless Scroll (RTL & LTR Compatible)
+   ═══════════════════════════════════════════════════ */
+@keyframes marqueeRTL {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(calc(50% - 0.75rem)); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeRTL var(--marquee-duration, 10s) linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
+
+.funoon-toast-viewport {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  display: flex;
+  width: min(24rem, calc(100vw - 2rem));
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.funoon-toast {
+  position: relative;
+  display: flex;
+  min-height: 4.5rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  overflow: hidden;
+  padding: 1rem 0.875rem 1rem 1rem;
+  border: 1px solid rgba(61, 0, 6, 0.14);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 14px 34px rgba(61, 0, 6, 0.13), 0 2px 8px rgba(61, 0, 6, 0.06);
+  color: var(--color-on-surface);
+  animation: funoon-toast-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.funoon-toast__accent {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.25rem;
+  background: var(--color-primary);
+}
+
+.funoon-toast__icon {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(197, 168, 128, 0.55);
+  border-radius: 9999px;
+  color: var(--color-primary);
+}
+
+.funoon-toast__body {
+  min-width: 0;
+  flex: 1;
+  padding-top: 0.05rem;
+}
+
+.funoon-toast__label {
+  margin: 0 0 0.15rem;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.funoon-toast__message {
+  margin: 0;
+  color: var(--color-on-surface-variant);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.funoon-toast__action {
+  margin-top: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.funoon-toast__close {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.25rem -0.25rem 0 0;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.funoon-toast__close:hover {
+  background: var(--color-surface-container-low);
+  color: var(--color-primary);
+}
+
+.funoon-toast__spinner {
+  animation: funoon-toast-spin 900ms linear infinite;
+}
+
+@keyframes funoon-toast-in {
+  from {
+    opacity: 0;
+    transform: translate3d(1rem, -0.5rem, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes funoon-toast-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .funoon-toast-viewport {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: calc(100vw - 1.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .funoon-toast,
+  .funoon-toast__spinner {
+    animation: none;
+  }
+}
+
+.gallery-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  overflow: hidden;
+  background: transparent;
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.gallery-intro__panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.5%;
+  background: var(--color-primary);
+  transition: transform 760ms 220ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.gallery-intro__panel--right {
+  right: 0;
+}
+
+.gallery-intro__panel--left {
+  left: 0;
+}
+
+.gallery-intro--leaving .gallery-intro__panel--right {
+  transform: translateX(100%);
+}
+
+.gallery-intro--leaving .gallery-intro__panel--left {
+  transform: translateX(-100%);
+}
+
+.gallery-intro__frame {
+  position: absolute;
+  inset: 2.25rem;
+  border: 1px solid rgba(197, 168, 128, 0.38);
+  pointer-events: none;
+  animation: gallery-intro-frame-in 900ms 180ms ease-out both;
+  transition: opacity 220ms ease;
+}
+
+.gallery-intro--leaving .gallery-intro__frame {
+  opacity: 0;
+}
+
+.gallery-intro__content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-secondary);
+  pointer-events: none;
+  transition: opacity 240ms ease, transform 420ms ease;
+}
+
+.gallery-intro__eyebrow {
+  margin: 0 0 1.75rem;
+  color: rgba(252, 249, 248, 0.62);
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  animation: gallery-intro-copy-in 600ms 120ms ease-out both;
+}
+
+.gallery-intro__logo {
+  width: clamp(10rem, 24vw, 15rem);
+  height: auto;
+  animation: gallery-intro-logo-in 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gallery-intro__rule {
+  display: block;
+  width: 0;
+  height: 1px;
+  margin-top: 1.5rem;
+  background: var(--color-secondary);
+  animation: gallery-intro-rule-in 650ms 420ms ease-out forwards;
+}
+
+.gallery-intro__title {
+  margin: 1.35rem 0 0;
+  color: rgba(252, 249, 248, 0.94);
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 400;
+  line-height: 1.35;
+  animation: gallery-intro-copy-in 650ms 560ms ease-out both;
+}
+
+.gallery-intro__caption {
+  margin: 0.6rem 0 0;
+  color: rgba(252, 249, 248, 0.72);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  animation: gallery-intro-copy-in 650ms 700ms ease-out both;
+}
+
+.gallery-intro__progress {
+  width: min(12rem, 34vw);
+  height: 1px;
+  margin-top: 2.5rem;
+  overflow: hidden;
+  background: rgba(197, 168, 128, 0.22);
+  animation: gallery-intro-copy-in 500ms 800ms ease-out both;
+}
+
+.gallery-intro__progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--color-secondary);
+  transform: scaleX(0);
+  transform-origin: right;
+  animation: gallery-intro-progress-in 1900ms 80ms linear forwards;
+}
+
+.gallery-intro__loading {
+  margin: 0.75rem 0 0;
+  color: rgba(252, 249, 248, 0.52);
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  animation: gallery-intro-copy-in 500ms 850ms ease-out both;
+}
+
+.gallery-intro__skip {
+  position: absolute;
+  right: 3.5rem;
+  bottom: 3.25rem;
+  z-index: 2;
+  padding: 0.35rem 0;
+  border: 0;
+  border-bottom: 1px solid rgba(197, 168, 128, 0.55);
+  background: transparent;
+  color: rgba(252, 249, 248, 0.75);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.gallery-intro__skip:hover {
+  color: var(--color-secondary);
+  border-color: var(--color-secondary);
+}
+
+.gallery-intro--leaving .gallery-intro__content,
+.gallery-intro--leaving .gallery-intro__skip {
+  opacity: 0;
+  transform: translateY(-0.35rem) scale(0.97);
+}
+
+@keyframes gallery-intro-logo-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gallery-intro-rule-in {
+  to { width: 4.5rem; }
+}
+
+@keyframes gallery-intro-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gallery-intro-progress-in {
+  to { transform: scaleX(1); }
+}
+
+@keyframes gallery-intro-frame-in {
+  from { opacity: 0; transform: scale(1.03); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  .gallery-intro__frame {
+    inset: 1.25rem;
+  }
+
+  .gallery-intro__skip {
+    right: 1.75rem;
+    bottom: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery-intro__panel,
+  .gallery-intro__frame,
+  .gallery-intro__content {
+    transition-duration: 180ms;
+    transition-delay: 0ms;
+  }
+
+  .gallery-intro__logo,
+  .gallery-intro__rule,
+  .gallery-intro__frame,
+  .gallery-intro__eyebrow,
+  .gallery-intro__title,
+  .gallery-intro__caption,
+  .gallery-intro__progress,
+  .gallery-intro__loading {
+    animation: none;
+  }
+
+  .gallery-intro__rule {
+    width: 4.5rem;
+  }
+
+  .gallery-intro__progress span {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
