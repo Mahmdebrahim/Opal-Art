@@ -33,13 +33,19 @@ app.use(
   }),
 );
 
-const allowedOrigins = process.env.CORS_ORIGINS.split(",").map((s) => s.trim());
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
+  : ["https://opal-art.vercel.app", "http://localhost:5173"];
 
+// 2. إعداد الـ CORS Middleware
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) cb(null, true);
-      else cb(new Error("CORS not allowed"));
+      if (!origin || allowedOrigins.includes(origin)) {
+        cb(null, true);
+      } else {
+        cb(new Error("CORS not allowed"));
+      }
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
