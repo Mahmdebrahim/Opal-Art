@@ -1,13 +1,19 @@
 const app = require("../src/app");
 const { connectDB } = require("../src/config");
 
-// Middleware لضمان الاتصال بقاعدة البيانات قبل كل طلب في Vercel
 module.exports = async (req, res) => {
   try {
+    // 1. ضمان الاتصال التام بالداتابيز أولاً عشان تنجح خطوة mongoose.connection.readyState === 1
     await connectDB();
+
+    // 2. تمرير الطلب لـ Express
     return app(req, res);
   } catch (error) {
-    console.error("Database connection failed in Vercel:", error);
-    return res.status(500).json({ error: "Database connection failed" });
+    console.error("Vercel DB Connection Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to connect to database on Vercel",
+      error: error.message,
+    });
   }
 };
