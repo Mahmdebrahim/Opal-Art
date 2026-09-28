@@ -37,7 +37,6 @@ const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
   : ["https://opal-art.vercel.app", "http://localhost:5173"];
 
-// 2. إعداد الـ CORS Middleware
 app.use(
   cors({
     origin: (origin, cb) => {
