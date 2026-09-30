@@ -123,11 +123,11 @@ export default function ArtistOrdersPage() {
           ))}
         </div>
 
-        {isError && <GenericErrorPage onRetry={refetch} />}
-
         {/* Orders List */}
         {isLoading ? (
           <LoadingState />
+        ) : isError ? (
+          <GenericErrorPage onRetry={refetch} />
         ) : orders.length === 0 ? (
           <div className="py-20 text-center">
             <Package
