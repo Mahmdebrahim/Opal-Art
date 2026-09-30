@@ -480,7 +480,7 @@ export default function ArtworkCard({
         <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-3">
           <p className="text-xs text-amber-800 leading-relaxed">
             <strong>السبب:</strong> كل طلب يجب أن يحتوي على أعمال من فنان واحد
-            فقط، لأن كل فنان يشحن من موقع مختلف ويتم حسابه بشكل مستقل.
+            فقط. إذا كنت ترغب في إضافة أعمال من فنان آخر، يجب مسح السلة الحالية أولاً.
           </p>
         </div>
 

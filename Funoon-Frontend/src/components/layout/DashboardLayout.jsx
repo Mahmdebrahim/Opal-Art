@@ -1,7 +1,11 @@
 import { useState } from "react";
+
 import { Outlet, Link, NavLink, Navigate, useLocation } from "react-router-dom";
+
 import { useAuthStore } from "../../features/auth/stores/authStore";
+
 import { ROUTES } from "../../config/routes";
+
 import {
   Palette,
   LayoutDashboard,
@@ -24,11 +28,14 @@ import {
   Settings,
   TicketPercent,
 } from "lucide-react";
+
 import { getMediaUrl } from "../../utils/media";
+
 import opalLogoWhite from "../../assets/opalLogoWhite.png";
 
 export default function DashboardLayout() {
   const { user, isAuthenticated, logout } = useAuthStore();
+
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const [isDesktopOpen, setIsDesktopOpen] = useState(() => {
@@ -63,35 +70,100 @@ export default function DashboardLayout() {
       icon: LayoutDashboard,
       end: true,
     },
-    { to: ROUTES.MY_ARTWORKS, label: "لوحاتي", icon: Image },
-    { to: ROUTES.ARTIST_ORDERS, label: "الطلبات الواردة", icon: ShoppingBag },
-    { to: ROUTES.WALLET, label: "المحفظة والسحب", icon: Wallet },
-    { to: ROUTES.SUBSCRIPTION, label: "اشتراكي", icon: Sparkles },
+    {
+      to: ROUTES.MY_ARTWORKS,
+      label: "لوحاتي",
+      icon: Image,
+    },
+    {
+      to: ROUTES.ARTIST_ORDERS,
+      label: "الطلبات الواردة",
+      icon: ShoppingBag,
+    },
+    {
+      to: ROUTES.WALLET,
+      label: "المحفظة والسحب",
+      icon: Wallet,
+    },
+    {
+      to: ROUTES.SUBSCRIPTION,
+      label: "اشتراكي",
+      icon: Sparkles,
+    },
     {
       to: ROUTES.ARTIST_ANALYTICS,
       label: "الإحصائيات التفصيلية",
       icon: BarChart3,
     },
-    { to: ROUTES.SETTINGS, label: "الإعدادات", icon: Settings },
+    {
+      to: ROUTES.SETTINGS,
+      label: "الإعدادات",
+      icon: Settings,
+    },
   ];
 
   const adminLinks = [
-    { to: ROUTES.ADMIN, label: "نظرة عامة", icon: LayoutDashboard, end: true },
-    { to: ROUTES.ADMIN_FINANCE, label: "المالية", icon: BarChart3 },
+    {
+      to: ROUTES.ADMIN,
+      label: "نظرة عامة",
+      icon: LayoutDashboard,
+      end: true,
+    },
+    {
+      to: ROUTES.ADMIN_FINANCE,
+      label: "المالية",
+      icon: BarChart3,
+    },
     {
       to: ROUTES.ADMIN_TRANSACTIONS,
       label: "كل المعاملات",
       icon: ArrowLeftRight,
     },
-    { to: ROUTES.ADMIN_WITHDRAWALS, label: "طلبات السحب", icon: Wallet },
-    { to: ROUTES.ADMIN_ORDERS, label: "إدارة الطلبات", icon: ShoppingBag },
-    { to: ROUTES.ADMIN_ARTISTS, label: "إدارة الفنانين", icon: Palette },
-    { to: ROUTES.ADMIN_ARTWORKS, label: "إدارة اللوحات", icon: Image },
-    { to: ROUTES.ADMIN_USERS, label: "إدارة المستخدمين", icon: Users },
-    { to: ROUTES.ADMIN_SUPPORT, label: "تذاكر الدعم", icon: HeadphonesIcon },
-    { to: ROUTES.ADMIN_COUPONS, label: "كوبونات الخصم", icon: TicketPercent },
-    { to: ROUTES.ADMIN_AUDIT_LOGS, label: "سجل العمليات", icon: ScrollText },
-    { to: ROUTES.SETTINGS, label: "الإعدادات", icon: Settings },
+    {
+      to: ROUTES.ADMIN_WITHDRAWALS,
+      label: "طلبات السحب",
+      icon: Wallet,
+    },
+    {
+      to: ROUTES.ADMIN_ORDERS,
+      label: "إدارة الطلبات",
+      icon: ShoppingBag,
+    },
+    {
+      to: ROUTES.ADMIN_ARTISTS,
+      label: "إدارة الفنانين",
+      icon: Palette,
+    },
+    {
+      to: ROUTES.ADMIN_ARTWORKS,
+      label: "إدارة اللوحات",
+      icon: Image,
+    },
+    {
+      to: ROUTES.ADMIN_USERS,
+      label: "إدارة المستخدمين",
+      icon: Users,
+    },
+    {
+      to: ROUTES.ADMIN_SUPPORT,
+      label: "تذاكر الدعم",
+      icon: HeadphonesIcon,
+    },
+    {
+      to: ROUTES.ADMIN_COUPONS,
+      label: "كوبونات الخصم",
+      icon: TicketPercent,
+    },
+    {
+      to: ROUTES.ADMIN_AUDIT_LOGS,
+      label: "سجل العمليات",
+      icon: ScrollText,
+    },
+    {
+      to: ROUTES.SETTINGS,
+      label: "الإعدادات",
+      icon: Settings,
+    },
   ];
 
   const activeLinks = isAdmin ? adminLinks : artistLinks;
@@ -100,6 +172,7 @@ export default function DashboardLayout() {
   const renderLinks = (onClick, showLabels) =>
     activeLinks.map((link) => {
       const Icon = link.icon;
+
       return (
         <NavLink
           key={link.to}
@@ -118,6 +191,7 @@ export default function DashboardLayout() {
           }
         >
           <Icon className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+
           {showLabels && (
             <span className="whitespace-nowrap">{link.label}</span>
           )}
@@ -127,7 +201,7 @@ export default function DashboardLayout() {
 
   return (
     <div
-      className="min-h-screen bg-[var(--color-surface)] font-body flex"
+      className="min-h-screen bg-[var(--color-surface)] font-body flex overflow-x-hidden"
       dir="rtl"
     >
       {/* ═══ Desktop Sidebar ═══ */}
@@ -138,13 +212,19 @@ export default function DashboardLayout() {
       >
         {/* Logo */}
         <div
-          className={`h-14 flex items-center border-b border-neutral-800 shrink-0 ${isDesktopOpen ? "px-4" : "justify-center"}`}
+          className={`h-14 flex items-center border-b border-neutral-800 shrink-0 ${
+            isDesktopOpen ? "px-4" : "justify-center"
+          }`}
         >
           <Link
             to={ROUTES.HOME}
             className="flex items-center gap-3 overflow-hidden"
           >
-            <div className={`w-18 h-12 rounded-lg flex items-center ${isDesktopOpen ? "justify-start" : "justify-center"}  shrink-0`}>
+            <div
+              className={`w-18 h-12 rounded-lg flex items-center ${
+                isDesktopOpen ? "justify-start" : "justify-center"
+              } shrink-0`}
+            >
               <img
                 src={opalLogoWhite}
                 alt="Logo"
@@ -156,7 +236,9 @@ export default function DashboardLayout() {
 
         {/* User Info */}
         <div
-          className={`py-4 border-b border-neutral-800 flex items-center overflow-hidden shrink-0 ${isDesktopOpen ? "px-4 gap-3" : "justify-center"}`}
+          className={`py-4 border-b border-neutral-800 flex items-center overflow-hidden shrink-0 ${
+            isDesktopOpen ? "px-4 gap-3" : "justify-center"
+          }`}
         >
           <div className="w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center overflow-hidden shrink-0">
             {user?.avatar ? (
@@ -169,13 +251,15 @@ export default function DashboardLayout() {
               <User className="w-5 h-5 text-neutral-400" />
             )}
           </div>
+
           {isDesktopOpen && (
             <div className="overflow-hidden whitespace-nowrap">
               <h4 className="text-sm font-semibold text-white truncate">
                 {user?.name}
               </h4>
+
               <span className="text-xs text-[var(--color-secondary)]">
-                {isAdmin ?? "مدير المنصة"}
+                {isAdmin ? "مدير المنصة" : "فنان"}
               </span>
             </div>
           )}
@@ -196,6 +280,7 @@ export default function DashboardLayout() {
             }`}
           >
             <LogOut className="w-5 h-5 shrink-0" strokeWidth={1.5} />
+
             {isDesktopOpen && (
               <span className="whitespace-nowrap">تسجيل الخروج</span>
             )}
@@ -203,6 +288,7 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
+      {/* Desktop Sidebar Spacer */}
       <div
         className={`hidden lg:block shrink-0 transition-all duration-300 ${
           isDesktopOpen ? "w-64" : "w-[76px]"
@@ -210,10 +296,11 @@ export default function DashboardLayout() {
       />
 
       {/* ═══ Main Content ═══ */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         {/* Top Header */}
         <header className="h-16 bg-[var(--color-surface)] border-b border-[var(--color-outline-variant)]/40 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-30">
           <div className="flex items-center gap-3">
+            {/* Mobile Menu */}
             <button
               onClick={() => setIsMobileOpen(true)}
               className="lg:hidden p-2 rounded-lg text-[var(--color-on-surface-variant)] hover:bg-[var(--color-surface-container-low)] transition-colors"
@@ -221,6 +308,7 @@ export default function DashboardLayout() {
               <Menu className="w-5 h-5" />
             </button>
 
+            {/* Desktop Sidebar Toggle */}
             <button
               onClick={toggleDesktop}
               title={isDesktopOpen ? "طي القائمة" : "فتح القائمة"}
@@ -243,17 +331,18 @@ export default function DashboardLayout() {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/40 transition-all duration-200"
           >
             <span>تصفح الموقع</span>
+
             <ArrowLeft className="w-3.5 h-3.5" />
           </Link>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>
 
-      {/* ═══ Mobile Drawer ═══ */}
+      {/* ═══ Mobile Drawer Overlay ═══ */}
       {isMobileOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
@@ -261,11 +350,15 @@ export default function DashboardLayout() {
         />
       )}
 
+      {/* ═══ Mobile Drawer ═══ */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-64 bg-[var(--color-inverse-surface)] text-neutral-300 flex flex-col transform transition-transform duration-300 lg:hidden ${
-          isMobileOpen ? "translate-x-0" : "translate-x-full"
+        className={`fixed inset-y-0 right-0 z-50 w-64 max-w-[85vw] bg-[var(--color-inverse-surface)] text-neutral-300 flex flex-col transform transition-transform duration-300 overflow-hidden lg:hidden ${
+          isMobileOpen
+            ? "translate-x-0 pointer-events-auto"
+            : "translate-x-full pointer-events-none"
         }`}
       >
+        {/* Drawer Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-neutral-800 shrink-0">
           <button
             onClick={() => setIsMobileOpen(false)}
@@ -275,7 +368,8 @@ export default function DashboardLayout() {
           </button>
         </div>
 
-        <div className="px-4 py-4 border-b border-neutral-800 flex items-center gap-3">
+        {/* User Info */}
+        <div className="px-4 py-4 border-b border-neutral-800 flex items-center gap-3 shrink-0">
           <div className="w-10 h-10 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center overflow-hidden shrink-0">
             {user?.avatar ? (
               <img
@@ -287,19 +381,25 @@ export default function DashboardLayout() {
               <User className="w-5 h-5 text-neutral-400" />
             )}
           </div>
-          <div>
+
+          <div className="min-w-0">
             <h4 className="text-sm font-semibold text-white truncate">
               {user?.name}
             </h4>
-            <span className="text-xs text-[var(--color-secondary)]"></span>
+
+            <span className="text-xs text-[var(--color-secondary)]">
+              {isAdmin ? "مدير المنصة" : "فنان"}
+            </span>
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
           {renderLinks(() => setIsMobileOpen(false), true)}
         </nav>
 
-        <div className="p-3 border-t border-neutral-800">
+        {/* Logout */}
+        <div className="p-3 border-t border-neutral-800 shrink-0">
           <button
             onClick={() => {
               setIsMobileOpen(false);
@@ -308,6 +408,7 @@ export default function DashboardLayout() {
             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-400 hover:bg-neutral-800 hover:text-red-400 transition-all duration-200"
           >
             <LogOut className="w-5 h-5" strokeWidth={1.5} />
+
             <span>تسجيل الخروج</span>
           </button>
         </div>

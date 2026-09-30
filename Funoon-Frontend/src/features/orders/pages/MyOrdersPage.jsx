@@ -424,82 +424,85 @@ function OrderCard({
 
       {/* ─── Main Content ─── */}
       <div className="p-6">
-        <div className="flex gap-6">
+        <div className=" flex flex-col md:flex-row md:justify-between gap-6">
           {/* Images Stack */}
-          <div className="relative shrink-0">
-            <div className="w-28 h-32 bg-surface-container overflow-hidden">
-              {allImages[0] && (
-                <img
-                  src={allImages[0]}
-                  alt=""
-                  crossOrigin="anonymous"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              )}
-            </div>
 
-            {/* Stack indicator */}
-            {allImages.length > 1 && (
-              <div className="absolute -bottom-2 -left-2 w-28 h-32 bg-surface-container-high -z-10" />
-            )}
-            {allImages.length > 1 && (
-              <div className="absolute -bottom-1 -left-1 w-28 h-32 bg-surface-container -z-10" />
-            )}
-
-            {/* Count badge */}
-            {totalItems > 1 && (
-              <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary text-white text-xs font-body font-bold flex items-center justify-center shadow-lg">
-                +{totalItems - 1}
-              </div>
-            )}
-          </div>
-
-          {/* Details */}
-          <div className="flex-1 min-w-0 flex flex-col justify-between">
-            <div>
-              {/* Title */}
-              <h3 className="font-display text-xl text-on-surface leading-tight mb-2 line-clamp-1">
-                {order.items?.[0]?.artwork?.title || "عمل فني"}
-              </h3>
-
-              {/* Artist */}
-              {order.artist && (
-                <p className="text-sm font-body text-on-surface-variant mb-3">
-                  من أعمال{" "}
-                  <span className="text-on-surface font-medium">
-                    {order.artist.name}
-                  </span>
-                </p>
-              )}
-
-              {/* Shipping Company */}
-              {order.shipping?.deliveryCompanyName && (
-                <div className="flex items-center gap-2 text-xs font-body text-on-surface-variant">
-                  <Truck
-                    className="w-3.5 h-3.5 text-secondary"
-                    strokeWidth={1.5}
+          <div className="flex gap-5">
+            <div className="relative shrink-0">
+              <div className="w-28 h-32 bg-surface-container overflow-hidden">
+                {allImages[0] && (
+                  <img
+                    src={allImages[0]}
+                    alt=""
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <span>{order.shipping.deliveryCompanyName}</span>
-                  {order.shipping.estimatedDeliveryDate && (
-                    <span className="text-on-surface-variant/60">
-                      • التوصيل المتوقع:{" "}
-                      {formatDate(order.shipping.estimatedDeliveryDate)}
-                    </span>
-                  )}
+                )}
+              </div>
+
+              {/* Stack indicator */}
+              {allImages.length > 1 && (
+                <div className="absolute -bottom-2 -left-2 w-28 h-32 bg-surface-container-high -z-10" />
+              )}
+              {allImages.length > 1 && (
+                <div className="absolute -bottom-1 -left-1 w-28 h-32 bg-surface-container -z-10" />
+              )}
+
+              {/* Count badge */}
+              {totalItems > 1 && (
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary text-white text-xs font-body font-bold flex items-center justify-center shadow-lg">
+                  +{totalItems - 1}
                 </div>
               )}
             </div>
 
-            {/* Items count (mobile) */}
-            {totalItems > 1 && (
-              <p className="text-xs font-body text-on-surface-variant mt-2 sm:hidden">
-                + {totalItems - 1} قطع أخرى
-              </p>
-            )}
+            {/* Details */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between">
+              <div>
+                {/* Title */}
+                <h3 className="font-display text-xl text-on-surface leading-tight mb-2 line-clamp-1">
+                  {order.items?.[0]?.artwork?.title || "عمل فني"}
+                </h3>
+
+                {/* Artist */}
+                {order.artist && (
+                  <p className="text-sm font-body text-on-surface-variant mb-3">
+                    من أعمال{" "}
+                    <span className="text-on-surface font-medium">
+                      {order.artist.name}
+                    </span>
+                  </p>
+                )}
+
+                {/* Shipping Company */}
+                {order.shipping?.deliveryCompanyName && (
+                  <div className="flex items-center gap-2 text-xs font-body text-on-surface-variant">
+                    <Truck
+                      className="w-3.5 h-3.5 text-secondary"
+                      strokeWidth={1.5}
+                    />
+                    <span>{order.shipping.deliveryCompanyName}</span>
+                    {order.shipping.estimatedDeliveryDate && (
+                      <span className="text-on-surface-variant/60">
+                        • التوصيل المتوقع:{" "}
+                        {formatDate(order.shipping.estimatedDeliveryDate)}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Items count (mobile) */}
+              {totalItems > 1 && (
+                <p className="text-xs font-body text-on-surface-variant mt-2 sm:hidden">
+                  + {totalItems - 1} قطع أخرى
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Price + Actions */}
-          <div className="shrink-0 flex flex-col items-end justify-between">
+          <div className="shrink-0 flex flex-row-reverse md:flex-col items-end justify-between">
             {/* Price */}
             <div className="text-left">
               <p className="text-[10px] font-body font-semibold tracking-[0.15em] uppercase text-on-surface-variant mb-1">

@@ -101,7 +101,7 @@ export default function AdminOverviewPage() {
   const maxCityOrders = growth?.topCities?.[0]?.orders || 1;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* ═══ Header + Period Selector ═══ */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>

@@ -561,11 +561,9 @@ const checkout = catchAsync(async (req, res, next) => {
   // ═══════════════════════════════════════════════════
   const ordersByArtist = new Map();
 
-  // ✅ احسب الـ quota remaining مرة واحدة
   const artistId = cart.items[0].artist._id.toString();
   const quotaRemaining = checkFreeShippingQuota(cart.items[0].artist);
 
-  // ✅ لو في quota remaining + كل اللوحات standard → شحن مجاني (شحنة واحدة بس)
   const allStandard = cart.items.every(
     (i) => i.artwork.shippingType === "standard",
   );
@@ -584,7 +582,6 @@ const checkout = catchAsync(async (req, res, next) => {
     `💰 Shipping decision: platformShippingExpense=${platformShippingExpense}, buyerPaysShipping=${buyerPaysShipping}`,
   );
 
-  // ✅ بناء الـ order (شحنة واحدة لكل الفنانين)
   for (const item of cart.items) {
     const artwork = item.artwork;
     const artist = item.artist;
