@@ -17,11 +17,16 @@
       "dest": "Funoon-Backend/server.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/assets/(.*)",
+      "dest": "Funoon-Frontend/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|json|webp|woff|woff2))",
+      "dest": "Funoon-Frontend/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "Funoon-Frontend/index.html"
+      "dest": "Funoon-Frontend/"
     }
   ]
 }
