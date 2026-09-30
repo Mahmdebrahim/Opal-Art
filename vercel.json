@@ -17,8 +17,11 @@
       "dest": "Funoon-Backend/server.js"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "Funoon-Frontend/$1"
+      "dest": "Funoon-Frontend/index.html"
     }
   ]
 }
