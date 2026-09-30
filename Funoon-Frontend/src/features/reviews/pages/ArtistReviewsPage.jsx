@@ -126,7 +126,6 @@ export default function ArtistReviewsPage() {
     queryFn: () => artistService.getArtistProfile(id),
     enabled: !!id,
   });
-  console.log(artistData);
   const artist = artistData || {};
   const avatarUrl = artist?.avatar ? getMediaUrl(artist.avatar) : null;
 

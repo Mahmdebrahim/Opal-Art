@@ -6,7 +6,7 @@
 //   summary: { subtotal: 0, totalShipping: 0, total: 0 },
 //   isLoading: false,
 //   isInCartMap: {},
-//   _syncing: false, // ✅ guard لمنع أكتر من polling في نفس الوقت
+//   _syncing: false, 
 
 //   fetchCart: async () => {
 //     set({ isLoading: true });
@@ -39,8 +39,6 @@
 //       isLoading: false,
 //     }),
 
-//   // ✅ جديد: يستنى الـ webhook يفضي السلة في الـ backend، بعدين يحدث الـ UI
-//   // شغال في الـ store level → بيكمل حتى لو الـ user ساب صفحة الـ success
 //   syncAfterPayment: async () => {
 //     if (get()._syncing) return; // منع تزامن أكتر من polling
 //     set({ _syncing: true });
@@ -53,7 +51,7 @@
 
 //       while (attempts < maxAttempts) {
 //         await get().fetchCart();
-//         if (get().items.length === 0) break; // ✅ السلة فضيت في الـ backend
+//         if (get().items.length === 0) break; 
 //         attempts += 1;
 //         if (attempts < maxAttempts) {
 //           await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -124,9 +122,10 @@ import { cartService } from "../services/cart.service";
 
 export const useCartStore = create((set, get) => ({
   items: [],
-  artist: null, // ✅ جديد: معلومات الفنان الحالي للسلة
+  artist: null, 
   summary: { subtotal: 0, totalShipping: 0, total: 0 },
   isLoading: false,
+  isError: false,
   isInCartMap: {},
   _syncing: false,
 
@@ -141,14 +140,15 @@ export const useCartStore = create((set, get) => ({
       });
       set({
         items: cart.items || [],
-        artist: cart.artist || null, // ✅ جديد
+        artist: cart.artist || null,
         summary: cart.summary || { subtotal: 0, totalShipping: 0, total: 0 },
         isInCartMap,
         isLoading: false,
+        isError: false, 
       });
     } catch (error) {
-      console.error("Failed to fetch cart:", error);
       set({ isLoading: false });
+      set({ isError: true });
     }
   },
 
@@ -157,10 +157,11 @@ export const useCartStore = create((set, get) => ({
   resetCart: () =>
     set({
       items: [],
-      artist: null, // ✅ جديد
+      artist: null, 
       summary: { subtotal: 0, totalShipping: 0, total: 0 },
       isInCartMap: {},
       isLoading: false,
+      isError: false,
     }),
 
   syncAfterPayment: async () => {
@@ -181,7 +182,6 @@ export const useCartStore = create((set, get) => ({
         }
       }
     } catch (error) {
-      console.error("syncAfterPayment error:", error);
     } finally {
       set({ _syncing: false });
     }
@@ -197,12 +197,10 @@ export const useCartStore = create((set, get) => ({
       await get().fetchCart();
       return true;
     } catch (error) {
-      // ✅ جديد: Check if error is "different artist"
       const errorMessage = error?.response?.data?.message || error?.message || "";
       const isArtistError = errorMessage.includes("فنانين مختلفين");
 
       if (isArtistError) {
-        // Revert optimistic update
         set((state) => {
           const nextMap = { ...state.isInCartMap };
           delete nextMap[id];
@@ -227,7 +225,6 @@ export const useCartStore = create((set, get) => ({
     }
   },
 
-  // ✅ جديد: مسح السلة وإضافة لوحة جديدة
   clearAndAdd: async (artworkId) => {
     const id = String(artworkId);
     try {
@@ -236,7 +233,6 @@ export const useCartStore = create((set, get) => ({
       await get().fetchCart();
       return true;
     } catch (error) {
-      console.error("clearAndAdd error:", error);
       throw error;
     }
   },
@@ -264,7 +260,7 @@ export const useCartStore = create((set, get) => ({
       await cartService.clearCart();
       set({
         items: [],
-        artist: null, // ✅ جديد
+        artist: null, 
         summary: { subtotal: 0, totalShipping: 0, total: 0 },
         isInCartMap: {},
       });

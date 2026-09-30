@@ -11,6 +11,7 @@ import {
   Loader2,
   Zap,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { adminService } from "../services/admin.service";
 import { SharedModal, ModalActions } from "../../../components/SharedModal";
@@ -170,7 +171,6 @@ const STATUS_TABS = [
   { value: "CANCELLED", label: "ملغي" },
 ];
 
-// ✅ منطق "حالة الأموال" الصحيح
 function getFundsStatus(o) {
   if (o.fundsReleased)
     return { label: "أُطلقت للفنان", cls: "text-emerald-600" };
@@ -196,7 +196,7 @@ export default function AdminOrdersPage() {
   const [holdTarget, setHoldTarget] = useState(null);
   const [unholdTarget, setUnholdTarget] = useState(null);
   const [releaseTarget, setReleaseTarget] = useState(null);
-  const [cancelTarget, setCancelTarget] = useState(null); // ✅ جديد
+  const [cancelTarget, setCancelTarget] = useState(null); 
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -206,7 +206,7 @@ export default function AdminOrdersPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["adminOrders", status, debouncedSearch, holdOnly, page],
     queryFn: () =>
       adminService.getOrders({
@@ -300,15 +300,27 @@ export default function AdminOrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {!isLoading && orders.length === 0 && (
+            {isError ? (
               <tr>
-                <td
-                  colSpan={7}
-                  className="p-8 text-center text-on-surface-variant"
-                >
-                  لا توجد طلبات مطابقة
+                <td colSpan={7} className="p-8 text-center">
+                  <AlertTriangle className="w-8 h-8 mx-auto text-center mb-2 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب طلبات السحب
+                  </p>
                 </td>
               </tr>
+            ) : (
+              !isLoading &&
+              orders.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="p-8 text-center text-on-surface-variant"
+                  >
+                    لا توجد طلبات مطابقة
+                  </td>
+                </tr>
+              )
             )}
             {orders.map((o) => {
               const fs = getFundsStatus(o);
@@ -317,7 +329,7 @@ export default function AdminOrdersPage() {
               const canRelease = o.onHold && !o.fundsReleased;
               const canForceCancel =
                 ["PAID", "PROCESSING"].includes(o.status) &&
-                o.refundStatus !== "REFUNDED"; 
+                o.refundStatus !== "REFUNDED";
               return (
                 <tr
                   key={o._id}

@@ -73,7 +73,6 @@ export const useUploadCoverImage = () => {
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message || "فشل رفع الصورة");
-      console.log(err);
     },
   });
 };
@@ -142,11 +141,11 @@ export function useLookupAddress() {
     onSuccess: (data) => {
       // الـ backend بيحفظ العنوان، فـ نحدّث الـ query بالـ address المحفوظ
       queryClient.setQueryData(["address"], data?.address ?? data);
-      toast.success("تم التحقق من العنوان وتعبئة البيانات ✅");
+      toast.success("تم التحقق من العنوان وتعبئة البيانات ");
     },
     onError: (error) => {
       toast.error(
-        error?.message || "تعذّر التحقق من الرمز، تأكد منه وحاول مجدداً",
+        "تعذّر التحقق من الرمز، تأكد منه وحاول مجدداً",
       );
     },
   });

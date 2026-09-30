@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ChevronRight, Save, MapPin, Plus } from "lucide-react";
+import { ChevronRight, Save, MapPin, Plus, AlertTriangle } from "lucide-react";
 import toast from "../../../services/toast.service";
 import {
   useCreateArtwork,
@@ -97,14 +97,18 @@ export default function ArtistArtworkFormPage() {
   const navigate = useNavigate();
   const isEdit = !!id;
 
-  const { data: address, isLoading: isAddressLoading } = useGetMyAddress();
-  console.log(address);
+  const { data: address, isLoading: isAddressLoading, isError: isAddressError } = useGetMyAddress();
   const hasAddress =
     address && address.city && address.district && address.street;
 
   const createMutation = useCreateArtwork();
   const updateMutation = useUpdateArtwork();
-  const { data: existingArtwork, isLoading: isArtworkLoading } = useArtwork(id);
+  const {
+    data: existingArtwork,
+    isLoading: isArtworkLoading,
+    isError: isArtworkError,
+    refetch,
+  } = useArtwork(id);
 
   const artworkData = existingArtwork?.artwork || existingArtwork;
 
@@ -209,12 +213,12 @@ export default function ArtistArtworkFormPage() {
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  // ✅ Skeleton Loading
   if ((isEdit && isArtworkLoading) || isAddressLoading) {
     return <FormSkeleton isEdit={isEdit} />;
   }
 
-  // ✅ Block لو مفيش address (في الـ create فقط)
+  if (isArtworkError || isAddressError) return <GenericErrorPage onRetry={refetch} />;
+
   if (!isEdit && !hasAddress) {
     return <NoAddressBlock />;
   }
@@ -282,7 +286,7 @@ export default function ArtistArtworkFormPage() {
               label="السعر (ر.س)"
               required
               error={errors.price?.message}
-              hint="حد أقصى 5,000 ر.س للفترة التجريبية"
+              hint=" حاليا الحد الأقصى 5,000 ر.س  "
             >
               <input
                 type="number"
@@ -368,9 +372,6 @@ export default function ArtistArtworkFormPage() {
               />
             </Field>
           </div>
-          <p className="text-xs text-[var(--color-on-surface-variant)]">
-            💡 لو أي بُعد أكبر من 120 سم، اللوحة هتتصنف كـ "شحن عملاق" تلقائياً.
-          </p>
         </section>
 
         {/* ═══ Section 4: المواصفات ═══ */}
@@ -659,6 +660,33 @@ function FormSkeleton({ isEdit }) {
       <div className="flex gap-3">
         <div className="h-11 w-36 bg-[var(--color-surface-container-low)] rounded-lg" />
         <div className="h-11 w-24 bg-[var(--color-surface-container-low)] rounded-lg" />
+      </div>
+    </div>
+  );
+}
+
+function GenericErrorPage({ onRetry }) {
+  return (
+    <div
+      className="min-h-[60vh] flex items-center justify-center px-4"
+      dir="rtl"
+    >
+      <div className="max-w-md w-full p-8 text-center">
+        <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+          تعذّر تحميل البيانات
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+        </p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+        >
+          إعادة المحاولة
+        </button>
       </div>
     </div>
   );

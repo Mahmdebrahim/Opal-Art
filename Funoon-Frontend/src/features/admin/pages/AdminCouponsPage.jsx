@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Power, TicketPercent } from "lucide-react";
 import toast from "../../../services/toast.service";
 import { adminService } from "../services/admin.service";
+import { AlertTriangle } from "lucide-react";
 
 const localDateTime = (date) => {
   if (!date) return "";
@@ -23,7 +24,7 @@ const emptyForm = () => ({
 export default function AdminCouponsPage() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(emptyForm);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["adminCoupons"],
     queryFn: () => adminService.getCoupons(),
   });
@@ -37,7 +38,7 @@ export default function AdminCouponsPage() {
       invalidate();
     },
     onError: (error) => {
-      (toast.error(error?.message || "تعذر إنشاء الكوبون"), console.log(error));
+      (toast.error(error?.message || "تعذر إنشاء الكوبون"));
     },
   });
   const toggleMutation = useMutation({
@@ -153,7 +154,16 @@ export default function AdminCouponsPage() {
             {isLoading ? (
               <tr>
                 <td colSpan="6" className="p-8 text-center">
-                  جاري التحميل...
+                  تعذّر تحميل الكوبونات
+                </td>
+              </tr>
+            ) : isError ? (
+              <tr>
+                <td colSpan="6" className="p-8 text-center">
+                  <AlertTriangle className="w-8 h-8 mx-auto mb-3 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب الكوبونات
+                  </p>
                 </td>
               </tr>
             ) : coupons.length === 0 ? (

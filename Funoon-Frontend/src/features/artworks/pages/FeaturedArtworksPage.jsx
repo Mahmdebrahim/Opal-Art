@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ChevronRight, ChevronLeft, Star } from "lucide-react";
+import { ChevronRight, ChevronLeft, Star, AlertTriangle } from "lucide-react";
 import { artworksService } from "../services/artworks.service";
 import ArtworkCard from "../../../components/Ui/ArtworkCard";
 import Button from "../../../components/Ui/Button";
@@ -11,7 +11,7 @@ export default function FeaturedArtworksPage() {
   const [page, setPage] = useState(1);
   const limit = 12;
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["featuredArtworks", page],
     queryFn: () => artworksService.getFeatured({ page, limit }),
     keepPreviousData: true,
@@ -19,6 +19,33 @@ export default function FeaturedArtworksPage() {
 
   const artworks = data?.artworks || [];
   const pagination = data?.pagination || { total: 0, pages: 1, page: 1 };
+
+  function GenericErrorPage({ onRetry }) {
+    return (
+      <div
+        className="min-h-[60vh] flex items-center justify-center px-4"
+        dir="rtl"
+      >
+        <div className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+            تعذّر تحميل اللوحات المميزة
+          </h2>
+          <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+            حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+          </p>
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--color-surface)] py-12 lg:py-16">
@@ -48,17 +75,7 @@ export default function FeaturedArtworksPage() {
             ))}
           </div>
         ) : isError ? (
-          <div className="text-center py-20 bg-[var(--color-surface-container-lowest)] rounded-2xl border border-[var(--color-outline-variant)]/40 p-8 max-w-md mx-auto">
-            <p className="text-[var(--color-on-surface-variant)] mb-4">
-              تعذّر تحميل اللوحات المميزة حالياً.
-            </p>
-            <Button
-              variant="secondary"
-              onClick={() => window.location.reload()}
-            >
-              إعادة التحميل
-            </Button>
-          </div>
+          <GenericErrorPage onRetry={refetch} />
         ) : artworks.length === 0 ? (
           /* Empty State */
           <div className="text-center py-20 px-4 max-w-xl mx-auto">

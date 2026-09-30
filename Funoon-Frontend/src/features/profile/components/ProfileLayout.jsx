@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Navigate, useLocation } from "react-router-dom";
-import { User, MapPin, Landmark } from "lucide-react";
+import { User, MapPin, Landmark, AlertTriangle } from "lucide-react";
 import { ROUTES } from "../../../config/routes";
 import { useAuthStore } from "../../auth/stores/authStore";
 import { useProfile } from "../hooks/useProfile";
@@ -23,13 +23,42 @@ const roleLabels = {
 export default function ProfileLayout() {
     const { user, isAuthenticated } = useAuthStore();
     const location = useLocation();
-    const { data: profile } = useProfile(); // ✅ شيلنا isLoading
+    const { data: profile, isError, refetch } = useProfile();
 
     if (!isAuthenticated) {
         return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
     }
 
-    const displayUser = profile || user; // ✅ fallback لـ user من الـ store
+    function GenericErrorPage({ onRetry }) {
+      return (
+        <div
+          className="min-h-[60vh] flex items-center justify-center px-4"
+          dir="rtl"
+        >
+          <div className="max-w-md w-full p-8 text-center">
+            <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+              تعذّر تحميل الإحصائيات
+            </h2>
+            <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+              حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+            </p>
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+            >
+              إعادة المحاولة
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (isError) return <GenericErrorPage onRetry={refetch} />;
+
+    const displayUser = profile || user; 
     const avatarUrl = getMediaUrl(displayUser?.avatar);
 
     const visibleNavItems = navItems.filter(

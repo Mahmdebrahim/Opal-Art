@@ -45,6 +45,6 @@ router.get(
 
 // Artist orders
 router.get("/orders", protect, restrictTo("artist"), getArtistOrders);
-router.get("/:artistId", optionalAuth, getArtistPublicProfile); 
+router.get("/:artistId", optionalAuth, getArtistPublicProfile);
 
 module.exports = router;

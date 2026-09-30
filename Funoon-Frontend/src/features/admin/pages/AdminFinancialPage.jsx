@@ -3,7 +3,7 @@ import {
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
     CartesianGrid, Legend, Cell
 } from "recharts";
-import { Banknote, TrendingUp, Wallet, Landmark, Trophy, ArrowDownToLine } from "lucide-react";
+import { Banknote, TrendingUp, Wallet, Landmark, Trophy, ArrowDownToLine, AlertTriangle } from "lucide-react";
 import { adminService } from "../services/admin.service";
 
 const fmt = (v) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v || 0);
@@ -11,12 +11,13 @@ const monthLabel = (key) =>
     new Date(key + "-01T00:00:00").toLocaleDateString("ar-EG", { month: "short", year: "2-digit" });
 
 export default function AdminFinancialPage() {
-    const { data, isLoading } = useQuery({
+    const { data, isLoading , isError, refetch } = useQuery({
         queryKey: ["adminFinancial"],
         queryFn: () => adminService.getFinancialStats(),
     });
 
     if (isLoading) return <LoadingState />;
+    if(isError) return <GenericErrorPage onRetry={refetch} />;
     if (!data) return null;
 
     const { cards, months, bestMonth } = data;
@@ -247,4 +248,31 @@ function LoadingState() {
             </div>
         </div>
     );
+}
+
+function GenericErrorPage({ onRetry }) {
+  return (
+    <div
+      className="min-h-[60vh] flex items-center justify-center px-4"
+      dir="rtl"
+    >
+      <div className="max-w-md w-full p-8 text-center">
+        <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+          تعذّر تحميل البيانات الماليه
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+        </p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+        >
+          إعادة المحاولة
+        </button>
+      </div>
+    </div>
+  );
 }

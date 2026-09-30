@@ -111,8 +111,6 @@ function TwitterIcon({ className }) {
 export default function ArtistProfilePage() {
   const { id } = useParams();
   const { data, isLoading, isError } = useArtist(id);
-  console.log(data);
-
   const { data: reviewsData } = useQuery({
     queryKey: ["artist-reviews-summary", id],
     queryFn: () => reviewService.getArtistReviews(id, { limit: 3 }),
@@ -137,7 +135,6 @@ export default function ArtistProfilePage() {
     avgRating,
     reviewsCount,
   } = data;
-  console.log(data);
   const recentReviews = reviewsData?.reviews || [];
   const reviewsSummary = reviewsData?.summary || {
     avgRating: avgRating || 0,

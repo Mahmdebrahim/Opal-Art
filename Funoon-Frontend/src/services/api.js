@@ -1,13 +1,14 @@
 import axios from "axios";
-import { useAuthStore } from "../features/auth/stores/authStore";
+import { useAuthStore } from "../features/auth/stores/authStore.js";
 import {
+  isAccessTokenExpiredResponse,
   isDefinitiveSessionError,
   isTemporarySessionError,
-} from "../features/auth/utils/sessionErrors";
-import toast from "./toast.service";
+} from "../features/auth/utils/sessionErrors.js";
+import toast from "./toast.service.js";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1",
+  baseURL: import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1",
   timeout: 20000,
   withCredentials: true,
 });
@@ -39,7 +40,6 @@ const parseError = (error) => {
     !error.response;
 
   if (isNetworkError) {
-    // ✅ تحقق من حالة النت الفعلية في الجهاز
     const isOffline =
       typeof window !== "undefined" && navigator.onLine === false;
 
@@ -63,7 +63,9 @@ const parseError = (error) => {
 
   if (data?.code === "DATABASE_UNAVAILABLE") {
     return {
-      userMessage: serverMessage || "قاعدة البيانات غير متاحة مؤقتاً. يرجى المحاولة بعد قليل.",
+      userMessage:
+        serverMessage ||
+        "قاعدة البيانات غير متاحة مؤقتاً. يرجى المحاولة بعد قليل.",
       errorType: "database_unavailable",
     };
   }
@@ -79,23 +81,47 @@ const parseError = (error) => {
   // ═══ Status-based fallbacks ═══
   switch (status) {
     case 401:
-      return { userMessage: "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.", errorType: "auth" };
+      return {
+        userMessage: "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.",
+        errorType: "auth",
+      };
     case 403:
-      return { userMessage: "ليس لديك صلاحية لتنفيذ هذا الإجراء.", errorType: "auth" };
+      return {
+        userMessage: "ليس لديك صلاحية لتنفيذ هذا الإجراء.",
+        errorType: "auth",
+      };
     case 404:
-      return { userMessage: "المحتوى المطلوب غير موجود.", errorType: "not_found" };
+      return {
+        userMessage: "المحتوى المطلوب غير موجود.",
+        errorType: "not_found",
+      };
     case 409:
-      return { userMessage: serverMessage || "تعارض في البيانات. يرجى تحديث الصفحة.", errorType: "conflict" };
+      return {
+        userMessage: serverMessage || "تعارض في البيانات. يرجى تحديث الصفحة.",
+        errorType: "conflict",
+      };
     case 429:
-      return { userMessage: "طلبات كثيرة جداً. يرجى الانتظار قليلاً.", errorType: "rate_limit" };
+      return {
+        userMessage: "طلبات كثيرة جداً. يرجى الانتظار قليلاً.",
+        errorType: "rate_limit",
+      };
     case 500:
-      return { userMessage: "حدث خطأ في الخادم. يرجى المحاولة لاحقاً.", errorType: "server" };
+      return {
+        userMessage: "حدث خطأ في الخادم. يرجى المحاولة لاحقاً.",
+        errorType: "server",
+      };
     case 502:
     case 503:
     case 504:
-      return { userMessage: "الخدمة غير متاحة مؤقتاً. حاول بعد دقائق.", errorType: "service_unavailable" };
+      return {
+        userMessage: "الخدمة غير متاحة مؤقتاً. حاول بعد دقائق.",
+        errorType: "service_unavailable",
+      };
     default:
-      return { userMessage: serverMessage || "حدث خطأ غير متوقع.", errorType: "unknown" };
+      return {
+        userMessage: serverMessage || "حدث خطأ غير متوقع.",
+        errorType: "unknown",
+      };
   }
 };
 
@@ -150,7 +176,10 @@ api.interceptors.response.use(
 
     const parsed = parseError(error);
 
-    if (parsed.errorType === "database_unavailable" && !databaseUnavailableToastId) {
+    if (
+      parsed.errorType === "database_unavailable" &&
+      !databaseUnavailableToastId
+    ) {
       databaseUnavailableToastId = toast.error(parsed.userMessage, {
         duration: 0,
         action: {
@@ -211,8 +240,13 @@ api.interceptors.response.use(
     }
 
     // ═══ 5) 401 — refresh (only if NOT banned) ═══
-    if (status === 401 && !originalRequest._retry) {
+    if (
+      status === 401 &&
+      isAccessTokenExpiredResponse(data) &&
+      !originalRequest._retry
+    ) {
       if (isRefreshing) {
+        originalRequest._retry = true;
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
@@ -225,8 +259,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const accessToken =
-          await useAuthStore.getState().refreshAccessToken();
+        const accessToken = await useAuthStore.getState().refreshAccessToken();
 
         if (!accessToken) {
           throw new Error("Refresh token response missing access token");
@@ -239,10 +272,28 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
 
+        const refreshData =
+          refreshError?.response?.data ?? refreshError?.data ?? {};
+        if (refreshData?.data?.banned || refreshData?.banned) {
+          const bannedMessage =
+            refreshData.message || "حسابك محظور من المنصة";
+          useAuthStore.setState({
+            user: null,
+            accessToken: null,
+            isAuthenticated: false,
+          });
+          return Promise.reject({
+            status: 401,
+            message: bannedMessage,
+            userMessage: bannedMessage,
+            errorType: "banned",
+            banned: true,
+          });
+        }
+
         if (isTemporarySessionError(refreshError)) {
           return Promise.reject({
-            status:
-              refreshError?.response?.status ?? refreshError?.status ?? 0,
+            status: refreshError?.response?.status ?? refreshError?.status ?? 0,
             message: "تعذر التحقق من الجلسة مؤقتاً. حاول مرة أخرى.",
             userMessage: "تعذر التحقق من الجلسة مؤقتاً. حاول مرة أخرى.",
             errorType: "session_unavailable",

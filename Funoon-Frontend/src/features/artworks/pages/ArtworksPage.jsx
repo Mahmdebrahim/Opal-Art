@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import ArtworkCard from "../../../components/Ui/ArtworkCard";
 import { artworksService } from "../services/artworks.service";
@@ -157,14 +158,12 @@ export default function BrowseArtworksPage() {
   const goToPage = (page) => setFilter("page", page);
 
   // Fetch
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ["artworks", filters],
     queryFn: () => artworksService.getArtworks(filters),
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });
-
-  console.log(data);
 
   const { data: filterOptions } = useQuery({
     queryKey: ["filterOptions"],
@@ -457,7 +456,9 @@ export default function BrowseArtworksPage() {
 
           {/* Grid */}
           <main className="flex-1">
-            {isLoading ? (
+            {isError ? (
+              <GenericErrorPage onRetry={refetch} />
+            ) : isLoading ? (
               <LoadingGrid />
             ) : artworks.length === 0 ? (
               <EmptyState />
@@ -678,15 +679,6 @@ function MobileDrawer({
             ))}
           </FilterSection>
         </div>
-
-        <div className="mt-6 flex gap-2 sticky bottom-0 bg-surface-container-lowest pt-4">
-          <Button variant="primary" size="md" fullWidth onClick={onClose}>
-            تطبيق
-          </Button>
-          <Button variant="outline" size="md" onClick={clearFilters}>
-            مسح
-          </Button>
-        </div>
       </div>
     </div>
   );
@@ -808,6 +800,33 @@ function EmptyState() {
       <p className="text-sm text-on-surface-variant">
         جرّب تغيير الفلاتر أو مسحها
       </p>
+    </div>
+  );
+}
+
+function GenericErrorPage({ onRetry }) {
+  return (
+    <div
+      className="min-h-[60vh] flex items-center justify-center px-4"
+      dir="rtl"
+    >
+      <div className="max-w-md w-full p-8 text-center">
+        <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+          تعذّر تحميل اللوحات الفنية
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+        </p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+        >
+          إعادة المحاولة
+        </button>
+      </div>
     </div>
   );
 }

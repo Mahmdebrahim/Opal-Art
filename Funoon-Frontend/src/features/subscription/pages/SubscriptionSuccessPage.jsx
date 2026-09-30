@@ -248,7 +248,7 @@ export default function SubscriptionSuccessPage() {
 }
 
 // ═══════════════════════════════════════════════════
-// ✅ Vertical Timeline — خطوات التفعيل
+//  Vertical Timeline
 // ═══════════════════════════════════════════════════
 function ActivationSteps() {
   return (

@@ -12,6 +12,7 @@ import {
   Palette,
   ShieldAlert,
   ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { adminService } from "../services/admin.service";
 import { SharedModal, ModalActions } from "../../../components/SharedModal";
@@ -55,7 +56,7 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [banTarget, setBanTarget] = useState(null);
-  const [unbanTarget, setUnbanTarget] = useState(null); // ✅ NEW
+  const [unbanTarget, setUnbanTarget] = useState(null);
   const [roleTarget, setRoleTarget] = useState(null);
 
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function AdminUsersPage() {
 
   const activeTab = TABS.find((t) => t.value === tab) || TABS[0];
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["adminUsers", tab, debouncedSearch, page],
     queryFn: () =>
       adminService.getAdminUsers({
@@ -83,7 +84,6 @@ export default function AdminUsersPage() {
   const users = data?.users || [];
   const pagination = data?.pagination || { total: 0, pages: 0 };
 
-  // ✅ Show skeleton while initial loading
   if (isLoading && users.length === 0) {
     return (
       <div className="space-y-5">
@@ -156,15 +156,27 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody>
-            {!isLoading && users.length === 0 && (
+            {isError ? (
               <tr>
-                <td colSpan={6} className="p-12 text-center">
-                  <Users className="w-8 h-8 mx-auto mb-2 text-on-surface-variant/40" />
-                  <p className="text-sm text-on-surface-variant">
-                    لا يوجد مستخدمون
+                <td colSpan={6} className="p-16 text-center">
+                  <AlertTriangle className="w-8 h-8 mx-auto mb-3 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب المستخدمين
                   </p>
                 </td>
               </tr>
+            ) : (
+              !isLoading &&
+              users.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-12 text-center">
+                    <Users className="w-8 h-8 mx-auto mb-2 text-on-surface-variant/40" />
+                    <p className="text-sm text-on-surface-variant">
+                      لا يوجد مستخدمون
+                    </p>
+                  </td>
+                </tr>
+              )
             )}
             {users.map((u) => (
               <tr

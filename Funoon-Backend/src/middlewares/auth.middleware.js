@@ -4,6 +4,15 @@ const { UnauthorizedError, ForbiddenError } = require("../utils/api-error");
 const catchAsync = require("../utils/catch-async");
 const M = require("../utils/messages");
 
+const createAccessTokenError = (jwtError) => {
+  const isExpired = jwtError?.name === "TokenExpiredError";
+  const authError = new UnauthorizedError(
+    isExpired ? M.auth.expiredToken : M.auth.invalidToken,
+  );
+  if (isExpired) authError.authErrorCode = "ACCESS_TOKEN_EXPIRED";
+  return authError;
+};
+
 const optionalAuth = catchAsync(async (req, res, next) => {
   let token;
   if (req.headers.authorization?.startsWith("Bearer")) {
@@ -47,7 +56,7 @@ const protect = catchAsync(async (req, res, next) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
-    throw new UnauthorizedError(M.auth.invalidToken);
+    throw createAccessTokenError(err);
   }
 
   // Check if user still exists
@@ -93,4 +102,4 @@ const restrictTo = (...roles) => {
   };
 };
 
-module.exports = { protect, restrictTo, optionalAuth };
+module.exports = { protect, restrictTo, optionalAuth, createAccessTokenError };

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, BellOff, CheckCheck, Inbox } from "lucide-react";
+import { Bell, BellOff, CheckCheck, Inbox, AlertTriangle } from "lucide-react";
 import {
     useNotifications, useMarkAsRead, useMarkAllAsRead,
 } from "../../hooks/useNotifications";
@@ -11,7 +11,7 @@ export default function NotificationsPage() {
     const [page, setPage] = useState(1);
     const navigate = useNavigate();
 
-    const { data, isLoading } = useNotifications({
+    const { data, isLoading , isError, refetch } = useNotifications({
         page,
         limit: 15,
         unreadOnly: tab === "unread" ? "true" : undefined,
@@ -27,6 +27,32 @@ export default function NotificationsPage() {
         if (!n.isRead) markAsRead.mutate(n._id);
         if (n.data?.route) navigate(n.data.route);
     };
+    function GenericErrorPage({ onRetry }) {
+      return (
+        <div
+          className="min-h-[60vh] flex items-center justify-center px-4"
+          dir="rtl"
+        >
+          <div className="max-w-md w-full p-8 text-center">
+            <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="w-8 h-8 text-red-500" />
+            </div>
+            <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+              تعذّر تحميل الإشعارات
+            </h2>
+            <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+              حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+            </p>
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+            >
+              إعادة المحاولة
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     return (
         <div className="min-h-screen bg-[var(--color-surface)] py-10 px-5" dir="rtl">
@@ -94,6 +120,8 @@ export default function NotificationsPage() {
                             </div>
                         ))}
                     </div>
+                ) : isError ? (
+                    <GenericErrorPage onRetry={refetch} />
                 ) : notifications.length === 0 ? (
                     <div className="py-20 text-center">
                         <div className="w-16 h-16 mx-auto bg-[var(--color-surface-container-low)] rounded-full flex items-center justify-center mb-4">
@@ -106,9 +134,9 @@ export default function NotificationsPage() {
                         <h3 className="font-display text-lg text-[var(--color-on-surface)] mb-1">
                             {tab === "unread" ? "لا توجد إشعارات غير مقروءة" : "لا توجد إشعارات بعد"}
                         </h3>
-                        {/* <p className="text-sm text-[var(--color-on-surface-variant)]">
-                            {tab === "unread" ? "كل حاجة تمام — أنت مطلع على كل جديد" : "هتوصلك إشعارات هنا عن لوحاتك وطلباتك وسحوباتك"}
-                        </p> */}
+                        <p className="text-sm text-[var(--color-on-surface-variant)]">
+                            {tab === "unread" ? "لا توجد إشعارات غير مقروءة" : "هتوصلك إشعارات هنا عن لوحاتك وطلباتك وسحوباتك"}
+                        </p>
                     </div>
                 ) : (
                     <div className="space-y-3">

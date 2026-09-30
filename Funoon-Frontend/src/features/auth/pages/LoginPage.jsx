@@ -64,20 +64,16 @@ export default function LoginPage() {
         );
       }
     } catch (err) {
-      // ✅ axios interceptor بيعمل reshape — err هنا هو الـ body مباشرة
-      const status = err?.status; // axios بيضيف status في الـ body
-      const body = err || {}; // err نفسه هو الـ body
+     
+      const status = err?.status; 
+      const body = err || {};
 
-      console.log("🔍 Login error:", { err, status, body });
-
-      // ✅ حالة 429: Rate Limit
       const msge = typeof err?.message === "string" ? err.message : "حدث خطأ";
       if (status === 429) {
         toast.error(msge);
         return;
       }
 
-      // ✅ استخراج needsVerification — من err.data مباشرة
       let needsData = null;
 
       if (body?.data?.needsVerification) {
@@ -98,9 +94,7 @@ export default function LoginPage() {
         );
         return;
       }
-      console.log(body?.message);
 
-      // ✅ رسائل الأخطاء العادية
       let msg = "البريد الإلكتروني أو كلمة المرور غير صحيحة";
       if (typeof body?.message === "string") msg = body.message;
       else if (status === 429) msg = "تم تجاوز عدد المحاولات";

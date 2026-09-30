@@ -1017,7 +1017,7 @@ const getAdminStats = catchAsync(async (req, res) => {
   const prevStart = new Date(start);
   prevStart.setDate(prevStart.getDate() - days);
 
-    const excludeAutoCancelled = {
+  const excludeAutoCancelled = {
     $nor: [
       {
         status: "CANCELLED",
@@ -1409,7 +1409,6 @@ const getAdminStats = catchAsync(async (req, res) => {
 // @route   GET /api/v1/admin/stats/financial
 // @access  Private (Admin)
 const getFinancialStats = catchAsync(async (req, res) => {
- 
   const monthStart = new Date();
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);

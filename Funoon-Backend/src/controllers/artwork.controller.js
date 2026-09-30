@@ -234,7 +234,9 @@ const updateArtwork = catchAsync(async (req, res, next) => {
       throw new BadRequestError("وزن اللوحة يجب أن يكون رقماً أكبر من صفر");
     }
     if (weightNum > 100) {
-      throw new BadRequestError("وزن اللوحة يتجاوز الحد الأقصى المسموح (100 كجم)");
+      throw new BadRequestError(
+        "وزن اللوحة يتجاوز الحد الأقصى المسموح (100 كجم)",
+      );
     }
   }
 
@@ -254,9 +256,12 @@ const updateArtwork = catchAsync(async (req, res, next) => {
     }
 
     dimsChanged =
-      Number(parsedDimensions.width) !== Number(artwork.dimensions?.width || 0) ||
-      Number(parsedDimensions.height) !== Number(artwork.dimensions?.height || 0) ||
-      Number(parsedDimensions.depth || 0) !== Number(artwork.dimensions?.depth || 0);
+      Number(parsedDimensions.width) !==
+        Number(artwork.dimensions?.width || 0) ||
+      Number(parsedDimensions.height) !==
+        Number(artwork.dimensions?.height || 0) ||
+      Number(parsedDimensions.depth || 0) !==
+        Number(artwork.dimensions?.depth || 0);
 
     // ✅ حد الأبعاد حسب الباقة — بس لو الأبعاد اتغيرت فعلاً
     if (dimsChanged) {
@@ -956,7 +961,7 @@ const listAllArtworks = catchAsync(async (req, res, next) => {
         hasPrev: page > 1,
       },
     },
-    "Artworks retrieved"
+    "Artworks retrieved",
   );
 });
 
@@ -1037,7 +1042,7 @@ const getFilterOptions = catchAsync(async (req, res, next) => {
     return ApiResponse.success(
       res,
       filterCache.data,
-      "Filter options retrieved (cached)"
+      "Filter options retrieved (cached)",
     );
   }
 
@@ -1109,7 +1114,7 @@ const getFilterOptions = catchAsync(async (req, res, next) => {
   // Process results
   // ═══════════════════════════════════════════════════
   const paintTypes = Array.from(
-    new Set([...paintTypesResult, ...mediumsResult])
+    new Set([...paintTypesResult, ...mediumsResult]),
   )
     .filter(Boolean)
     .sort();
@@ -1159,7 +1164,7 @@ const featureArtwork = catchAsync(async (req, res, next) => {
   if (!isPrestige) {
     throw new ForbiddenError(
       "ميزة التمييز متاحة فقط للفنانين المشتركين في باقة Opal Prestige النشطة. " +
-        "قم بترقية اشتراكك من صفحة الاشتراكات للاستفادة من هذه الميزة."
+        "قم بترقية اشتراكك من صفحة الاشتراكات للاستفادة من هذه الميزة.",
     );
   }
 
@@ -1180,7 +1185,7 @@ const featureArtwork = catchAsync(async (req, res, next) => {
   const previousFeatured = await Artwork.findOneAndUpdate(
     { artist: user._id, isFeatured: true, _id: { $ne: artwork._id } },
     { $set: { isFeatured: false, featuredAt: null } }, // ✅ كان فيه bug: isFeatured: true
-    { new: false }
+    { new: false },
   );
 
   artwork.isFeatured = true;
@@ -1205,7 +1210,7 @@ const featureArtwork = catchAsync(async (req, res, next) => {
         ? { _id: previousFeatured._id, title: previousFeatured.title }
         : null,
     },
-    message
+    message,
   );
 });
 
@@ -1243,7 +1248,7 @@ const getFeaturedArtworks = catchAsync(async (req, res, next) => {
     .sort({ featuredAt: -1 })
     .populate(
       "artist",
-      "name avatar subscription isBanned avgRating reviewsCount"
+      "name avatar subscription isBanned avgRating reviewsCount",
     )
     .lean();
 
@@ -1284,7 +1289,7 @@ const getFeaturedArtworks = catchAsync(async (req, res, next) => {
         hasPrev: page > 1,
       },
     },
-    "اللوحات المميزة"
+    "اللوحات المميزة",
   );
 });
 
@@ -1307,7 +1312,7 @@ const getPlatformStats = catchAsync(async (req, res, next) => {
   return ApiResponse.success(
     res,
     { artistCount, artworkCount, salesCount, reviewCount },
-    "إحصائيات المنصة"
+    "إحصائيات المنصة",
   );
 });
 
@@ -1324,13 +1329,5 @@ module.exports = {
   unfeatureArtwork,
   getFeaturedArtworks,
   getPlatformStats,
-  invalidateFilterCache, 
+  invalidateFilterCache,
 };
-
-
-
-
-
-
-
-

@@ -28,6 +28,7 @@ import {
   Landmark,
   Palette,
   ToggleLeft,
+  AlertTriangle,
 } from "lucide-react";
 import { adminService } from "../services/admin.service";
 import { SharedModal } from "../../../components/SharedModal";
@@ -197,7 +198,7 @@ export default function AdminAuditLogsPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["auditLogs", category, debouncedSearch, from, to, page],
     queryFn: () =>
       adminService.getAuditLogs({
@@ -309,7 +310,16 @@ export default function AdminAuditLogsPage() {
             </tr>
           </thead>
           <tbody>
-            {!isLoading && logs.length === 0 && (
+            {isError ? (
+              <tr>
+                <td colSpan={5} className="p-8 text-center">
+                  <AlertTriangle className="w-8 h-8 mx-auto mb-3 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب سجلات التدقيق
+                  </p>
+                </td>
+              </tr>
+            ) : !isLoading && logs.length === 0 && (
               <tr>
                 <td colSpan={5} className="p-12 text-center">
                   <ScrollText className="w-8 h-8 mx-auto mb-2 text-on-surface-variant/40" />

@@ -8,6 +8,7 @@ import {
   Banknote,
   XCircle,
   ArrowLeftRight,
+  AlertTriangle,
 } from "lucide-react";
 import { adminService } from "../services/admin.service";
 import { SharedModal, ModalActions } from "../../../components/SharedModal";
@@ -138,7 +139,7 @@ export default function AdminWithdrawalsPage() {
     queryFn: () => adminService.getWithdrawalsSummary(),
   });
 
-  const { data: listData, isLoading } = useQuery({
+  const { data: listData, isLoading, isError } = useQuery({
     queryKey: ["adminWithdrawals", status, page],
     queryFn: () => adminService.getWithdrawals({ status, page, limit: 15 }),
   });
@@ -160,7 +161,6 @@ export default function AdminWithdrawalsPage() {
   const pagination = listData?.pagination || { total: 0, pages: 0 };
 
   if (isLoading) return <LoadingState />;
-
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -237,7 +237,17 @@ export default function AdminWithdrawalsPage() {
             </tr>
           </thead>
           <tbody>
-            {withdrawals.length === 0 && (
+            {isError ? (
+              <tr>
+                <td colSpan={6} className="p-12 text-center">
+                  <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب طلبات السحب 
+                  </p>
+                </td>
+              </tr>
+            ):
+            (withdrawals.length === 0 && (
               <tr>
                 <td colSpan={6} className="p-12 text-center">
                   <Wallet className="w-8 h-8 mx-auto mb-2 text-on-surface-variant/40" />
@@ -246,7 +256,7 @@ export default function AdminWithdrawalsPage() {
                   </p>
                 </td>
               </tr>
-            )}
+            ))}
             {withdrawals.map((w) => (
               <tr
                 key={w._id}

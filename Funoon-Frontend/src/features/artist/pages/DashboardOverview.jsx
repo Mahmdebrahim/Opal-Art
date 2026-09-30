@@ -1,6 +1,16 @@
 import { Link } from "react-router-dom";
-import {TrendingUp, ShoppingBag, Wallet, Sparkles,
-  ChevronLeft, Package, Clock, CheckCircle2, Truck, Image
+import {
+  TrendingUp,
+  ShoppingBag,
+  Wallet,
+  Sparkles,
+  ChevronLeft,
+  Package,
+  Clock,
+  CheckCircle2,
+  Truck,
+  Image,
+  AlertTriangle,
 } from "lucide-react";
 import { useDashboardStats } from "../hooks/useDashboard";
 import { ROUTES } from "../../../config/routes";
@@ -9,19 +19,52 @@ import { useAuthStore } from "../../auth/stores/authStore";
 import Button from "../../../components/Ui/Button";
 // import { Image, ShoppingBag } from "lucide-react";
 const STATUS_CONFIG = {
-  PENDING_PAYMENT: { label: "قيد الانتظار", color: "text-yellow-700", bg: "bg-yellow-50", icon: Clock },
-  PAID: { label: "تم الدفع", color: "text-blue-700", bg: "bg-blue-50", icon: CheckCircle2 },
-  PROCESSING: { label: "قيد التجهيز", color: "text-orange-700", bg: "bg-orange-50", icon: Package },
-  SHIPPED: { label: "تم الشحن", color: "text-purple-700", bg: "bg-purple-50", icon: Truck },
-  DELIVERED: { label: "تم التوصيل", color: "text-emerald-700", bg: "bg-emerald-50", icon: CheckCircle2 },
-  COMPLETED: { label: "مكتمل", color: "text-emerald-700", bg: "bg-emerald-50", icon: CheckCircle2 },
-  CANCELLED: { label: "ملغي", color: "text-red-700", bg: "bg-red-50", icon: Clock },
+  PENDING_PAYMENT: {
+    label: "قيد الانتظار",
+    color: "text-yellow-700",
+    bg: "bg-yellow-50",
+    icon: Clock,
+  },
+  PAID: {
+    label: "تم الدفع",
+    color: "text-blue-700",
+    bg: "bg-blue-50",
+    icon: CheckCircle2,
+  },
+  PROCESSING: {
+    label: "قيد التجهيز",
+    color: "text-orange-700",
+    bg: "bg-orange-50",
+    icon: Package,
+  },
+  SHIPPED: {
+    label: "تم الشحن",
+    color: "text-purple-700",
+    bg: "bg-purple-50",
+    icon: Truck,
+  },
+  DELIVERED: {
+    label: "تم التوصيل",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
+    icon: CheckCircle2,
+  },
+  COMPLETED: {
+    label: "مكتمل",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
+    icon: CheckCircle2,
+  },
+  CANCELLED: {
+    label: "ملغي",
+    color: "text-red-700",
+    bg: "bg-red-50",
+    icon: Clock,
+  },
 };
 
 export default function ArtistDashboardPage() {
-  const { data: stats, isLoading, isError } = useDashboardStats();
-  console.log(stats);
-  
+  const { data: stats, isLoading, isError, refetch } = useDashboardStats();
   const user = useAuthStore((s) => s.user);
   if (isLoading) {
     return (
@@ -41,7 +84,10 @@ export default function ArtistDashboardPage() {
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-xl p-5">
+            <div
+              key={i}
+              className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-xl p-5"
+            >
               <div className="flex items-center justify-between mb-3">
                 <div className="h-3 w-20 bg-[var(--color-surface-container-low)] rounded" />
                 <div className="w-9 h-9 bg-[var(--color-surface-container-low)] rounded-lg" />
@@ -80,7 +126,10 @@ export default function ArtistDashboardPage() {
         {/* Artworks Stats */}
         <div className="grid grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-xl p-4 text-center">
+            <div
+              key={i}
+              className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/40 rounded-xl p-4 text-center"
+            >
               <div className="h-8 w-12 bg-[var(--color-surface-container-low)] rounded mx-auto mb-2" />
               <div className="h-3 w-24 bg-[var(--color-surface-container-low)] rounded mx-auto" />
             </div>
@@ -89,14 +138,33 @@ export default function ArtistDashboardPage() {
       </div>
     );
   }
-
-  if (isError) {
+  function GenericErrorPage({ onRetry }) {
     return (
-      <div className="text-center py-32">
-        <p className="text-[var(--color-on-surface-variant)]">تعذّر تحميل البيانات. حاول مرة أخرى.</p>
+      <div
+        className="min-h-[60vh] flex items-center justify-center px-4"
+        dir="rtl"
+      >
+        <div className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+            تعذّر تحميل الإحصائيات
+          </h2>
+          <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+            حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+          </p>
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
       </div>
     );
   }
+  if (isError) return <GenericErrorPage onRetry={refetch} />
 
   const statCards = [
     {
@@ -144,15 +212,24 @@ export default function ArtistDashboardPage() {
             أهلاً، {user?.name?.split(" ")[0]} 👋
           </h1>
           <p className="text-sm text-[var(--color-on-surface-variant)] mt-1">
-            {new Date().toLocaleDateString("ar-SA", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            {new Date().toLocaleDateString("ar-SA", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </p>
         </div>
         <div className="flex gap-2">
           <Link to={ROUTES.ADD_ARTWORK}>
-            <Button variant="primary" size="sm" icon={Image}>رفع لوحة</Button>
+            <Button variant="primary" size="sm" icon={Image}>
+              رفع لوحة
+            </Button>
           </Link>
           <Link to={ROUTES.ARTIST_ORDERS}>
-            <Button variant="outline" size="sm" icon={ShoppingBag}>الطلبات</Button>
+            <Button variant="outline" size="sm" icon={ShoppingBag}>
+              الطلبات
+            </Button>
           </Link>
         </div>
       </div>
@@ -169,14 +246,21 @@ export default function ArtistDashboardPage() {
                 <span className="text-xs font-semibold text-[var(--color-on-surface-variant)] uppercase tracking-wide">
                   {card.label}
                 </span>
-                <div className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center`}>
-                  <Icon className={`w-4.5 h-4.5 ${card.color}`} strokeWidth={1.5} />
+                <div
+                  className={`w-9 h-9 rounded-lg ${card.bg} flex items-center justify-center`}
+                >
+                  <Icon
+                    className={`w-4.5 h-4.5 ${card.color}`}
+                    strokeWidth={1.5}
+                  />
                 </div>
               </div>
               <p className="text-2xl font-display font-bold text-[var(--color-on-surface)] mb-1">
                 {card.value}
               </p>
-              <p className="text-xs text-[var(--color-on-surface-variant)]">{card.sub}</p>
+              <p className="text-xs text-[var(--color-on-surface-variant)]">
+                {card.sub}
+              </p>
             </div>
           );
         })}
@@ -199,17 +283,26 @@ export default function ArtistDashboardPage() {
 
         {stats?.recentOrders?.length === 0 ? (
           <div className="text-center py-12">
-            <ShoppingBag className="w-10 h-10 text-[var(--color-on-surface-variant)]/30 mx-auto mb-3" strokeWidth={1} />
-            <p className="text-sm text-[var(--color-on-surface-variant)]">لا توجد طلبات بعد</p>
+            <ShoppingBag
+              className="w-10 h-10 text-[var(--color-on-surface-variant)]/30 mx-auto mb-3"
+              strokeWidth={1}
+            />
+            <p className="text-sm text-[var(--color-on-surface-variant)]">
+              لا توجد طلبات بعد
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-[var(--color-outline-variant)]/20">
             {stats?.recentOrders?.map((order) => {
-              const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.PAID;
+              const statusConfig =
+                STATUS_CONFIG[order.status] || STATUS_CONFIG.PAID;
               const StatusIcon = statusConfig.icon;
               const artwork = order.items?.[0]?.artwork;
               return (
-                <div key={order._id} className="flex items-center justify-between px-5 py-4">
+                <div
+                  key={order._id}
+                  className="flex items-center justify-between px-5 py-4"
+                >
                   <div className="flex items-center gap-3">
                     {artwork?.coverImage && (
                       <img
@@ -224,13 +317,17 @@ export default function ArtistDashboardPage() {
                         {artwork?.title || "لوحة فنية"}
                       </p>
                       <p className="text-xs text-[var(--color-on-surface-variant)]">
-                        {order.buyer?.name} • {new Date(order.createdAt).toLocaleDateString("ar-SA")}
+                        {order.buyer?.name} •{" "}
+                        {new Date(order.createdAt).toLocaleDateString("ar-SA")}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-semibold text-[var(--color-on-surface)]">
-                      {(order.financials?.totalArtistEarning || 0).toLocaleString()} ر.س
+                      {(
+                        order.financials?.totalArtistEarning || 0
+                      ).toLocaleString()}{" "}
+                      ر.س
                     </span>
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold ${statusConfig.bg} ${statusConfig.color}`}
@@ -260,11 +357,12 @@ export default function ArtistDashboardPage() {
             <p className="text-2xl font-display font-bold text-[var(--color-primary)] mb-1">
               {item.value}
             </p>
-            <p className="text-xs text-[var(--color-on-surface-variant)]">{item.label}</p>
+            <p className="text-xs text-[var(--color-on-surface-variant)]">
+              {item.label}
+            </p>
           </div>
         ))}
       </div>
-
     </div>
   );
 }

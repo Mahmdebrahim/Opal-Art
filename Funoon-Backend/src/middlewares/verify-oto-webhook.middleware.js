@@ -10,7 +10,12 @@ const safeEqual = (expected, provided) => {
   );
 };
 
-const isValidOtoWebhook = (payload, authorization, secret, authorizationKey) => {
+const isValidOtoWebhook = (
+  payload,
+  authorization,
+  secret,
+  authorizationKey,
+) => {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     return false;
   }
@@ -41,7 +46,9 @@ const verifyOtoWebhook = (req, res, next) => {
     process.env.OTO_WEBHOOK_AUTHORIZATION_KEY || process.env.OTO_WEBHOOK_AUTH;
 
   if (!secret || !authorizationKey) {
-    return res.status(503).json({ error: "Webhook verification is not configured" });
+    return res
+      .status(503)
+      .json({ error: "Webhook verification is not configured" });
   }
 
   if (

@@ -181,18 +181,17 @@ export default function AddressPage() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* ═══ 1) رمز العنوان المختصر — أول وأهم ═══ */}
+
         <div className="space-y-1.5">
           <FieldLabel hint="رمز العنوان الوطني المختصر (مثال: RRRD2929) — مكوّن من 4 أحرف تليها 4 أرقام. تجده في تطبيق «سبل» أو عبر موقع العنوان الوطني. عند إدخاله صحيحاً تُعبَّأ بيانات العنوان تلقائياً بدقة.">
             رمز العنوان المختصر
           </FieldLabel>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <input
               type="text"
               {...register("shortAddressCode")}
               onChange={(e) => {
-                // سجل القيمة + أخفي حالة التحقق لو الـ user عدّل الرمز
                 register("shortAddressCode").onChange(e);
                 setVerified(false);
               }}

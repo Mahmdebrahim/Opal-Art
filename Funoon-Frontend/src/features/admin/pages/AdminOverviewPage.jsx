@@ -2,19 +2,41 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip,
-  CartesianGrid, PieChart, Pie, Cell, BarChart, Bar,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
 } from "recharts";
 import {
-  Banknote, TrendingUp, ShoppingBag, Users, Palette, Wallet,
-  AlertTriangle, Image, ArrowUpRight, ArrowDownRight, ExternalLink,
-  MapPin, Target, UserPlus,
+  Banknote,
+  TrendingUp,
+  ShoppingBag,
+  Users,
+  Palette,
+  Wallet,
+  AlertTriangle,
+  Image,
+  ArrowUpRight,
+  ArrowDownRight,
+  ExternalLink,
+  MapPin,
+  Target,
+  UserPlus,
 } from "lucide-react";
 import { adminService } from "../services/admin.service";
 import { ROUTES } from "../../../config/routes";
 
 // ═══ Helpers ═══
-const fmt = (v) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v || 0);
+const fmt = (v) =>
+  new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v || 0);
 
 const PERIODS = [
   { value: "7d", label: "٧ أيام" },
@@ -23,7 +45,12 @@ const PERIODS = [
   { value: "365d", label: "سنة" },
 ];
 
-const PERIOD_LABELS = { "7d": "٧ أيام", "30d": "٣٠ يوم", "90d": "٩٠ يوم", "365d": "سنة" };
+const PERIOD_LABELS = {
+  "7d": "٧ أيام",
+  "30d": "٣٠ يوم",
+  "90d": "٩٠ يوم",
+  "365d": "سنة",
+};
 
 const makeTickFormatter = (days) => (key) => {
   if (!key) return "";
@@ -51,17 +78,24 @@ export default function AdminOverviewPage() {
   const [period, setPeriod] = useState("30d");
   const periodLabel = PERIOD_LABELS[period];
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["adminStats", period],
     queryFn: () => adminService.getStats(period),
   });
 
   if (isLoading) return <LoadingState />;
+  if (isError) return <GenericErrorPage onRetry={refetch} />;
   if (!data) return null;
 
   const {
-    overview, period: pd, charts, topArtists,
-    recentOrders, pendingWithdrawalsList, onHoldOrdersList, growth,
+    overview,
+    period: pd,
+    charts,
+    topArtists,
+    recentOrders,
+    pendingWithdrawalsList,
+    onHoldOrdersList,
+    growth,
   } = data;
   const maxArtistSales = topArtists?.[0]?.totalSales || 1;
   const maxCityOrders = growth?.topCities?.[0]?.orders || 1;
@@ -73,7 +107,10 @@ export default function AdminOverviewPage() {
         <div>
           <h2 className="font-display text-2xl text-on-surface">نظرة عامة</h2>
           <p className="text-sm text-on-surface-variant mt-1">
-            ملخص أداء المنصة {pd?.growth !== null && pd?.growth !== undefined && "(مقارنة بالفترة السابقة)"}
+            ملخص أداء المنصة{" "}
+            {pd?.growth !== null &&
+              pd?.growth !== undefined &&
+              "(مقارنة بالفترة السابقة)"}
           </p>
         </div>
         <div className="flex gap-1 bg-surface-container-low p-1 border border-outline-variant/40">
@@ -81,10 +118,11 @@ export default function AdminOverviewPage() {
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`px-4 py-1.5 text-xs font-body font-semibold transition-premium ${period === p.value
+              className={`px-4 py-1.5 text-xs font-body font-semibold transition-premium ${
+                period === p.value
                   ? "bg-primary text-white"
                   : "text-on-surface-variant hover:text-on-surface"
-                }`}
+              }`}
             >
               {p.label}
             </button>
@@ -93,28 +131,40 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* ═══ تنبيهات سريعة ═══ */}
-      {(overview.onHoldOrders.count > 0 || overview.pendingWithdrawals.count > 0) && (
+      {(overview.onHoldOrders.count > 0 ||
+        overview.pendingWithdrawals.count > 0) && (
         <div className="grid md:grid-cols-2 gap-4">
           {overview.onHoldOrders.count > 0 && (
-            <Link to={ROUTES.ADMIN_ORDERS} className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 hover:border-red-400 transition-premium">
+            <Link
+              to={ROUTES.ADMIN_ORDERS}
+              className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 hover:border-red-400 transition-premium"
+            >
               <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-red-700">
                   {overview.onHoldOrders.count} بلاغ مفتوح (أموال مجمدة)
                 </p>
-                <p className="text-xs text-red-600">بقيمة {fmt(overview.onHoldOrders.amount)} ر.س تحتاج مراجعة</p>
+                <p className="text-xs text-red-600">
+                  بقيمة {fmt(overview.onHoldOrders.amount)} ر.س تحتاج مراجعة
+                </p>
               </div>
               <ExternalLink className="w-4 h-4 text-red-500" />
             </Link>
           )}
           {overview.pendingWithdrawals.count > 0 && (
-            <Link to={ROUTES.ADMIN_WITHDRAWALS} className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 hover:border-amber-400 transition-premium">
+            <Link
+              to={ROUTES.ADMIN_WITHDRAWALS}
+              className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 hover:border-amber-400 transition-premium"
+            >
               <Wallet className="w-5 h-5 text-amber-600 shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-semibold text-amber-700">
                   {overview.pendingWithdrawals.count} طلب سحب معلق
                 </p>
-                <p className="text-xs text-amber-600">بقيمة {fmt(overview.pendingWithdrawals.amount)} ر.س بانتظار التحويل</p>
+                <p className="text-xs text-amber-600">
+                  بقيمة {fmt(overview.pendingWithdrawals.amount)} ر.س بانتظار
+                  التحويل
+                </p>
               </div>
               <ExternalLink className="w-4 h-4 text-amber-500" />
             </Link>
@@ -178,11 +228,22 @@ export default function AdminOverviewPage() {
               <AreaChart data={charts.revenueByDay}>
                 <defs>
                   <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
+                    <stop
+                      offset="0%"
+                      stopColor="var(--color-primary)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--color-primary)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(0,0,0,0.06)"
+                />
                 <XAxis
                   dataKey="date"
                   tick={{ fontSize: 10 }}
@@ -190,31 +251,60 @@ export default function AdminOverviewPage() {
                   minTickGap={40}
                 />
                 <YAxis tick={{ fontSize: 10 }} width={45} />
-                <Tooltip formatter={(v) => [`${fmt(v)} ر.س`, "مبيعات"]} labelFormatter={(d) => d} />
-                <Area type="monotone" dataKey="revenue" stroke="var(--color-primary)" strokeWidth={2} fill="url(#rev)" />
+                <Tooltip
+                  formatter={(v) => [`${fmt(v)} ر.س`, "مبيعات"]}
+                  labelFormatter={(d) => d}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="var(--color-primary)"
+                  strokeWidth={2}
+                  fill="url(#rev)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-lg">
-          <h3 className="text-sm font-body font-semibold text-on-surface mb-4">الطلبات حسب الحالة</h3>
+          <h3 className="text-sm font-body font-semibold text-on-surface mb-4">
+            الطلبات حسب الحالة
+          </h3>
           <div dir="rtl" className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={charts.ordersByStatus} dataKey="count" nameKey="_id" innerRadius={50} outerRadius={75} paddingAngle={2}>
+                <Pie
+                  data={charts.ordersByStatus}
+                  dataKey="count"
+                  nameKey="_id"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={2}
+                >
                   {charts.ordersByStatus.map((entry, i) => (
-                    <Cell key={i} fill={STATUS_META[entry._id]?.color || "#9ca3af"} />
+                    <Cell
+                      key={i}
+                      fill={STATUS_META[entry._id]?.color || "#9ca3af"}
+                    />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v, n) => [v, STATUS_META[n]?.label || n]} />
+                <Tooltip
+                  formatter={(v, n) => [v, STATUS_META[n]?.label || n]}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="flex flex-wrap gap-2 mt-3 justify-center">
             {charts.ordersByStatus.map((s) => (
-              <span key={s._id} className="flex items-center gap-1 text-[10px] text-on-surface-variant">
-                <span className="w-2 h-2 rounded-full" style={{ background: STATUS_META[s._id]?.color }} />
+              <span
+                key={s._id}
+                className="flex items-center gap-1 text-[10px] text-on-surface-variant"
+              >
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ background: STATUS_META[s._id]?.color }}
+                />
                 {STATUS_META[s._id]?.label} ({s.count})
               </span>
             ))}
@@ -230,16 +320,27 @@ export default function AdminOverviewPage() {
           </h3>
           <div className="space-y-4">
             {topArtists?.length === 0 && (
-              <p className="text-xs text-on-surface-variant">لا توجد مبيعات بعد</p>
+              <p className="text-xs text-on-surface-variant">
+                لا توجد مبيعات بعد
+              </p>
             )}
             {topArtists?.map((a, i) => (
               <div key={a.id}>
                 <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-body font-medium text-on-surface">{i + 1}. {a.name}</span>
-                  <span className="text-on-surface-variant">{fmt(a.totalSales)} ر.س</span>
+                  <span className="font-body font-medium text-on-surface">
+                    {i + 1}. {a.name}
+                  </span>
+                  <span className="text-on-surface-variant">
+                    {fmt(a.totalSales)} ر.س
+                  </span>
                 </div>
                 <div className="h-1.5 bg-surface-container-low overflow-hidden">
-                  <div className="h-full bg-secondary transition-all duration-500" style={{ width: `${(a.totalSales / maxArtistSales) * 100}%` }} />
+                  <div
+                    className="h-full bg-secondary transition-all duration-500"
+                    style={{
+                      width: `${(a.totalSales / maxArtistSales) * 100}%`,
+                    }}
+                  />
                 </div>
               </div>
             ))}
@@ -247,7 +348,9 @@ export default function AdminOverviewPage() {
         </div>
 
         <div className="lg:col-span-2 bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-lg">
-          <h3 className="text-sm font-body font-semibold text-on-surface mb-4">آخر الطلبات</h3>
+          <h3 className="text-sm font-body font-semibold text-on-surface mb-4">
+            آخر الطلبات
+          </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -261,13 +364,25 @@ export default function AdminOverviewPage() {
               </thead>
               <tbody>
                 {recentOrders?.map((o) => (
-                  <tr key={o._id} className="border-b border-outline-variant/20 last:border-0">
-                    <td className="py-2.5 pr-2 font-mono text-xs text-on-surface-variant">#{o._id.slice(-6).toUpperCase()}</td>
+                  <tr
+                    key={o._id}
+                    className="border-b border-outline-variant/20 last:border-0"
+                  >
+                    <td className="py-2.5 pr-2 font-mono text-xs text-on-surface-variant">
+                      #{o._id.slice(-6).toUpperCase()}
+                    </td>
                     <td className="py-2.5 text-on-surface">{o.buyer?.name}</td>
-                    <td className="py-2.5 text-on-surface-variant">{o.artist?.name}</td>
-                    <td className="py-2.5 font-semibold text-on-surface">{fmt(o.financials?.totalAmount)}</td>
+                    <td className="py-2.5 text-on-surface-variant">
+                      {o.artist?.name}
+                    </td>
+                    <td className="py-2.5 font-semibold text-on-surface">
+                      {fmt(o.financials?.totalAmount)}
+                    </td>
                     <td className="py-2.5">
-                      <span className="px-2 py-0.5 text-[10px] font-semibold text-white" style={{ background: STATUS_META[o.status]?.color }}>
+                      <span
+                        className="px-2 py-0.5 text-[10px] font-semibold text-white"
+                        style={{ background: STATUS_META[o.status]?.color }}
+                      >
                         {STATUS_META[o.status]?.label}
                       </span>
                     </td>
@@ -282,7 +397,8 @@ export default function AdminOverviewPage() {
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-lg">
           <h3 className="text-sm font-body font-semibold text-on-surface mb-4 flex items-center gap-2">
-            <UserPlus className="w-4 h-4 text-emerald-600" /> المستخدمون الجدد (آخر {periodLabel})
+            <UserPlus className="w-4 h-4 text-emerald-600" /> المستخدمون الجدد
+            (آخر {periodLabel})
           </h3>
           <div dir="rtl" className="h-52">
             <ResponsiveContainer width="100%" height="100%">
@@ -293,33 +409,71 @@ export default function AdminOverviewPage() {
                     <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="artists" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--color-secondary)" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity={0} />
+                    <stop
+                      offset="0%"
+                      stopColor="var(--color-secondary)"
+                      stopOpacity={0.25}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--color-secondary)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(0,0,0,0.06)"
+                />
                 <XAxis
                   dataKey="key"
                   tick={{ fontSize: 9 }}
                   tickFormatter={makeTickFormatter(pd?.days || 30)}
                   minTickGap={40}
                 />
-                <YAxis tick={{ fontSize: 10 }} width={25} allowDecimals={false} />
+                <YAxis
+                  tick={{ fontSize: 10 }}
+                  width={25}
+                  allowDecimals={false}
+                />
                 <Tooltip
-                  formatter={(v, name) => [v, name === "buyers" ? "مشترين" : "فنانين"]}
+                  formatter={(v, name) => [
+                    v,
+                    name === "buyers" ? "مشترين" : "فنانين",
+                  ]}
                   labelFormatter={(d) => d}
                 />
-                <Area type="monotone" dataKey="buyers" stroke="#3b82f6" strokeWidth={2} fill="url(#buyers)" />
-                <Area type="monotone" dataKey="artists" stroke="var(--color-secondary)" strokeWidth={2} fill="url(#artists)" />
+                <Area
+                  type="monotone"
+                  dataKey="buyers"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fill="url(#buyers)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="artists"
+                  stroke="var(--color-secondary)"
+                  strokeWidth={2}
+                  fill="url(#artists)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
           <div className="flex gap-4 justify-center mt-3">
             <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
-              <span className="w-3 h-3 rounded-sm" style={{ background: "#3b82f6" }} /> مشترين
+              <span
+                className="w-3 h-3 rounded-sm"
+                style={{ background: "#3b82f6" }}
+              />{" "}
+              مشترين
             </span>
             <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
-              <span className="w-3 h-3 rounded-sm" style={{ background: "var(--color-secondary)" }} /> فنانين
+              <span
+                className="w-3 h-3 rounded-sm"
+                style={{ background: "var(--color-secondary)" }}
+              />{" "}
+              فنانين
             </span>
           </div>
         </div>
@@ -332,7 +486,9 @@ export default function AdminOverviewPage() {
           </h3>
           <div className="space-y-4">
             {(growth?.topCities?.length || 0) === 0 && (
-              <p className="text-xs text-on-surface-variant">لا توجد بيانات بعد</p>
+              <p className="text-xs text-on-surface-variant">
+                لا توجد بيانات بعد
+              </p>
             )}
             {growth?.topCities?.map((c, i) => (
               <div key={c._id || i}>
@@ -363,9 +519,10 @@ export default function AdminOverviewPage() {
 function OrdersHealthCard({ health, days = 30 }) {
   const series = health?.series || [];
   const cancelRate = health?.cancelRate || 0;
-  const periodLabel = PERIOD_LABELS[
-    days <= 7 ? "7d" : days <= 30 ? "30d" : days <= 90 ? "90d" : "365d"
-  ];
+  const periodLabel =
+    PERIOD_LABELS[
+      days <= 7 ? "7d" : days <= 30 ? "30d" : days <= 90 ? "90d" : "365d"
+    ];
 
   return (
     <div className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-lg">
@@ -373,7 +530,9 @@ function OrdersHealthCard({ health, days = 30 }) {
         <h3 className="text-sm font-body font-semibold text-on-surface">
           صحة الطلبات (آخر {periodLabel})
         </h3>
-        <span className={`text-xs font-semibold ${cancelRate > 15 ? "text-red-600" : "text-emerald-600"}`}>
+        <span
+          className={`text-xs font-semibold ${cancelRate > 15 ? "text-red-600" : "text-emerald-600"}`}
+        >
           معدل الإلغاء: {cancelRate}%
         </span>
       </div>
@@ -388,7 +547,10 @@ function OrdersHealthCard({ health, days = 30 }) {
               minTickGap={40}
             />
             <YAxis tick={{ fontSize: 10 }} width={25} allowDecimals={false} />
-            <Tooltip formatter={(v, n) => [v, n === "paid" ? "مدفوع" : "ملغي"]} labelFormatter={(d) => d} />
+            <Tooltip
+              formatter={(v, n) => [v, n === "paid" ? "مدفوع" : "ملغي"]}
+              labelFormatter={(d) => d}
+            />
             <Bar dataKey="paid" fill="#10b981" radius={[3, 3, 0, 0]} />
             <Bar dataKey="cancelled" fill="#ef4444" radius={[3, 3, 0, 0]} />
           </BarChart>
@@ -396,10 +558,12 @@ function OrdersHealthCard({ health, days = 30 }) {
       </div>
       <div className="flex gap-4 justify-center mt-3">
         <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
-          <span className="w-3 h-3 rounded-sm bg-[#10b981]" /> مدفوع ({health?.totalPaid || 0})
+          <span className="w-3 h-3 rounded-sm bg-[#10b981]" /> مدفوع (
+          {health?.totalPaid || 0})
         </span>
         <span className="flex items-center gap-1.5 text-xs text-on-surface-variant">
-          <span className="w-3 h-3 rounded-sm bg-[#ef4444]" /> ملغي ({health?.totalCancelled || 0})
+          <span className="w-3 h-3 rounded-sm bg-[#ef4444]" /> ملغي (
+          {health?.totalCancelled || 0})
         </span>
       </div>
     </div>
@@ -407,22 +571,41 @@ function OrdersHealthCard({ health, days = 30 }) {
 }
 
 // ═══ Stat Card ═══
-function StatCard({ icon: Icon, label, value, sub, trend, accent = "text-primary" }) {
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  trend,
+  accent = "text-primary",
+}) {
   return (
     <div className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-lg">
       <div className="flex items-center justify-between mb-3">
-        <div className={`w-9 h-9 flex items-center justify-center bg-surface-container-low ${accent}`}>
+        <div
+          className={`w-9 h-9 flex items-center justify-center bg-surface-container-low ${accent}`}
+        >
           <Icon className="w-4 h-4" strokeWidth={1.5} />
         </div>
         {trend !== null && trend !== undefined && (
-          <span className={`flex items-center gap-0.5 text-xs font-semibold ${trend >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-            {trend >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+          <span
+            className={`flex items-center gap-0.5 text-xs font-semibold ${trend >= 0 ? "text-emerald-600" : "text-red-600"}`}
+          >
+            {trend >= 0 ? (
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            ) : (
+              <ArrowDownRight className="w-3.5 h-3.5" />
+            )}
             {Math.abs(trend)}%
           </span>
         )}
       </div>
-      <p className="text-[10px] font-body font-semibold uppercase tracking-wider text-on-surface-variant mb-1">{label}</p>
-      <p className="font-display text-2xl text-on-surface leading-none">{value}</p>
+      <p className="text-[10px] font-body font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
+        {label}
+      </p>
+      <p className="font-display text-2xl text-on-surface leading-none">
+        {value}
+      </p>
       {sub && <p className="text-xs text-on-surface-variant mt-2">{sub}</p>}
     </div>
   );
@@ -450,7 +633,10 @@ function LoadingState() {
       {/* ═══ Alerts Skeleton ═══ */}
       <div className="grid md:grid-cols-2 gap-4">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="flex items-center gap-3 p-4 bg-surface-container-lowest border border-outline-variant/40 rounded-lg">
+          <div
+            key={i}
+            className="flex items-center gap-3 p-4 bg-surface-container-lowest border border-outline-variant/40 rounded-lg"
+          >
             <div className="w-5 h-5 bg-surface-container-low rounded shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="h-4 w-48 bg-surface-container-low rounded" />
@@ -464,7 +650,10 @@ function LoadingState() {
       {/* ═══ KPI Cards (6 كروت) ═══ */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-lg">
+          <div
+            key={i}
+            className="bg-surface-container-lowest border border-outline-variant/40 p-5 rounded-lg"
+          >
             <div className="flex items-center justify-between mb-3">
               <div className="w-9 h-9 bg-surface-container-low rounded" />
               <div className="h-4 w-12 bg-surface-container-low rounded" />
@@ -519,11 +708,17 @@ function LoadingState() {
             <div className="w-full text-sm">
               <div className="flex gap-4 pb-3 border-b border-outline-variant/30">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-3 w-20 bg-surface-container-low rounded" />
+                  <div
+                    key={i}
+                    className="h-3 w-20 bg-surface-container-low rounded"
+                  />
                 ))}
               </div>
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex gap-4 py-3 border-b border-outline-variant/20 last:border-0">
+                <div
+                  key={i}
+                  className="flex gap-4 py-3 border-b border-outline-variant/20 last:border-0"
+                >
                   <div className="h-4 w-16 bg-surface-container-low rounded" />
                   <div className="h-4 w-24 bg-surface-container-low rounded" />
                   <div className="h-4 w-24 bg-surface-container-low rounded" />
@@ -585,6 +780,33 @@ function LoadingState() {
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function GenericErrorPage({ onRetry }) {
+  return (
+    <div
+      className="min-h-[60vh] flex items-center justify-center px-4"
+      dir="rtl"
+    >
+      <div className="max-w-md w-full p-8 text-center">
+        <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+          تعذّر تحميل الاحصائيات
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+        </p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+        >
+          إعادة المحاولة
+        </button>
       </div>
     </div>
   );

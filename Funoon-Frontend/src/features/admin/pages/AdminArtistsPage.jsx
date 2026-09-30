@@ -13,6 +13,7 @@ import {
   Landmark,
   Calendar,
   Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { adminService } from "../services/admin.service";
 import { SharedModal, ModalActions } from "../../../components/SharedModal";
@@ -123,7 +124,11 @@ export default function AdminArtistsPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data: artistsData, isLoading: loadingArtists } = useQuery({
+  const {
+    data: artistsData,
+    isLoading: loadingArtists,
+    isError: isArtistError,
+  } = useQuery({
     queryKey: ["adminArtists", debouncedSearch, page],
     queryFn: () =>
       adminService.getAdminArtists({
@@ -132,8 +137,6 @@ export default function AdminArtistsPage() {
         limit: 15,
       }),
   });
-
-  console.log(artistsData);
 
   const { data: pendingData, isLoading: loadingPending } = useQuery({
     queryKey: ["pendingBankAccounts"],
@@ -144,7 +147,6 @@ export default function AdminArtistsPage() {
   const pagination = artistsData?.pagination || { total: 0, pages: 0 };
   const pendingAccounts = pendingData?.accounts || [];
 
-  // ✅ Loading Skeleton
   const showSkeleton = tab === "artists" ? loadingArtists : loadingPending;
 
   if (showSkeleton)
@@ -222,6 +224,7 @@ export default function AdminArtistsPage() {
           page={page}
           setPage={setPage}
           pagination={pagination}
+          isArtistError={isArtistError}
         />
       ) : (
         <PendingTab
@@ -267,6 +270,7 @@ function ArtistsTab({
   page,
   setPage,
   pagination,
+  isArtistError,
 }) {
   return (
     <>
@@ -297,15 +301,27 @@ function ArtistsTab({
             </tr>
           </thead>
           <tbody>
-            {!loading && artists.length === 0 && (
+            {isArtistError ? (
               <tr>
-                <td colSpan={5} className="p-12 text-center">
-                  <Palette className="w-8 h-8 mx-auto mb-2 text-on-surface-variant/40" />
-                  <p className="text-sm text-on-surface-variant">
-                    لا يوجد فنانون
+                <td colSpan={5} className="p-8 text-center">
+                  <AlertTriangle className="w-8 h-8 mx-auto text-center mb-2 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب الفنانون
                   </p>
                 </td>
               </tr>
+            ) : (
+              !loading &&
+              artists.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="p-12 text-center">
+                    <Palette className="w-8 h-8 mx-auto mb-2 text-on-surface-variant/40" />
+                    <p className="text-sm text-on-surface-variant">
+                      لا يوجد فنانون
+                    </p>
+                  </td>
+                </tr>
+              )
             )}
             {artists.map((a) => (
               <tr
@@ -631,7 +647,7 @@ function VerifyModal({ account, onClose }) {
   const verify = useMutation({
     mutationFn: () => adminService.verifyBankAccount(account._id),
     onSuccess: () => {
-      toast.success("تم توثيق الحساب ✅ — الفنان الآن يقدر يسحب");
+      toast.success("تم توثيق الحساب  — الفنان الآن يقدر يسحب");
       queryClient.invalidateQueries({ queryKey: ["pendingBankAccounts"] });
       queryClient.invalidateQueries({ queryKey: ["adminArtists"] });
       onClose();

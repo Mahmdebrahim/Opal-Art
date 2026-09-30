@@ -29,12 +29,12 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    calculateShipping,
-    createOtoOrder,      // ✅ جديد
-    createShipment,      // ✅ جديد (endpoint 2)
-    getAWBUrl,
-    trackShipment,
-    handleOTOWebhook,
+  calculateShipping,
+  createOtoOrder, // ✅ جديد
+  createShipment, // ✅ جديد (endpoint 2)
+  getAWBUrl,
+  trackShipment,
+  handleOTOWebhook,
 } = require("../controllers/shipping.controller");
 const { protect, restrictTo } = require("../middlewares/auth.middleware");
 const verifyOtoWebhook = require("../middlewares/verify-oto-webhook.middleware");
@@ -46,10 +46,20 @@ router.post("/webhooks/oto", verifyOtoWebhook, handleOTOWebhook);
 router.post("/calculate", protect, calculateShipping);
 
 // ✅ Step 1: Create OTO order
-router.post("/:orderId/create-oto-order", protect, restrictTo("artist", "admin"), createOtoOrder);
+router.post(
+  "/:orderId/create-oto-order",
+  protect,
+  restrictTo("artist", "admin"),
+  createOtoOrder,
+);
 
 // ✅ Step 2: Create shipment
-router.post("/:orderId/create-shipment", protect, restrictTo("artist", "admin"), createShipment);
+router.post(
+  "/:orderId/create-shipment",
+  protect,
+  restrictTo("artist", "admin"),
+  createShipment,
+);
 
 // ─── Protected: Buyer/Artist/Admin ─────────────────────────────
 router.get("/:orderId/awb", protect, getAWBUrl);

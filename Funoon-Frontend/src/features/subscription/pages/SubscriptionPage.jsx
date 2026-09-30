@@ -10,6 +10,7 @@ import {
   ArrowUpCircle,
   Calendar,
   TicketCheck,
+  AlertTriangle,
 } from "lucide-react";
 import toast from "../../../services/toast.service";
 
@@ -93,31 +94,34 @@ export default function SubscriptionPage() {
       </div>
     );
   }
-
-  // Error State
-  if (effectiveIsError) {
+  function GenericErrorPage({ onRetry }) {
     return (
       <div
-        className="min-h-screen bg-[var(--color-surface)] py-16 px-4 flex items-center justify-center"
+        className="min-h-[60vh] flex items-center justify-center px-4"
         dir="rtl"
       >
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <X className="w-8 h-8 text-red-500" />
+        <div className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
           </div>
           <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
             حدث خطأ أثناء تحميل البيانات
           </h2>
-          <p className="text-sm text-[var(--color-on-surface-variant)] mb-4">
-            يرجى المحاولة مرة أخرى
+          <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+            حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
           </p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+          >
             إعادة المحاولة
-          </Button>
+          </button>
         </div>
       </div>
     );
   }
+  // Error State
+  if (effectiveIsError) return <GenericErrorPage onRetry={() => window.location.reload()} />;
 
   const handleSubscribe = async (planId) => {
     if (isLoad) return;
@@ -142,7 +146,6 @@ export default function SubscriptionPage() {
         return;
       }
 
-      // ✅ الخطوة 2: ابدأ عملية الدفع
       const normalizedCouponCode =
         appliedCoupon?.code || couponCode.trim().toUpperCase();
       const response = await subscriptionsService.purchase(
@@ -161,7 +164,6 @@ export default function SubscriptionPage() {
         `/subscription/checkout?invoice=${response.invoiceId}&plan=${planId}`,
       );
     } catch (err) {
-      console.error("❌ Purchase error:", err);
       const message =
         err?.response?.data?.message ||
         err?.data?.message ||
@@ -224,7 +226,7 @@ export default function SubscriptionPage() {
 
         {/* Current Plan Banner */}
         {isSubscribed && currentPlan && (
-          <div className="mb-10 bg-gradient-to-l from-emerald-500 to-teal-600 rounded-2xl overflow-hidden shadow-lg">
+          <div className="mb-10 bg-gradient-to-l from-emerald-500 to-teal-600 rounded-2xl overflow-hidden shadow-lg ">
             <div className="p-5 text-white flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center shrink-0 backdrop-blur-sm">
@@ -340,9 +342,9 @@ export default function SubscriptionPage() {
                       onSubscribe={handleSubscribe}
                       isLoading={isPlanLoading}
                       disabled={isLoad}
-                      popular // أو popular={false}
-                      daysLeft={daysLeft} // ✅ NEW
-                      renewWindowDays={RENEW_WINDOW_DAYS} // ✅ NEW
+                      popular 
+                      daysLeft={daysLeft} 
+                      renewWindowDays={RENEW_WINDOW_DAYS} 
                     />
                   </div>
                 </div>
@@ -514,7 +516,6 @@ function CardInner({
   const downgrade =
     isSubscribed && planOrder[plan.id] < planOrder[currentPlanId];
 
-  // ✅ التجديد متاح بس لو باقي أقل من النافذة (أو Subscription منتهي اليوم)
   const canRenewNow =
     isSubscribed && daysLeft !== null && daysLeft <= renewWindowDays;
 
@@ -639,7 +640,7 @@ function CardInner({
           {upgrade
             ? "ترقية الباقة"
             : currentPlanId === plan.id
-              ? "تجديد الاشتراك" // ✅ للاشتراك المنتهي (isActive=false) على نفس الباقة
+              ? "تجديد الاشتراك" 
               : "اشترك الآن"}
         </Button>
       )}

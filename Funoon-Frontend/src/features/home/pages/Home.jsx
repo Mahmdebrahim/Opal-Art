@@ -13,13 +13,10 @@ import {
   Search,
   CreditCard,
   PackageCheck,
-  UserCheck,
-  TrendingUp,
-  Award,
   Image as ImageIcon,
   Palette,
   Users,
-  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import FeaturedCard from "../components/FeaturedCard";
 import HeroSection from "../components/HeroSection";
@@ -73,21 +70,26 @@ function EmptyState({
 function DataLoadError({ onRetry }) {
   return (
     <div
-      role="alert"
-      className="flex flex-col items-center gap-3 border border-[var(--color-outline-variant)]/40 bg-[var(--color-surface-container-lowest)] px-5 py-8 text-center"
+      className="min-h-[60vh] flex items-center justify-center px-4"
+      dir="rtl"
     >
-      <p className="text-sm text-[var(--color-on-surface-variant)]">
-        تعذر تحميل البيانات حالياً. قد يكون الاتصال بالخادم أو قاعدة البيانات
-        متقطعاً.
-      </p>
-      <button
-        type="button"
-        onClick={() => onRetry()}
-        className="inline-flex items-center gap-2 border border-[var(--color-outline-variant)]/50 px-3 py-2 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-surface-container-low)]"
-      >
-        <RefreshCw className="h-3.5 w-3.5" />
-        إعادة المحاولة
-      </button>
+      <div className="max-w-md w-full p-8 text-center">
+        <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+          تعذّر تحميل البيانات
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+        </p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+        >
+          إعادة المحاولة
+        </button>
+      </div>
     </div>
   );
 }
@@ -134,38 +136,6 @@ function SectionHeader({
     </div>
   );
 }
-
-// ═══════════════════════════════════════════════════
-// Featured Card
-// ═══════════════════════════════════════════════════
-// function FeaturedCard({ item }) {
-//   return (
-//     <Link
-//       to={ROUTES.ARTWORK.replace(":id", item._id)}
-//       className="group relative flex-shrink-0 w-64 sm:w-82 bg-[var(--color-surface-container-lowest)] rounded-sm border border-[var(--color-outline-variant)]/30 overflow-hidden hover:shadow-lg transition-all duration-300"
-//     >
-//       <div className="aspect-[4/5] relative overflow-hidden bg-[var(--color-surface-container)]">
-//         <img
-//           src={getMediaUrl(item.coverImage)}
-//           alt={item.title}
-//           crossOrigin="anonymous"
-//           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-//         />
-//         <span className="absolute top-3 right-3 px-2.5 py-1 bg-[#C5A880] text-white text-[10px] font-bold rounded-full flex items-center gap-1 shadow-sm">
-//           <Star className="w-3 h-3 fill-white" strokeWidth={0} />
-//           مميزة
-//         </span>
-//         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 text-white">
-//           <p className="font-display font-bold text-base truncate">{item.title}</p>
-//           <p className="text-xs text-stone-300 truncate mt-0.5">{item.artist?.name}</p>
-//           <p className="text-sm font-bold text-[#C5A880] mt-2">
-//             {(item.price || 0).toLocaleString()} ر.س
-//           </p>
-//         </div>
-//       </div>
-//     </Link>
-//   );
-// }
 
 // ═══════════════════════════════════════════════════
 // Section: Featured Marquee
@@ -398,7 +368,7 @@ function FeaturedArtistsSection() {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-6 mt-14 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-15 md:gap-6 mt-14 w-full">
           {artists.map((artist) => (
             <div
               key={artist._id}
@@ -699,68 +669,6 @@ function CustomerReviewsSection() {
           ))}
         </div>
       )}
-    </section>
-  );
-}
-
-// ═══════════════════════════════════════════════════
-// Section: Platform Stats
-// ═══════════════════════════════════════════════════
-function PlatformStatsSection() {
-  const { data } = useQuery({
-    queryKey: ["platformStats"],
-    queryFn: () => artworksService.getPlatformStats(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const stats = data?.data || data || {};
-
-  const statItems = [
-    { label: "فنان سعودي", value: stats.artistCount ?? 0, icon: UserCheck },
-    { label: "عمل فني أصيل", value: stats.artworkCount ?? 0, icon: ImageIcon },
-    {
-      label: "عملية اقتناء ناجحة",
-      value: stats.salesCount ?? 0,
-      icon: TrendingUp,
-    },
-    { label: "تقييم موثق", value: stats.reviewCount ?? 0, icon: Award },
-  ];
-
-  return (
-    <section className="py-16 bg-gradient-to-l from-[#3D0006] via-[#260004] to-[#1A0003] text-white">
-      <div className="max-w-[1280px] mx-auto px-5 lg:px-16">
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <span className="text-[#C5A880] text-xs font-semibold tracking-[0.2em] mb-2 block font-body">
-            أرقام تتحدث
-          </span>
-          <h2 className="text-3xl font-display font-bold">
-            أوبال جاليري بالأرقام
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
-          {statItems.map((st, i) => {
-            const Icon = st.icon;
-            return (
-              <div
-                key={i}
-                className="p-6 rounded-2xl bg-white/5 border border-white/10"
-              >
-                <Icon
-                  className="w-8 h-8 text-[#C5A880] mx-auto mb-3"
-                  strokeWidth={1.5}
-                />
-                <p className="font-display text-4xl lg:text-5xl font-bold text-[#C5A880] mb-2">
-                  {st.value}+
-                </p>
-                <p className="text-xs lg:text-sm text-stone-300 font-body">
-                  {st.label}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </section>
   );
 }

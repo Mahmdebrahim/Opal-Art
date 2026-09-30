@@ -25,10 +25,10 @@ const generateRefreshToken = async (user) => {
   // ✅ امسح tokens القديمة، سيب آخر 5 بس (بدل كلهم)
   const existingTokens = await RefreshToken.find({ user: user._id })
     .sort({ createdAt: -1 })
-    .limit(100); // اجيب كلهم
+    .limit(100);
 
-  if (existingTokens.length > 5) {
-    const tokensToDelete = existingTokens.slice(5).map((t) => t._id);
+  if (existingTokens.length > 3) {
+    const tokensToDelete = existingTokens.slice(3).map((t) => t._id);
     await RefreshToken.deleteMany({ _id: { $in: tokensToDelete } });
   }
 
@@ -106,7 +106,7 @@ const register = catchAsync(async (req, res, next) => {
   user.otpLastSentAt = new Date();
   await user.save({ validateBeforeSave: false });
 
-  //! in production 
+  //! in production
   // 4. Send OTP Email
   // const emailSent = await EmailService.sendVerificationOTP(user, otp);
 
@@ -543,7 +543,7 @@ const resendVerificationOTP = catchAsync(async (req, res, next) => {
     .digest("hex");
   user.emailVerificationOTPExpires = Date.now() + 5 * 60 * 1000;
   user.otpLastSentAt = now;
-  user.otpAttempts = 0; // reset attempts على الـ OTP الجديد
+  user.otpAttempts = 0; 
   user.otpLockedUntil = undefined;
   await user.save({ validateBeforeSave: false });
 
@@ -579,7 +579,6 @@ const checkVerificationStatus = catchAsync(async (req, res, next) => {
     M.auth.verificationStatusFetched,
   );
 });
-
 
 module.exports = {
   register,

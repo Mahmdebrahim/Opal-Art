@@ -12,7 +12,7 @@ export default function NotificationBell() {
     const navigate = useNavigate();
 
     const { data: unreadCount = 0 } = useUnreadCount();
-    const { data } = useNotifications({ limit: 5 });
+    const { data, isError } = useNotifications({ limit: 5 });
     const markAsRead = useMarkAsRead();
     const markAllAsRead = useMarkAllAsRead();
 
@@ -68,11 +68,16 @@ export default function NotificationBell() {
                     </div>
 
                     {/* List */}
-                    {notifications.length === 0 ? (
+                    {isError ? (
+                        <div className="py-10 text-center">
+                            <p className="text-xs text-[var(--color-on-surface-variant)]">حدث خطأ أثناء جلب الإشعارات</p>
+                        </div>
+                    ) : notifications.length === 0 ? (    
                         <div className="py-10 text-center">
                             <Inbox className="w-8 h-8 mx-auto mb-2 text-[var(--color-on-surface-variant)]/30" strokeWidth={1} />
                             <p className="text-xs text-[var(--color-on-surface-variant)]">لا توجد إشعارات بعد</p>
                         </div>
+
                     ) : (
                         <div className="max-h-[250px] overflow-y-auto divide-y divide-[var(--color-outline-variant)]/20">
                             {notifications.map((n) => {

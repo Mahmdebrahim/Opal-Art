@@ -145,19 +145,17 @@ class EmailService {
       let finalTo = to;
       let finalSubject = subject;
 
-      // ✅ Dev mode: override للإيميلات اللي مش verified
+      // Dev mode: override للإيميلات اللي مش verified
       if (process.env.NODE_ENV === "development") {
-        const DEV_EMAIL = "muhammedsaviola@gmail.com"; // ✅ الـ verified email
+        const DEV_EMAIL = "muhammedsaviola@gmail.com";
         if (to.toLowerCase() !== DEV_EMAIL.toLowerCase()) {
           finalTo = DEV_EMAIL;
           finalSubject = `[DEV → ${to}] ${subject}`;
-          // ✅ نضيف ملاحظة في أعلى الـ HTML
           const devBanner = `
           <div style="background:#fff3cd;border:2px solid #ffc107;padding:12px;margin-bottom:16px;border-radius:8px;font-size:12px;color:#856404;text-align:right;">
             <strong>وضع التطوير:</strong> الرسالة دي في الأساس لـ <strong>${to}</strong> — تم تحويلها للإيميل المطور للاختبار.
           </div>
         `;
-          // نحط الـ banner بعد الـ <body> tag
           html = html.replace("<body", `<body data-dev-redirect="${to}"`);
           html = html.replace(
             /(<table[^>]*role="presentation"[^>]*>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<\/table>)/,
@@ -226,7 +224,7 @@ class EmailService {
         </p>
       </div>
       <p style="color:#444;line-height:1.8;">
-        الرمز صالح لمدة <strong>10 دقائق</strong>. لا تشاركه مع أي شخص.
+        الرمز صالح لمدة <strong>5 دقائق</strong>. لا تشاركه مع أي شخص.
       </p>
       <p style="color:${BRAND.muted};font-size:12px;margin-top:24px;padding-top:16px;border-top:1px solid ${BRAND.border};">
         إذا لم تطلب هذا الرمز، يمكنك تجاهل هذا البريد بأمان.

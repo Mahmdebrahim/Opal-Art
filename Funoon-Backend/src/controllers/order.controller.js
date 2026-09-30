@@ -1029,7 +1029,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   }
 
   // ═══════════════════════════════════════════════════
-  // ✅ Unified Refund Helper (3 retries + tracking)
+  // Unified Refund Helper (3 retries + tracking)
   // ═══════════════════════════════════════════════════
   async function attemptRefund(paymentId, amount, reason) {
     const MAX_ATTEMPTS = 3;
@@ -1066,7 +1066,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   }
 
   // ═══════════════════════════════════════════════════
-  // ✅ Handle "refunded" events (manual refund من Moyasar)
+  // Handle "refunded" events (manual refund من Moyasar)
   // ═══════════════════════════════════════════════════
   if (event.status === "refunded") {
     logger.info(

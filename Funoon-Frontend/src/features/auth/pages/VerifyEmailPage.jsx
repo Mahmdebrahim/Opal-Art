@@ -141,7 +141,6 @@ export default function VerifyEmailPage() {
   const [otp, setOtp] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // ✅ لو مفيش otpSentAt (أول مرة تفتح الصفحة) — خزّن الآن
   useEffect(() => {
     if (!localStorage.getItem("otpSentAt")) {
       localStorage.setItem("otpSentAt", String(Date.now()));
@@ -170,7 +169,6 @@ export default function VerifyEmailPage() {
         const { user: verifiedUser, accessToken } = data.data;
         login(verifiedUser, accessToken);
 
-        // ✅ نظّف localStorage المؤقت
         localStorage.removeItem("_opal_pending_userId");
         localStorage.removeItem("_opal_pending_email");
         localStorage.removeItem("otpSentAt");
@@ -202,7 +200,6 @@ export default function VerifyEmailPage() {
   const resendMutation = useMutation({
     mutationFn: () => authService.resendOtp(userId),
     onSuccess: () => {
-      // ✅ حدّث otpSentAt عشان العداد يبدأ من 5 دقايق حقيقية
       localStorage.setItem("otpSentAt", String(Date.now()));
       toast.success("تم إعادة إرسال الرمز إلى بريدك الإلكتروني");
       setErrorMsg("");

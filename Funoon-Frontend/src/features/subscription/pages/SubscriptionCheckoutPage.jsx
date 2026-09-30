@@ -48,9 +48,6 @@ export default function SubscriptionCheckoutPage() {
   const [formInjected, setFormInjected] = useState(false);
   const [isRestoringFromGateway, setIsRestoringFromGateway] = useState(false);
 
-  // ═══════════════════════════════════════════════════
-  // ✅ المبلغ الحقيقي من الـ backend (مش من الـ config!)
-  // ═══════════════════════════════════════════════════
   const {
     data: details,
     isLoading: detailsLoading,
@@ -98,7 +95,6 @@ export default function SubscriptionCheckoutPage() {
   const scenarioMeta = SCENARIO_META[scenario] || SCENARIO_META.new;
   const ScenarioIcon = scenarioMeta.icon;
 
-  // ✅ الفورم ميشتغلش إلا لما نعرف المبلغ الحقيقي وحالة الدفع PENDING
   const formEnabled =
     !!invoiceId &&
     !!details &&
@@ -120,7 +116,6 @@ export default function SubscriptionCheckoutPage() {
     key: `${invoiceId}-${retryCount}`,
   });
 
-  // ✅ مراقبة حقن الفورم
   useEffect(() => {
     const el = formRef.current;
     if (!el) return;

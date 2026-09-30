@@ -532,7 +532,6 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
       callbackUrl: `${process.env.NGROK_URL}/api/v1/webhooks/moyasar`,
       successUrl: `${process.env.FRONTEND_URL}/subscription/success`,
       backUrl: `${process.env.FRONTEND_URL}/subscription/cancel`,
-      // ✅ جديد: خلي Moyasar نفسها ترفض الدفع لو الوقت عدّى
       expired_at: new Date(
         Date.now() + PAYMENT_EXPIRE_MINUTES * 60 * 1000,
       ).toISOString(),

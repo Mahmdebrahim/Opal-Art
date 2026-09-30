@@ -8,8 +8,7 @@ import {
   MapPin,
   ChevronLeft,
   ChevronRight,
-  Award,
-  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import { getMediaUrl } from "../../../utils/media";
 import { artistService } from "../services/artist.service";
@@ -71,7 +70,7 @@ export default function ArtistsPage() {
     return () => clearTimeout(timer);
   }, [searchInput, filters.search, setSearchParams]);
 
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ["artists", filters],
     queryFn: () => artistService.getAllArtists(filters),
     placeholderData: keepPreviousData,
@@ -127,7 +126,9 @@ export default function ArtistsPage() {
 
       {/* ═══ Grid ═══ */}
       <div className="max-w-[1280px] mx-auto px-5 lg:px-16 py-8">
-        {isLoading ? (
+        {isError ? (
+          <GenericErrorPage onRetry={refetch} />
+        ) : isLoading ? (
           <LoadingGrid />
         ) : artists.length === 0 ? (
           <EmptyState search={filters.search} />
@@ -316,6 +317,34 @@ function EmptyState({ search }) {
       <p className="text-sm font-body text-[var(--color-on-surface-variant)]">
         {search ? "جرّب كلمات بحث مختلفة" : "سيتم إضافة فنانين قريباً"}
       </p>
+    </div>
+  );
+}
+
+
+function GenericErrorPage({ onRetry }) {
+  return (
+    <div
+      className="min-h-[60vh] flex items-center justify-center px-4"
+      dir="rtl"
+    >
+      <div className="max-w-md w-full p-8 text-center">
+        <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+          تعذّر تحميل الفنانون
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+        </p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+        >
+          إعادة المحاولة
+        </button>
+      </div>
     </div>
   );
 }

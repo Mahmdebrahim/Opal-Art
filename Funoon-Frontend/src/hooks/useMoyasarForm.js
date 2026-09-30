@@ -22,7 +22,6 @@ function loadMoyasarScript() {
 
     let script = document.querySelector(`script[src="${MOYASAR_JS}"]`);
 
-    // ✅ لو محاولة سابقة فشلت، امسح السكربت وجرب من جديد
     if (script?.dataset.state === "error") {
       script.remove();
       script = null;
@@ -130,7 +129,6 @@ export function useMoyasarForm({
         return;
       }
       if (checkForm()) {
-        console.log("[Moyasar] form rendered ✅");
         setIsLoading(false);
         setError(false);
         observer.disconnect();
@@ -163,7 +161,6 @@ export function useMoyasarForm({
         methods: ["creditcard"],
       });
     } catch (err) {
-      console.error("[Moyasar] init threw error:", err);
       observer.disconnect();
       observerRef.current = null;
       setError(true);
@@ -174,14 +171,13 @@ export function useMoyasarForm({
     fallbackRef.current = setTimeout(() => {
       if (thisInitId !== initCountRef.current || !mountedRef.current) return;
       if (!checkForm()) {
-        console.warn("[Moyasar] fallback — form failed to render");
         setError(true);
         if (observerRef.current) {
           observerRef.current.disconnect();
           observerRef.current = null;
         }
       }
-      setIsLoading(false); // ✅ مهما حصل، مفيش stuck loading
+      setIsLoading(false);
     }, RENDER_FALLBACK_MS);
   }, [
     enabled,
@@ -209,7 +205,6 @@ export function useMoyasarForm({
         initForm();
       } catch {
         if (cancelled || !mountedRef.current) return;
-        console.error("[Moyasar] script failed to load");
         setError(true);
         setIsLoading(false);
       }
@@ -230,7 +225,6 @@ export function useMoyasarForm({
     [clearAll],
   );
 
-  // ✅ Retry صحيح: بيعيد تحميل السكربت لو كان فاشل
   const retry = useCallback(() => {
     setError(false);
     setIsLoading(true);

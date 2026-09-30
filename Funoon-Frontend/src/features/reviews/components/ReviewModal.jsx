@@ -67,9 +67,8 @@ export default function ReviewModal({
       }
     },
     onSuccess: async (data) => {
-      // ✅ Toast واحد بس - حسب الحالة
       toast.success(
-        isEditing ? "تم تحديث تقييمك بنجاح ✅" : "تم إرسال تقييمك بنجاح ✅",
+        isEditing ? "تم تحديث تقييمك بنجاح " : "تم إرسال تقييمك بنجاح ",
       );
 
       queryClient.invalidateQueries({
@@ -105,12 +104,10 @@ export default function ReviewModal({
   });
 
   const handleSubmit = () => {
-    // ✅ منع double submission
     if (mutation.isPending) return;
 
     setErrorMsg("");
 
-    // ✅ لو مفيش تغيير، ما ترسلش
     if (!hasChanges) {
       setErrorMsg("لم تقم بأي تغيير على التقييم");
       return;
@@ -134,7 +131,6 @@ export default function ReviewModal({
     mutation.mutate();
   };
 
-  // ✅ Dynamic button label
   const submitLabel = useMemo(() => {
     if (mutation.isPending) return "جاري الحفظ...";
     if (!isEditing) return "إرسال التقييم";

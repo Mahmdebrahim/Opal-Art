@@ -11,6 +11,7 @@ import { useAuthStore } from "../../auth/stores/authStore";
 import { ROUTES } from "../../../config/routes";
 import Button from "../../../components/Ui/Button";
 import EmptyState from "../../../components/Ui/EmptyState";
+import opalLogo from "../../../assets/opalLogo.png";
 import {
   Trash2,
   ShoppingBag,
@@ -29,12 +30,13 @@ import {
   Info,
   Search,
   Save,
+  AlertTriangle,
 } from "lucide-react";
 import toast from "../../../services/toast.service";
 import { getMediaUrl } from "../../../utils/media";
 
 // ═══════════════════════════════════════════════════
-// Cart Skeleton — بيعكس شكل الصفحة الحقيقي
+// Cart Skeleton
 // ═══════════════════════════════════════════════════
 function CartSkeleton() {
   return (
@@ -119,6 +121,7 @@ export default function CartPage() {
 
   // Cart Store
   const items = useCartStore((s) => s.items);
+  const isError = useCartStore((s) => s.isError);
   const summary = useCartStore((s) => s.summary);
   const isCartLoading = useCartStore((s) => s.isLoading);
   const fetchCart = useCartStore((s) => s.fetchCart);
@@ -351,7 +354,6 @@ export default function CartPage() {
     try {
       await lookupMutation.mutateAsync(code.toUpperCase());
     } catch {
-      /* toast from hook */
     }
   };
 
@@ -366,7 +368,6 @@ export default function CartPage() {
       setIsEditingAddress(false);
       refetchAddress();
     } catch (error) {
-      console.error("Address save error:", error);
     }
   };
 
@@ -417,6 +418,34 @@ export default function CartPage() {
   // ═══════════════════════════════════════════════════
   // Guards & Loading
   // ═══════════════════════════════════════════════════
+
+  function GenericErrorPage({ onRetry }) {
+    return (
+      <div
+        className="min-h-[60vh] flex items-center justify-center px-4"
+        dir="rtl"
+      >
+        <div className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+            تعذّر تحميل محتوى السلة
+          </h2>
+          <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+            حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+          </p>
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <EmptyState
@@ -429,12 +458,10 @@ export default function CartPage() {
     );
   }
 
-  // Skeleton احترافي بدل الـ spinner القديم
   if (isCartLoading || isAddressLoading) {
     return <CartSkeleton />;
   }
 
-  // ✅ Empty State موحد
   if (items.length === 0 && step === 1) {
     return (
       <EmptyState
@@ -484,7 +511,7 @@ export default function CartPage() {
                         crossOrigin="anonymous"
                         className="w-20 h-24 object-cover border border-stone-100"
                         onError={(e) => {
-                          e.target.src = "/src/assets/opalLogo.png";
+                          e.target.src = opalLogo;
                         }}
                       />
                       <div>

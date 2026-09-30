@@ -18,7 +18,6 @@ const bankSchema = z.object({
     .trim()
     .min(3, "اسم صاحب الحساب يجب أن يكون 3 أحرف على الأقل")
     .max(100, "اسم صاحب الحساب طويل جداً")
-    // ✅ ارفض الحروف العربية — نوجّه الفنان يكتب بالإنجليزي
     .refine(
       (v) => !/[\u0600-\u06FF]/.test(v),
       "يرجى كتابة الاسم بالحروف الإنجليزية فقط",
@@ -38,7 +37,6 @@ const bankSchema = z.object({
     .max(100, "اسم البنك طويل جداً"),
 });
 
-// ✅ value بالإنجليزي (يتخزن + يُرسل لـ Moyasar) / label عربي (يتعرض)
 const SAUDI_BANKS = [
   { value: "Saudi National Bank (SNB)", label: "البنك الأهلي السعودي" },
   { value: "Al Rajhi Bank", label: "مصرف الراجحي" },

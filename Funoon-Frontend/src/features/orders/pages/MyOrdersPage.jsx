@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Star,
   TruckIcon,
+  AlertTriangle,
 } from "lucide-react";
 import { useMyOrders } from "../hooks/useOrders";
 import { getMediaUrl } from "../../../utils/media";
@@ -110,15 +111,12 @@ export default function MyOrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ state للـ cancel modal
   const [cancelOrderId, setCancelOrderId] = useState(null);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
-  // ✅ state للـ confirm delivery modal
   const [confirmOrderId, setConfirmOrderId] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  // ✅ state للـ review modal
   const [reviewModal, setReviewModal] = useState({
     isOpen: false,
     orderId: null,
@@ -150,7 +148,7 @@ export default function MyOrdersPage() {
   };
 
   const filters = activeTab === "all" ? {} : { status: activeTab };
-  const { data, isLoading, isError } = useMyOrders(filters);
+  const { data, isLoading, refetch, isError } = useMyOrders(filters);
   const orders = data?.orders || [];
 
   const openModal = (orderId) => {
@@ -163,7 +161,6 @@ export default function MyOrdersPage() {
     setSelectedOrderId(null);
   };
 
-  // ✅ handlers للـ cancel modal
   const openCancelModal = (orderId) => {
     setCancelOrderId(orderId);
     setIsCancelModalOpen(true);
@@ -174,7 +171,6 @@ export default function MyOrdersPage() {
     setCancelOrderId(null);
   };
 
-  // ✅ handlers للـ confirm delivery modal
   const openConfirmModal = (orderId) => {
     setConfirmOrderId(orderId);
     setIsConfirmModalOpen(true);
@@ -246,11 +242,11 @@ export default function MyOrdersPage() {
       </div>
 
       {/* ═══ Content ═══ */}
-      <div className="max-w-[1280px] mx-auto px-5 lg:px-16 py-8 lg:py-12">
+      <div className="max-w-[1280px] mx-auto px-5 lg:px-16 py-8 lg:py-8">
         {isLoading ? (
           <LoadingState />
         ) : isError ? (
-          <ErrorState />
+          <GenericErrorPage onRetry={refetch} />
         ) : orders.length === 0 ? (
           <EmptyState activeTab={activeTab} />
         ) : (
@@ -419,7 +415,9 @@ function OrderCard({
                   )}
                 </div>
               </div>
-              {cancelMsg?.showRefund && <RefundBadge order={order} viewer="buyer" />}
+              {cancelMsg?.showRefund && (
+                <RefundBadge order={order} viewer="buyer" />
+              )}
             </div>
           );
         })()}
@@ -690,6 +688,32 @@ function EmptyState({ activeTab }) {
           </button>
         </Link>
       )}
+    </div>
+  );
+}
+function GenericErrorPage({ onRetry }) {
+  return (
+    <div
+      className="min-h-[60vh] flex items-center justify-center px-4"
+      dir="rtl"
+    >
+      <div className="max-w-md w-full p-8 text-center">
+        <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+          تعذّر تحميل الطلبات
+        </h2>
+        <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+          حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+        </p>
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+        >
+          إعادة المحاولة
+        </button>
+      </div>
     </div>
   );
 }

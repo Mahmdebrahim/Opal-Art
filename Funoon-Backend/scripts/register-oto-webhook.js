@@ -34,7 +34,9 @@ async function registerWebhook() {
     const webhookAuthorizationKey =
       process.env.OTO_WEBHOOK_AUTHORIZATION_KEY || process.env.OTO_WEBHOOK_AUTH;
     if (!process.env.OTO_WEBHOOK_SECRET || !webhookAuthorizationKey) {
-      throw new Error("❌ OTO webhook verification credentials are missing in .env");
+      throw new Error(
+        "❌ OTO webhook verification credentials are missing in .env",
+      );
     }
 
     // Step 1: Get Access Token

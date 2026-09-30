@@ -29,9 +29,7 @@ const createArtworkValidator = [
     .isFloat({ min: 0.1 })
     .withMessage(M.validation.weightMin),
 
-  // ✅ validator واحد بيتعامل مع JSON string أو object
   body("dimensions").custom((value, { req }) => {
-    // في الـ update، dimensions اختياري
     if (value === undefined && req.method === "PUT") return true;
     if (!value) throw new Error(M.validation.dimensionsRequired);
 

@@ -64,27 +64,27 @@ export default function HeroSection() {
             </p>
 
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-              <Button
-                variant="primary"
-                size="lg"
-                icon={ArrowLeft}
-                iconPosition="end"
+              <Link
+                to={ROUTES.ARTWORKS}
+                className="text-sm font-medium flex items-center gap-2"
               >
-                <Link
-                  to={ROUTES.ARTWORKS}
-                  className="text-sm font-medium flex items-center gap-2"
+                <Button
+                  variant="primary"
+                  size="lg"
+                  icon={ArrowLeft}
+                  iconPosition="end"
                 >
                   استكشف المعرض
-                </Link>
-              </Button>
-              <Button variant="secondary" size="lg">
-                <Link
-                  to={ROUTES.SUBSCRIPTIONS}
-                  className="text-sm font-medium flex items-center gap-2"
-                >
+                </Button>
+              </Link>
+              <Link
+                to={ROUTES.SUBSCRIPTIONS}
+                className="text-sm font-medium flex items-center gap-2"
+              >
+                <Button variant="secondary" size="lg">
                   انضم كفنان
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </div>
 
             {/* Trust Indicators */}

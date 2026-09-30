@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   Clock,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { adminService } from "../services/admin.service";
 import { getMediaUrl } from "../../../utils/media";
@@ -94,7 +95,7 @@ const TABS = [
 ];
 
 export default function AdminArtworksPage() {
-  const [tab, setTab] = useState("pending"); // ✅ افتراضي على المراجعة
+  const [tab, setTab] = useState("pending"); 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -110,7 +111,7 @@ export default function AdminArtworksPage() {
 
   const activeTab = TABS.find((t) => t.value === tab) || TABS[1];
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch, isError } = useQuery({
     queryKey: ["adminArtworks", tab, debouncedSearch, page],
     queryFn: () =>
       adminService.getAdminArtworks({
@@ -132,7 +133,6 @@ export default function AdminArtworksPage() {
   });
   const pendingCount = pendingData?.pagination?.total || 0;
 
-  // ✅ Show skeleton while initial loading
   if (isLoading && artworks.length === 0) {
     return (
       <div className="space-y-5">
@@ -216,17 +216,29 @@ export default function AdminArtworksPage() {
             </tr>
           </thead>
           <tbody>
-            {!isLoading && artworks.length === 0 && (
+            {isError ? (
               <tr>
                 <td colSpan={6} className="p-16 text-center">
-                  <ImageIcon className="w-10 h-10 mx-auto mb-3 text-on-surface-variant/30" />
-                  <p className="text-sm text-on-surface-variant">
-                    {tab === "pending"
-                      ? "لا توجد لوحات بانتظار المراجعة"
-                      : "لا توجد لوحات في هذا التصنيف"}
+                  <AlertTriangle className="w-8 h-8 mx-auto mb-3 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب اللوحات
                   </p>
                 </td>
               </tr>
+            ) : (
+              !isLoading &&
+              artworks.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-16 text-center">
+                    <ImageIcon className="w-10 h-10 mx-auto mb-3 text-on-surface-variant/30" />
+                    <p className="text-sm text-on-surface-variant">
+                      {tab === "pending"
+                        ? "لا توجد لوحات بانتظار المراجعة"
+                        : "لا توجد لوحات في هذا التصنيف"}
+                    </p>
+                  </td>
+                </tr>
+              )
             )}
 
             {!isLoading &&
@@ -635,7 +647,7 @@ function ActionModal({ modal, onClose, onSuccess }) {
   const unsuspend = useMutation({
     mutationFn: () => adminService.unsuspendArtwork(modal.artwork._id),
     onSuccess: () => {
-      toast.success(`✅ تم إعادة تفعيل "${modal.artwork.title}"`);
+      toast.success(` تم إعادة تفعيل "${modal.artwork.title}"`);
       queryClient.invalidateQueries({ queryKey: ["adminArtworks"] });
       onSuccess();
     },

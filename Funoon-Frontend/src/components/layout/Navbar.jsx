@@ -7,6 +7,7 @@ import { getMediaUrl } from "../../utils/media";
 import Button from "../Ui/Button";
 import { useUnreadCount } from "../../hooks/useNotifications";
 import NotificationBell from "../NotificationBell";
+import opalLogo from "../../assets/opalLogo.png";
 import {
   ShoppingCart,
   User,
@@ -28,9 +29,6 @@ import {
   Mail,
 } from "lucide-react";
 
-// ═══════════════════════════════════════════════════
-// روابط التنقل الرئيسية (مشتركة ديسكتوب + موبايل)
-// ═══════════════════════════════════════════════════
 const MAIN_LINKS = [
   { to: ROUTES.ARTWORKS, label: "المعرض", icon: Palette },
   { to: ROUTES.FEATURED, label: "المميزة", icon: Star },
@@ -39,11 +37,8 @@ const MAIN_LINKS = [
   { to: ROUTES.CONTACT_US, label: "تواصل معنا", icon: Mail },
 ];
 
-// ═══════════════════════════════════════════════════
-// روابط الحساب (تظهر في الـ Drawer للموبايل)
-// ═══════════════════════════════════════════════════
+
 const ACCOUNT_LINKS = [
-  // { to: ROUTES.PROFILE, label: "الملف الشخصي", icon: User },
   { to: ROUTES.ORDERS, label: "طلباتي", icon: Package },
   { to: ROUTES.FAVORITES, label: "المفضلة", icon: Heart },
   { to: ROUTES.NOTIFICATIONS, label: "الإشعارات", icon: Bell },
@@ -62,7 +57,6 @@ export default function Navbar() {
 
   const closeMobile = () => setMobileMenuOpen(false);
 
-  // ═══ قفل سكرول الصفحة لما الـ Drawer مفتوح ═══
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
     return () => {
@@ -70,7 +64,6 @@ export default function Navbar() {
     };
   }, [mobileMenuOpen]);
 
-  // ═══ إغلاق بـ Escape ═══
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const onKey = (e) => e.key === "Escape" && closeMobile();
@@ -78,13 +71,11 @@ export default function Navbar() {
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileMenuOpen]);
 
-  // ═══ إغلاق تلقائي عند تغيير الصفحة ═══
   useEffect(() => {
     setMobileMenuOpen(false);
     setUserMenuOpen(false);
   }, [location.pathname]);
 
-  // ═══ إغلاق قائمة المستخدم عند الضغط بره ═══
   useEffect(() => {
     if (!userMenuOpen) return;
     const handler = (e) => {
@@ -103,7 +94,6 @@ export default function Navbar() {
     navigate(ROUTES.HOME);
   };
 
-  // ✅ عدد الإشعارات غير المقروءة
   const { data: unreadCount = 0 } = useUnreadCount(isAuthenticated);
   const hasUnread = unreadCount > 0;
 
@@ -118,9 +108,9 @@ export default function Navbar() {
             <div className="flex items-center gap-12">
               <Link to={ROUTES.HOME} className="flex items-center group">
                 <img
-                  src="/src/assets/opalLogo.png"
+                  src={opalLogo}
                   alt="Opal"
-                  className="h-13 w-auto transition-premium group-hover:opacity-80"
+                  className="h-9 md:h-13 w-auto transition-premium group-hover:opacity-80"
                 />
               </Link>
 
@@ -352,11 +342,7 @@ export default function Navbar() {
           {/* Drawer Header */}
           <div className="flex items-center justify-between h-20 px-5 border-b border-[var(--color-outline-variant)]/30 shrink-0">
             <Link to={ROUTES.HOME} onClick={closeMobile}>
-              <img
-                src="/src/assets/opalLogo.png"
-                alt="Opal"
-                className="h-9 w-auto"
-              />
+              <img src={opalLogo} alt="Opal" className="h-9 w-auto" />
             </Link>
             <button
               onClick={closeMobile}
@@ -511,13 +497,13 @@ export default function Navbar() {
                 fullWidth
                 onClick={closeMobile}
               >
-               <Link
-                    to={ROUTES.LOGIN}
-                    className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-premium flex items-center gap-2"
-                  >
-                    تسجيل الدخول
-                    <LogInIcon className="w-4 h-4" strokeWidth={1.5} />
-                  </Link>
+                <Link
+                  to={ROUTES.LOGIN}
+                  className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-premium flex items-center gap-2"
+                >
+                  تسجيل الدخول
+                  <LogInIcon className="w-4 h-4" strokeWidth={1.5} />
+                </Link>
               </Button>
             )}
           </div>

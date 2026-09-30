@@ -5,8 +5,8 @@ import { getMediaUrl } from "../../../utils/media";
 export default function ImageUploader({
     files = [],
     setFiles,
-    keptExisting = [],      // ✅ الصور الموجودة المحتفظ بيها (editable)
-    setKeptExisting,        // ✅ setter
+    keptExisting = [],      
+    setKeptExisting,       
     maxFiles = 10,
 }) {
     const inputRef = useRef(null);

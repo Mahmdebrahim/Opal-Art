@@ -105,7 +105,7 @@ export function useUpdateArtwork() {
     mutationFn: dashboardService.updateArtwork,
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["myArtworks"] });
-      queryClient.invalidateQueries({ queryKey: ["artwork", variables.id] }); // ✅ جديد
+      queryClient.invalidateQueries({ queryKey: ["artwork", variables.id] }); 
       toast.success("تم تحديث اللوحة بنجاح");
     },
     onError: (error) => {

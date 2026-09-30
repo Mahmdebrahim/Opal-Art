@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeftRight, Calendar, Search } from "lucide-react";
+import { ArrowLeftRight, Calendar, Search, AlertTriangle } from "lucide-react";
 import { adminService } from "../services/admin.service";
 
 const TYPE_LABELS = {
@@ -76,8 +76,6 @@ export default function AdminTransactionsPage() {
         limit: 20,
       }),
   });
-  console.log(data);
-
   const transactions = data?.transactions || [];
   const pagination = data?.pagination || { total: 0, pages: 0 };
 
@@ -215,11 +213,11 @@ export default function AdminTransactionsPage() {
 
             {!isLoading && isError && (
               <tr>
-                <td
-                  colSpan={6}
-                  className="p-12 text-center text-sm text-red-600"
-                >
-                  تعذر تحميل المعاملات. يرجى تحديث الصفحة والمحاولة مرة أخرى.
+                <td colSpan={6} className="p-12 text-center">
+                  <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-red-600" />
+                  <p className="text-sm text-red-600">
+                    حدث خطأ أثناء جلب المعاملات. يرجى تحديث الصفحة والمحاولة مرة أخرى.
+                  </p>
                 </td>
               </tr>
             )}

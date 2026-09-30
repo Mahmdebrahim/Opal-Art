@@ -12,12 +12,10 @@ function AuthInitializer({ children }) {
   const fetchCart = useCartStore((s) => s.fetchCart)
   const resetCart = useCartStore((s) => s.resetCart)
 
-  // ✅ مهم: تحقق من الـ auth state عند بدء التطبيق
   useEffect(() => {
     initializeAuth()
   }, [initializeAuth])
 
-  // ✅ حمل الـ cart لما المستخدم يسجل دخول
   useEffect(() => {
     if (isAuthenticated) {
       fetchCart()

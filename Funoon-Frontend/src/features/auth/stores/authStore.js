@@ -2,8 +2,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
+import { isTemporarySessionError } from "../utils/sessionErrors.js";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const API_URL = import.meta.env?.VITE_API_URL || "http://localhost:5000/api/v1";
 let _refreshPromise = null;
 
 export let sharedQueryClient = null;
@@ -11,9 +12,6 @@ export let sharedQueryClient = null;
 export function setSharedQueryClient(client) {
   sharedQueryClient = client;
 }
-
-const isRateLimited = (err) =>
-  err?.response?.status === 429 || err?.status === 429;
 
 export const useAuthStore = create(
   persist(
@@ -83,7 +81,7 @@ export const useAuthStore = create(
           try {
             await get()._refreshSilently();
           } catch (err) {
-            if (isRateLimited(err)) return;
+            if (isTemporarySessionError(err)) return;
             set({ user: null, accessToken: null, isAuthenticated: false });
           }
           return;
@@ -94,14 +92,12 @@ export const useAuthStore = create(
           const user = await get()._fetchUser(token);
           set({ user, isAuthenticated: true });
         } catch (fetchErr) {
-          // ✅ /auth/me رجع 429 — سيب الجلسة، ومتناديش refresh (متزودش ازدحام)
-          if (isRateLimited(fetchErr)) return;
+          if (isTemporarySessionError(fetchErr)) return;
 
           try {
             await get()._refreshSilently();
           } catch (refreshErr) {
-            // ✅ الـ refresh فشل بـ 429 — سيب الجلسة
-            if (isRateLimited(refreshErr)) return;
+            if (isTemporarySessionError(refreshErr)) return;
 
             localStorage.removeItem("accessToken");
             set({ user: null, accessToken: null, isAuthenticated: false });
@@ -128,9 +124,10 @@ export const useAuthStore = create(
             const user = await get()._fetchUser(newToken);
             localStorage.setItem("accessToken", newToken);
             set({ user, accessToken: newToken, isAuthenticated: true });
+            return newToken;
           })
           .catch((err) => {
-            if (err?.response?.status === 429 || err?.status === 429) throw err;
+            if (isTemporarySessionError(err)) throw err;
 
             localStorage.removeItem("accessToken");
             set({ user: null, accessToken: null, isAuthenticated: false });
@@ -142,6 +139,7 @@ export const useAuthStore = create(
 
         return _refreshPromise;
       },
+      refreshAccessToken: () => get()._refreshSilently(),
     }),
     {
       name: "funoon-auth",

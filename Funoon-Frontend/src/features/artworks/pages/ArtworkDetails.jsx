@@ -73,8 +73,6 @@ export default function ArtworkDetailsPage() {
   const artwork = data?.artwork || data;
   const relatedArtworks = data?.relatedArtworks || [];
 
-  console.log(artwork);
-
   const { toggleFavorite, isLoading: isLoadingFav } = useFavorites();
   const { addToCart, isInCart, isLoading: isLoadingCart } = useCart();
 
@@ -127,7 +125,6 @@ export default function ArtworkDetailsPage() {
         alert("تم نسخ الرابط");
       }
     } catch (e) {
-      console.error(e);
     }
   };
 

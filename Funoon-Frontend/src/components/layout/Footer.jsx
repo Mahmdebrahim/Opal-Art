@@ -10,6 +10,7 @@ import {
   Award,
   FileCheck,
 } from "lucide-react";
+import opalLogoWhite from "../../assets/opalLogoWhite.png";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -26,11 +27,7 @@ export default function Footer() {
           {/* ═══ Brand Column ═══ */}
           <div className="lg:col-span-4">
             <Link to={ROUTES.HOME} className="inline-block mb-2">
-              <img
-                src="/src/assets/opalLogoWhite.png"
-                alt="Opal"
-                className="h-15 w-auto"
-              />
+              <img src={opalLogoWhite} alt="Opal" className="h-15 w-auto" />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
               منصة سعودية راقية تربط بين الفنانين السعوديين الموهوبين ومقتني
@@ -132,7 +129,7 @@ export default function Footer() {
               </li> */}
               <li>
                 <Link
-                  to={ROUTES.CONTACT}
+                  to={ROUTES.CONTACT_US}
                   className="text-sm text-white/70 hover:text-[var(--color-secondary)] transition-premium"
                 >
                   اتصل بنا

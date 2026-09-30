@@ -17,7 +17,6 @@ const ArtworkView = require("../models/ArtworkView");
 const M = require("../utils/messages");
 const { escapeRegex } = require("../utils/regex");
 
-
 // @desc    Get all artists (sorted by plan: Prestige > Plus > Classic)
 // @route   GET /api/v1/artists
 // @access  Public
@@ -37,7 +36,9 @@ const getAllArtists = catchAsync(async (req, res, next) => {
   }
 
   const artists = await User.find(query)
-    .select("name avatar bio address.city subscription.plan avgRating reviewsCount createdAt")
+    .select(
+      "name avatar bio address.city subscription.plan avgRating reviewsCount createdAt",
+    )
     .sort({
       "subscription.plan": -1,
       createdAt: -1,
@@ -87,7 +88,6 @@ const getAllArtists = catchAsync(async (req, res, next) => {
   );
 });
 
-
 // @desc    Get artist public profile + all their artworks
 // @route   GET /api/v1/artists/:artistId
 // @access  Public
@@ -117,7 +117,9 @@ const getArtistPublicProfile = catchAsync(async (req, res, next) => {
 
   // ✅ تحويل لـ ObjectId (type safety)
   const profileObjectId = new mongoose.Types.ObjectId(artistId);
-  const userObjectId = userId ? new mongoose.Types.ObjectId(String(userId)) : null;
+  const userObjectId = userId
+    ? new mongoose.Types.ObjectId(String(userId))
+    : null;
 
   console.log("=== Profile View Debug ===");
   console.log("artistId:", artistId, "→ profileObjectId:", profileObjectId);
@@ -133,7 +135,11 @@ const getArtistPublicProfile = catchAsync(async (req, res, next) => {
     expiresAt.setHours(expiresAt.getHours() + 24);
 
     const viewQuery = userObjectId
-      ? { profile: profileObjectId, user: userObjectId, expiresAt: { $gt: now } }
+      ? {
+          profile: profileObjectId,
+          user: userObjectId,
+          expiresAt: { $gt: now },
+        }
       : { profile: profileObjectId, ipAddress, expiresAt: { $gt: now } };
 
     console.log("viewQuery:", JSON.stringify(viewQuery, null, 2));
@@ -156,7 +162,9 @@ const getArtistPublicProfile = catchAsync(async (req, res, next) => {
 
     if (result.lastErrorObject && !result.lastErrorObject.updatedExisting) {
       console.log("✅ New view — incrementing profileViewsCount");
-      await User.findByIdAndUpdate(artistId, { $inc: { profileViewsCount: 1 } });
+      await User.findByIdAndUpdate(artistId, {
+        $inc: { profileViewsCount: 1 },
+      });
       artist.profileViewsCount = (artist.profileViewsCount || 0) + 1;
     } else {
       console.log("ℹ️ Existing view within 24h — not incrementing");
@@ -269,8 +277,8 @@ const getDashboardStats = catchAsync(async (req, res, next) => {
     {
       $group: {
         _id: null,
-        totalSales: { $sum: "$financials.totalAmount" }, 
-        totalEarnings: { $sum: "$financials.totalArtistEarning" }, 
+        totalSales: { $sum: "$financials.totalAmount" },
+        totalEarnings: { $sum: "$financials.totalArtistEarning" },
         totalCommission: { $sum: "$financials.totalCommission" },
         totalShipping: { $sum: "$financials.shippingCost" },
         totalOrders: { $sum: 1 },
@@ -319,8 +327,8 @@ const getDashboardStats = catchAsync(async (req, res, next) => {
     {
       sales: {
         totalSales: salesStats[0]?.totalSales || 0,
-        totalEarnings: salesStats[0]?.totalEarnings || 0, 
-        totalCommission: salesStats[0]?.totalCommission || 0, 
+        totalEarnings: salesStats[0]?.totalEarnings || 0,
+        totalCommission: salesStats[0]?.totalCommission || 0,
         totalShipping: salesStats[0]?.totalShipping || 0,
         totalOrders: salesStats[0]?.totalOrders || 0,
         activeOrders,
@@ -420,8 +428,8 @@ const getMyArtworksAnalytics = catchAsync(async (req, res, next) => {
     artworks: [],
     topByViews: [],
     topByFavorites: [],
-    topByEarnings: [],        // ✅ جديد: بدلاً من topByOrders
-    lostOpportunities: [],    // ✅ جديد: فرص ضائعة
+    topByEarnings: [], // ✅ جديد: بدلاً من topByOrders
+    lostOpportunities: [], // ✅ جديد: فرص ضائعة
   };
 
   if (!artworks.length) {
@@ -557,7 +565,9 @@ const getMyArtworksAnalytics = catchAsync(async (req, res, next) => {
     [...artworksWithStats].sort((a, b) => b[key] - a[key]).slice(0, 5);
 
   const lostOpportunities = artworksWithStats
-    .filter((a) => a.periodViews >= 10 && a.orders === 0 && !a.isSold && a.isActive)
+    .filter(
+      (a) => a.periodViews >= 10 && a.orders === 0 && !a.isSold && a.isActive,
+    )
     .sort((a, b) => b.periodViews - a.periodViews)
     .slice(0, 5);
 
@@ -570,8 +580,8 @@ const getMyArtworksAnalytics = catchAsync(async (req, res, next) => {
       artworks: artworksWithStats,
       topByViews: sortBy("periodViews"),
       topByFavorites: sortBy("favorites"),
-      topByEarnings: sortBy("earnings"),   
-      lostOpportunities,                   
+      topByEarnings: sortBy("earnings"),
+      lostOpportunities,
     },
     "Artworks analytics retrieved",
   );

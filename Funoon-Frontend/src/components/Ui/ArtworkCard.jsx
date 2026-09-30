@@ -172,7 +172,6 @@ export default function ArtworkCard({
       onAddToCart?.(artworkId);
     } catch (error) {
       if (error?.type === "DIFFERENT_ARTIST") {
-        // ✅ افتح الـ modal بدل window.confirm
         setPendingDifferentArtist({
           artistName: error.artistName,
           artworkTitle: title,
@@ -190,10 +189,9 @@ export default function ArtworkCard({
     }
   };
 
-  // ✅ handler جديد: موافقة على مسح السلة وإضافة اللوحة الجديدة
   const handleConfirmClearAndAdd = async () => {
     if (!pendingDifferentArtist) return;
-    setIsClearingCart(true); // ✅ loading on
+    setIsClearingCart(true); 
     try {
       await useCartStore
         .getState()
@@ -203,9 +201,8 @@ export default function ArtworkCard({
       setPendingDifferentArtist(null);
     } catch (err) {
       toast.error("فشل مسح السلة. يرجى المحاولة مرة أخرى.");
-      console.error("clearAndAdd error:", err);
     } finally {
-      setIsClearingCart(false); // ✅ loading off (دائماً)
+      setIsClearingCart(false);
     }
   };
   const coverImageUrl = getMediaUrl(coverImage);

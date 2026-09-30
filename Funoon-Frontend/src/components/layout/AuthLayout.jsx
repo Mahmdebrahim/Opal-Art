@@ -3,7 +3,7 @@ import { useAuthStore } from "../../features/auth/stores/authStore";
 import { ROUTES } from "../../config/routes";
 import { ArrowLeft, Landmark } from "lucide-react";
 import loginBg from "../../assets/login.png";
-
+import opalLogo from "../../assets/opalLogo.png";
 export default function AuthLayout() {
   const { isAuthenticated } = useAuthStore();
 
@@ -24,7 +24,7 @@ export default function AuthLayout() {
               <span className="font-display text-primary text-xl font-bold">ف</span>
             </div> */}
             <span className="text-2xl font-display font-semibold tracking-tight text-primary transition-premium">
-              <img src="src\assets\opalLogo.png" alt=" " className="w-15" />
+              <img src={opalLogo} alt="أوبال جاليري" className="w-15" />
             </span>
           </Link>
           <Link

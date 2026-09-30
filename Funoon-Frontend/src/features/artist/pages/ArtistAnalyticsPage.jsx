@@ -179,8 +179,8 @@ export default function ArtistAnalyticsPage() {
     artworks,
     topByViews,
     topByFavorites,
-    topByEarnings,        // ✅ جديد
-    lostOpportunities,    // ✅ جديد
+    topByEarnings,       
+    lostOpportunities,   
   } = data;
 
   const summaryCards = [
@@ -395,9 +395,6 @@ function ViewsBarChart({ dailyViews }) {
   );
 }
 
-// ═══════════════════════════════════════════════════
-// Top List — ✅ مع formatter اختياري
-// ═══════════════════════════════════════════════════
 function TopList({ title, items, valueKey, icon: Icon, formatter }) {
   return (
     <div className="bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/60 rounded-xl overflow-hidden">

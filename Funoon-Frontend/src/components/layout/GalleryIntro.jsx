@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import logo from "../../assets/opalLogoWhite.png";
+import opalLogoWhite from "../../assets/opalLogoWhite.png";
 
 const SESSION_KEY = "opal-gallery-intro-seen";
 const EXIT_DURATION = 980;
@@ -76,7 +76,11 @@ export default function GalleryIntro() {
 
       <div className="gallery-intro__content">
         <p className="gallery-intro__eyebrow">أوبال جاليري</p>
-        <img className="gallery-intro__logo" src={logo} alt="أوبال جاليري" />
+        <img
+          className="gallery-intro__logo"
+          src={opalLogoWhite}
+          alt="أوبال جاليري"
+        />
         <span className="gallery-intro__rule" aria-hidden="true" />
         <h1 className="gallery-intro__title">حيث تبدأ الحكاية الفنية</h1>
         <p className="gallery-intro__caption">منصة الفن السعودي المعاصر</p>

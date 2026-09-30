@@ -12,7 +12,6 @@ import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import ar from "react-phone-number-input/locale/ar";
 
-// 1. تحديث الـ Schema ليشمل تأكيد كلمة المرور والتحقق من التطابق
 const registerSchema = z
   .object({
     name: z.string().trim().min(2, "الاسم يجب أن يكون حرفين على الأقل"),
@@ -30,7 +29,7 @@ const registerSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "كلمتا المرور غير متطابقتين",
-    path: ["confirmPassword"], // يربط الخطأ بحقل تأكيد كلمة المرور
+    path: ["confirmPassword"],
   });
 
 const getPasswordStrength = (password) => {
@@ -54,7 +53,7 @@ const getPasswordStrength = (password) => {
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // حالة منفصلة للتأكيد
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -88,7 +87,6 @@ export default function RegisterPage() {
 
       if (response?.success && response.data) {
         const { userId, email } = response.data;
-        // احفظ مؤقتاً عشان صفحة التأكيد تقدر تقرأهم
         localStorage.setItem("_opal_pending_userId", userId);
         localStorage.setItem("_opal_pending_email", email);
         toast.success("تم إنشاء الحساب — يرجى تأكيد بريدك الإلكتروني");
@@ -98,7 +96,6 @@ export default function RegisterPage() {
         );
       }
     } catch (err) {
-      console.error("Registration error details:", err);
       const errorMsg =
         err.message ||
         err.data?.message ||

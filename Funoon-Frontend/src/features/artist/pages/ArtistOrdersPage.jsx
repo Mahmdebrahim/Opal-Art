@@ -9,6 +9,7 @@ import {
   ExternalLink,
   AlertCircle,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   useRefreshTracking,
@@ -56,13 +57,40 @@ export default function ArtistOrdersPage() {
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["artistSales", status, page],
     queryFn: () => dashboardService.getMySales({ status, page, limit: 10 }),
   });
 
   const orders = data?.orders || [];
   const pagination = data?.pagination || { total: 0, pages: 0 };
+
+  function GenericErrorPage({ onRetry }) {
+    return (
+      <div
+        className="min-h-[60vh] flex items-center justify-center px-4"
+        dir="rtl"
+      >
+        <div className="max-w-md w-full p-8 text-center">
+          <div className="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="font-display text-xl text-[var(--color-on-surface)] mb-2">
+            تعذّر تحميل الطلبات
+          </h2>
+          <p className="text-sm text-[var(--color-on-surface-variant)] mb-6">
+            حصل خطأ غير متوقع. تحقق من اتصالك وحاول مرة أخرى.
+          </p>
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-full hover:bg-[var(--color-primary)]/90 transition-colors cursor-pointer"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-surface py-8">
@@ -94,6 +122,8 @@ export default function ArtistOrdersPage() {
             </button>
           ))}
         </div>
+
+        {isError && <GenericErrorPage onRetry={refetch} />}
 
         {/* Orders List */}
         {isLoading ? (
@@ -153,8 +183,6 @@ function OrderCard({ order }) {
     label: order.status,
     cls: "bg-surface-container text-on-surface-variant",
   };
-  console.log("order", order);
-
   return (
     <div className="bg-surface-container-lowest border rounded-lg border-outline-variant/40 p-5">
       {order.status === "CANCELLED" &&
@@ -180,7 +208,9 @@ function OrderCard({ order }) {
                   )}
                 </div>
               </div>
-              {cancelMsg?.showRefund && <RefundBadge order={order} viewer="artist" />}
+              {cancelMsg?.showRefund && (
+                <RefundBadge order={order} viewer="artist" />
+              )}
             </div>
           );
         })()}
@@ -236,8 +266,6 @@ function OrderCard({ order }) {
 // ═══════════════════════════════════════════════════
 function OrderActions({ order }) {
   const [overlayMsg, setOverlayMsg] = useState("");
-  console.log(order);
-
   const createOtoOrder = useCreateOtoOrder();
   const createShipment = useCreateShipment();
   const refreshTracking = useRefreshTracking();
@@ -338,7 +366,9 @@ function OrderActions({ order }) {
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() => window.open(safeAwbUrl, "_blank", "noopener,noreferrer")}
+                      onClick={() =>
+                        window.open(safeAwbUrl, "_blank", "noopener,noreferrer")
+                      }
                       icon={Printer}
                     >
                       طباعة البوليصة
@@ -385,7 +415,9 @@ function OrderActions({ order }) {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(safeAwbUrl, "_blank", "noopener,noreferrer")}
+                  onClick={() =>
+                    window.open(safeAwbUrl, "_blank", "noopener,noreferrer")
+                  }
                   icon={Printer}
                 >
                   طباعة البوليصة
