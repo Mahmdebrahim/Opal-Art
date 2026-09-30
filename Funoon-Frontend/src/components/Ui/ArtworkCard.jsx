@@ -21,7 +21,7 @@ import toast from "../../services/toast.service";
 import { getMediaUrl } from "../../utils/media";
 import badge from "../../assets/badge.png";
 import { useCartStore } from "../../features/cart/stores/cartStore";
-
+import SaCurr from "../../assets/sa.svg";
 // ═══════════════════════════════════════════════════
 // Free Shipping Helper
 // ═══════════════════════════════════════════════════
@@ -405,11 +405,7 @@ export default function ArtworkCard({
                                     `}
                 >
                   {formatPrice(price)}
-                  <img
-                    src="/src/assets/sa.svg"
-                    className="w-4 h-4 opacity-80"
-                    alt="SAR"
-                  />
+                  <img src={SaCurr} className="w-4 h-4 opacity-80" alt="SAR" />
                 </span>
 
                 {showDimensions && dimensions && (

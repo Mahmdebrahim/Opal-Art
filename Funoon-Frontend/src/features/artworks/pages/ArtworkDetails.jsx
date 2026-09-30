@@ -29,7 +29,7 @@ import Button from "../../../components/Ui/Button";
 import { getMediaUrl } from "../../../utils/media";
 import { ROUTES } from "../../../config/routes";
 import badge from "../../../assets/badge.png";
-
+import SaCurr from "../../../assets/sa.svg";
 // ═══════════════════════════════════════════════════
 // Free Shipping Helper
 // ═══════════════════════════════════════════════════
@@ -303,7 +303,7 @@ export default function ArtworkDetailsPage() {
                   {formatPrice(artwork.price)}
                 </span>
                 <span className="text-sm font-body font-semibold tracking-wider text-on-surface-variant">
-                  <img className="w-10 h-10" src="/src/assets/sa.svg" alt="" />
+                  <img className="w-10 h-10" src={SaCurr} alt="" />
                 </span>
               </div>
               {/* Free shipping inline */}
