@@ -30,7 +30,7 @@ import { getMediaUrl } from "../../../utils/media";
 import { ROUTES } from "../../../config/routes";
 import badge from "../../../assets/badge.png";
 import SaCurr from "../../../assets/sa.svg";
-import ArtworkPlaceholder from "../../../assets/ArtworkPlaceholder.png";
+import ArtworkPlaceholder from "../../../assets/ArtworkPlaceholder2.png";
 import userPlaceholder from "../../../assets/userPlaceholder.png";
 // ═══════════════════════════════════════════════════
 // Free Shipping Helper

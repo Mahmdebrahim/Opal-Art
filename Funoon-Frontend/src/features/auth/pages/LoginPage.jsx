@@ -9,6 +9,7 @@ import api from "../../../services/api";
 import toast from "../../../services/toast.service";
 import Button from "../../../components/Ui/Button";
 import { safeInternalPath } from "../../../utils/safeInternalPath";
+import {EyeOff, Eye} from "lucide-react"
 const loginSchema = z.object({
   email: z.string().trim().email("البريد الإلكتروني غير صحيح"),
   password: z.string().min(1, "كلمة المرور مطلوبة"),
@@ -19,6 +20,7 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const { login } = useAuthStore();
   const [loading, setLoading] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -141,17 +143,28 @@ export default function LoginPage() {
         </div>
 
         {/* Password Input */}
-        <div className="space-y-1">
+        <div className="space-y-1 relative">
           <label className="block text-xs uppercase tracking-wider font-sans font-semibold text-primary">
             كلمة المرور
           </label>
           <input
-            type="password"
+            type={showConfirmPassword ? "text" : "password"}
             {...register("password")}
             className="w-full py-3 bg-transparent border-b border-outline/30 focus:border-primary focus:outline-none transition-premium text-base placeholder-on-surface-variant/40 font-body rounded-none"
             placeholder="••••••••"
             disabled={loading}
           />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-primary transition-premium p-"
+          >
+            {showConfirmPassword ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
           {errors.password && (
             <p className="text-xs text-error mt-1.5 font-body">
               {errors.password.message}
@@ -159,7 +172,7 @@ export default function LoginPage() {
           )}
         </div>
 
-        {/* Remember me & Forgot Password */}
+        {/* Forgot Password */}
         <div className="flex items-center justify-between text-xs pt-1">
           <Link
             to={ROUTES.FORGOT_PASSWORD}

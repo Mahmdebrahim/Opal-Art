@@ -22,7 +22,7 @@ import { getMediaUrl } from "../../utils/media";
 import badge from "../../assets/badge.png";
 import { useCartStore } from "../../features/cart/stores/cartStore";
 import SaCurr from "../../assets/sa.svg";
-import ArtworkPlaceholder from "../../assets/ArtworkPlaceholder.png";
+import ArtworkPlaceholder from "../../assets/ArtworkPlaceholder2.png";
 import userPlaceholder from "../../assets/userPlaceholder.png";
 // ═══════════════════════════════════════════════════
 // Free Shipping Helper

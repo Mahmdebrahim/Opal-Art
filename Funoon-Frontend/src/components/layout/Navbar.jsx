@@ -600,17 +600,19 @@ export default function Navbar() {
                   تسجيل الخروج
                 </Button>
               ) : (
-                <Button
-                  as={Link}
-                  to={ROUTES.LOGIN}
-                  variant="outline"
-                  fullWidth
-                  onClick={closeMobile}
-                  className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-premium flex items-center justify-center gap-2"
-                >
-                  تسجيل الدخول
-                  <LogInIcon className="w-4 h-4" strokeWidth={1.5} />
-                </Button>
+                <Link to={ROUTES.LOGIN}>
+                  <Button
+                    as={Link}
+                    to={ROUTES.LOGIN}
+                    variant="outline"
+                    icon={LogInIcon}
+                    fullWidth
+                    onClick={closeMobile}
+                    className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-premium flex items-center justify-center gap-2"
+                  >
+                    تسجيل الدخول
+                  </Button>
+                </Link>
               )}
             </div>
           </aside>
