@@ -11,7 +11,7 @@ import toast from "../../../services/toast.service";
 import { favoritesService } from "../services/favorites.service";
 import { getMediaUrl } from "../../../utils/media";
 import { ROUTES } from "../../../config/routes";
-
+import ArtworkPlaceholder from "../../../assets/ArtworkPlaceholder2.png";
 // ═══════════════════════════════════════════════════
 // Main Page
 // ═══════════════════════════════════════════════════
@@ -42,9 +42,29 @@ export default function FavoritesPage() {
       });
       return { prev };
     },
-    onSuccess: () => {
+    onSuccess: (_data, artworkId) => {
       toast.success("تمت الإزالة من المفضلة");
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+
+      // Refresh Favorites
+      queryClient.invalidateQueries({
+        queryKey: ["favorites"],
+      });
+
+      // Refresh Artworks
+      queryClient.invalidateQueries({
+        queryKey: ["artworks"],
+      });
+      queryClient.setQueryData(["artwork", String(artworkId)], (old) => {
+        if (!old?.artwork) return old;
+
+        return {
+          ...old,
+          artwork: {
+            ...old.artwork,
+            isFavorite: false,
+          },
+        };
+      });
     },
     onError: (_err, _id, ctx) => {
       queryClient.setQueryData(["favorites"], ctx?.prev);
@@ -52,7 +72,6 @@ export default function FavoritesPage() {
     },
   });
 
-  // Support both response shapes: { favorites: [...] } or { artworks: [...] }
   const favorites = data?.favorites ?? data?.artworks ?? [];
 
   if (isLoading) return <LoadingSkeleton />;
@@ -120,68 +139,188 @@ export default function FavoritesPage() {
 // ═══════════════════════════════════════════════════
 function FavoriteCard({ artwork, onRemove, isRemoving }) {
   const imageUrl = getMediaUrl(artwork.coverImage ?? artwork.images?.[0]);
+
   const artistName = artwork.artist?.name ?? artwork.artistName ?? "فنان مجهول";
 
+  const formatPrice = (value) => {
+    if (!value) return "—";
+
+    return new Intl.NumberFormat("en-US", {
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
   return (
-    <div className="group relative bg-[var(--color-surface-container-lowest)] border border-[var(--color-outline-variant)]/50 overflow-hidden hover:border-[var(--color-primary)]/30 transition-premium">
+    <article className="group relative">
       {/* Image */}
-      <Link
-        to={`/artworks/${artwork._id}`}
-        className="block relative overflow-hidden aspect-3/4"
-      >
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={artwork.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full bg-[var(--color-surface-container)] flex items-center justify-center">
-            <Heart
-              className="w-12 h-12 text-[var(--color-outline-variant)]"
-              strokeWidth={1}
+      <Link to={`/artworks/${artwork._id}`} className="block">
+        <div className="relative overflow-hidden bg-[var(--color-surface-container)] aspect-[3/4]">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              onError={(e) => {
+                e.target.src = ArtworkPlaceholder;
+              }}
+              alt={artwork.title}
+              className="
+                absolute inset-0
+                w-full h-full
+                object-cover
+                transition-transform duration-700 ease-out
+                group-hover:scale-105
+              "
             />
-          </div>
-        )}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-surface-container)]">
+              <Heart
+                className="w-10 h-10 text-[var(--color-outline-variant)]"
+                strokeWidth={1}
+              />
+            </div>
+          )}
 
-        {/* Plan Badge */}
-        {artwork.artist?.plan?.id === "opal_prestige" && (
-          <div className="absolute top-3 right-3 px-2 py-0.5 text-[10px] font-semibold tracking-widest uppercase bg-[var(--color-primary)] text-white">
-            Prestige
-          </div>
-        )}
-      </Link>
+          {/* Subtle hover overlay */}
+          <div
+            className="
+              absolute inset-0
+              bg-gradient-to-t
+              from-black/40
+              via-transparent
+              to-transparent
+              opacity-0
+              group-hover:opacity-100
+              transition-opacity duration-500
+              pointer-events-none
+            "
+          />
 
-      {/* Remove Button */}
-      <button
-        onClick={onRemove}
-        disabled={isRemoving}
-        className="absolute top-3 left-3 w-8 h-8 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-[var(--color-error)] transition-premium disabled:opacity-40"
-        title="إزالة من المفضلة"
-      >
-        <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
-      </button>
+          {/* Prestige Badge */}
+          {artwork.artist?.plan?.id === "opal_prestige" && (
+            <div
+              className="
+                absolute top-3 right-3
+                px-2.5 py-1
+                bg-[var(--color-primary)]
+                text-white
+                text-[9px]
+                font-body font-semibold
+                tracking-[0.12em]
+                uppercase
+              "
+            >
+              Prestige
+            </div>
+          )}
 
-      {/* Info */}
-      <div className="p-4">
-        <Link to={`/artworks/${artwork._id}`}>
-          <h3 className="font-display text-base text-[var(--color-on-surface)] truncate hover:text-[var(--color-primary)] transition-premium">
+          {/* Remove Favorite */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove();
+            }}
+            disabled={isRemoving}
+            aria-label="إزالة من المفضلة"
+            title="إزالة من المفضلة"
+            className="
+              absolute top-3 left-3
+              z-20
+              w-9 h-9
+              flex items-center justify-center
+              bg-white/90
+              backdrop-blur-sm
+              text-[var(--color-on-surface-variant)]
+              border border-[var(--color-outline-variant)]/30
+              opacity-0
+              -translate-x-2
+              group-hover:opacity-100
+              group-hover:translate-x-0
+              hover:text-secondary
+              hover:bg-white
+              transition-all duration-300
+              disabled:opacity-40
+            "
+          >
+            {isRemoving ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-secondary" />
+            ) : (
+              <Heart
+                className="w-4 h-4"
+                strokeWidth={1.5}
+                fill="currentColor"
+              />
+            )}
+          </button>
+        </div>
+
+        {/* Info */}
+        <div className="pt-4 pb-2">
+          {/* Title */}
+          <h3
+            className="
+              font-display
+              text-lg
+              text-[var(--color-on-surface)]
+              leading-tight
+              line-clamp-1
+              group-hover:text-[var(--color-primary)]
+              transition-premium
+            "
+          >
             {artwork.title}
           </h3>
-        </Link>
-        <p className="text-xs font-body text-[var(--color-on-surface-variant)] mt-0.5 truncate">
-          {artistName}
-        </p>
 
-        <div className="flex items-center justify-between mt-3">
-          <span className="font-display text-sm text-[var(--color-primary)]">
-            {artwork.price
-              ? `${artwork.price.toLocaleString("ar-SA")} ر.س`
-              : "—"}
-          </span>
+          {/* Artist */}
+          <p
+            className="
+              text-xs
+              font-body
+              font-medium
+              tracking-wide
+              text-[var(--color-on-surface-variant)]
+              mt-2
+              truncate
+            "
+          >
+            {artistName}
+          </p>
+
+          {/* Divider */}
+          <div className="my-3 border-t border-[var(--color-outline-variant)]/40" />
+
+          {/* Price */}
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span
+                className="
+                  text-[9px]
+                  font-body
+                  font-semibold
+                  tracking-[0.15em]
+                  uppercase
+                  text-[var(--color-on-surface-variant)]
+                  mb-1
+                "
+              >
+                السعر
+              </span>
+
+              <span
+                className="
+                  font-display
+                  text-lg
+                  leading-none
+                  text-[var(--color-primary)]
+                "
+              >
+                {formatPrice(artwork.price)} ر.س
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </Link>
+    </article>
   );
 }
 

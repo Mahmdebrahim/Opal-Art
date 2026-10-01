@@ -31,33 +31,46 @@ export function useFavorites() {
     },
     onSuccess: (data, artworkId) => {
       const isFavorite = data?.isFavorite ?? false;
-      queryClient.invalidateQueries({ queryKey: ["favorites"] });
-      queryClient.setQueriesData(
-        { queryKey: ["artworks", "favorites"] },
-        (old) => {
-          if (!old?.artworks) return old;
 
-          return {
-            ...old,
-            artworks: old.artworks.map((artwork) =>
-              String(artwork._id) === String(artworkId)
-                ? { ...artwork, isFavorite }
-                : artwork,
-            ),
-          };
-        },
-      );
+      // Update artworks cache
+      queryClient.setQueriesData({ queryKey: ["artworks"] }, (old) => {
+        if (!old?.artworks) return old;
 
-      queryClient.setQueryData(["artwork", artworkId], (old) => {
-        if (!old?.artwork) return old;
         return {
           ...old,
-          artwork: { ...old.artwork, isFavorite },
+          artworks: old.artworks.map((artwork) =>
+            String(artwork._id) === String(artworkId)
+              ? { ...artwork, isFavorite }
+              : artwork,
+          ),
         };
       });
 
+      // Update single artwork cache
+      queryClient.setQueryData(["artwork", artworkId], (old) => {
+        if (!old?.artwork) return old;
+
+        return {
+          ...old,
+          artwork: {
+            ...old.artwork,
+            isFavorite,
+          },
+        };
+      });
+
+      // Refresh Favorites page
+      queryClient.invalidateQueries({
+        queryKey: ["favorites"],
+      });
+
+      // Refresh Artworks page
+      queryClient.invalidateQueries({
+        queryKey: ["artworks"],
+      });
+
       if (isFavorite) {
-        toast.success("تمت الإضافة للمفضلة ❤️");
+        toast.success("تمت الإضافة للمفضلة");
       } else {
         toast.success("تمت الإزالة من المفضلة");
       }
