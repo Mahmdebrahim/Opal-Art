@@ -228,11 +228,11 @@ function FavoriteCard({ artwork, onRemove, isRemoving }) {
               z-20
               w-9 h-9
               flex items-center justify-center
-              bg-white/90
+              bg-white
               backdrop-blur-sm
               text-[var(--color-on-surface-variant)]
               border border-[var(--color-outline-variant)]/30
-              opacity-0
+              lg:opacity-0
               -translate-x-2
               group-hover:opacity-100
               group-hover:translate-x-0
