@@ -22,6 +22,8 @@ import { getMediaUrl } from "../../utils/media";
 import badge from "../../assets/badge.png";
 import { useCartStore } from "../../features/cart/stores/cartStore";
 import SaCurr from "../../assets/sa.svg";
+import ArtworkPlaceholder from "../../assets/ArtworkPlaceholder.png";
+import userPlaceholder from "../../assets/userPlaceholder.png";
 // ═══════════════════════════════════════════════════
 // Free Shipping Helper
 // ═══════════════════════════════════════════════════
@@ -191,7 +193,7 @@ export default function ArtworkCard({
 
   const handleConfirmClearAndAdd = async () => {
     if (!pendingDifferentArtist) return;
-    setIsClearingCart(true); 
+    setIsClearingCart(true);
     try {
       await useCartStore
         .getState()
@@ -219,9 +221,12 @@ export default function ArtworkCard({
           className={`relative overflow-hidden bg-surface-container ${aspectClasses[aspect]}`}
         >
           <img
-            src={coverImageUrl || "/placeholder-artwork.jpg"}
+            src={coverImageUrl}
             alt={title}
             onLoad={() => setImageLoaded(true)}
+            onError={(e) => {
+              e.target.src = ArtworkPlaceholder;
+            }}
             className={`
                             absolute inset-0 w-full h-full object-cover
                             transition-all duration-1200 ease-out
@@ -367,6 +372,9 @@ export default function ArtworkCard({
                     src={getMediaUrl(artist.avatar)}
                     alt={artist.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = userPlaceholder;
+                    }}
                   />
                 ) : (
                   <User
@@ -480,7 +488,8 @@ export default function ArtworkCard({
         <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg mb-3">
           <p className="text-xs text-amber-800 leading-relaxed">
             <strong>السبب:</strong> كل طلب يجب أن يحتوي على أعمال من فنان واحد
-            فقط. إذا كنت ترغب في إضافة أعمال من فنان آخر، يجب مسح السلة الحالية أولاً.
+            فقط. إذا كنت ترغب في إضافة أعمال من فنان آخر، يجب مسح السلة الحالية
+            أولاً.
           </p>
         </div>
 

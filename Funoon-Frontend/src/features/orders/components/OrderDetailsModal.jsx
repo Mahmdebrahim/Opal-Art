@@ -528,10 +528,10 @@ function AddressCard({ title, address, icon: Icon }) {
           </div>
         )}
         <p className="text-xs text-on-surface-variant">
-          {address.street && `${address.street}, `}
-          {address.district && `${address.district}, `}
+          {/* {address.street && `${address.street}, `} */}
+          {/* {address.district && `${address.district}, `} */}
           {address.city}
-          {address.zipCode && ` ${address.zipCode}`}
+          {/* {address.zipCode && ` ${address.zipCode}`} */}
         </p>
       </div>
     </div>

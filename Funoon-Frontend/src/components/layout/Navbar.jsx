@@ -94,13 +94,11 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuthStore();
 
   const navigate = useNavigate();
-
   const location = useLocation();
 
   const cartItems = useCartStore((s) => s.items);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const userMenuRef = useRef(null);
@@ -164,11 +162,8 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-
     setUserMenuOpen(false);
-
     closeMobile();
-
     navigate(ROUTES.HOME);
   };
 
@@ -420,7 +415,6 @@ export default function Navbar() {
 
       {/* =====================================================
           Mobile Drawer
-          مهم: الـ Drawer لا يتم Render له أصلاً عندما يكون مغلق
       ====================================================== */}
       {mobileMenuOpen && (
         <>
@@ -433,11 +427,11 @@ export default function Navbar() {
 
           {/* Sidebar */}
           <aside
-            className="lg:hidden fixed top-0 right-0 z-[71] h-screen w-[86%] max-w-sm bg-[var(--color-surface-container-lowest)] shadow-2xl border-l border-[var(--color-outline-variant)]/30 flex flex-col"
+            className="lg:hidden fixed top-0 right-0 z-[71] h-[100dvh] w-[85%] max-w-sm bg-[var(--color-surface-container-lowest)] shadow-2xl border-l border-[var(--color-outline-variant)]/30 flex flex-col overflow-hidden"
             dir="rtl"
           >
             {/* Drawer Header */}
-            <div className="flex items-center justify-between h-20 px-5 border-b border-[var(--color-outline-variant)]/30 shrink-0">
+            <div className="flex items-center justify-between h-15 px-5 border-b border-[var(--color-outline-variant)]/30 shrink-0">
               <Link to={ROUTES.HOME} onClick={closeMobile}>
                 <img src={opalLogo} alt="Opal" className="h-9 w-auto" />
               </Link>
@@ -455,7 +449,7 @@ export default function Navbar() {
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-4 py-5 space-y-7">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-5 space-y-7 overscroll-contain">
               {/* User Card */}
               {isAuthenticated && (
                 <div className="flex items-center gap-3 p-3 rounded-xl">
@@ -593,31 +587,30 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-[var(--color-outline-variant)]/30 shrink-0 space-y-2">
+            {/* Drawer Footer - ثابت تحت */}
+            <div className="shrink-0 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[var(--color-surface-container-lowest)] border-t border-[var(--color-outline-variant)]/30">
               {isAuthenticated ? (
-                <button
+                <Button
+                  variant="outline"
+                  fullWidth
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-full border border-[var(--color-error)]/40 text-[var(--color-error)] text-sm font-semibold hover:bg-[var(--color-error-container)] transition-premium cursor-pointer"
+                  icon={LogOut}
+                  className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-premium flex items-center justify-center gap-2"
                 >
-                  <LogOut className="w-4 h-4" strokeWidth={1.5} />
                   تسجيل الخروج
-                </button>
+                </Button>
               ) : (
-                <Link to={ROUTES.LOGIN}>
-                  <Button
-                    as={Link}
-                    to={ROUTES.LOGIN}
-                    variant="outline"
-                    fullWidth
-                    onClick={closeMobile}
-                  >
-                    <span className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-premium flex items-center gap-2">
-                      تسجيل الدخول
-                      <LogInIcon className="w-4 h-4" strokeWidth={1.5} />
-                    </span>
-                  </Button>
-                </Link>
+                <Button
+                  as={Link}
+                  to={ROUTES.LOGIN}
+                  variant="outline"
+                  fullWidth
+                  onClick={closeMobile}
+                  className="text-sm font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-primary)] transition-premium flex items-center justify-center gap-2"
+                >
+                  تسجيل الدخول
+                  <LogInIcon className="w-4 h-4" strokeWidth={1.5} />
+                </Button>
               )}
             </div>
           </aside>

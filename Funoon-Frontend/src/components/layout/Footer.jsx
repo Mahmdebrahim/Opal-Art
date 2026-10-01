@@ -174,14 +174,14 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="tel:+966112345678"
+                  href="tel:+966565905901"
                   className="flex items-start gap-3 text-sm text-white/70 hover:text-[var(--color-secondary)] transition-premium group"
                 >
                   <Phone
                     className="w-4 h-4 mt-0.5 flex-shrink-0 group-hover:text-[var(--color-secondary)]"
                     strokeWidth={1.5}
                   />
-                  <span dir="ltr">+966 11 234 5678</span>
+                  <span dir="ltr">+966 56 590 5901</span>
                 </a>
               </li>
               <li>
@@ -206,7 +206,7 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             {/* Copyright */}
             <div className="text-xs text-white/50 text-center md:text-right">
-              © 2026 OPAL GALLERY — جميع الحقوق محفوظة. صُنع بـ{" "}
+              جميع الحقوق محفوظة لـ أوبال جاليري © 2026 . صُنع بـ{" "}
               <span className="text-[var(--color-secondary)]">بحب</span> في
               المملكة العربية السعودية
             </div>

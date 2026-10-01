@@ -6,9 +6,9 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const getFromAddress = () => {
   if (process.env.NODE_ENV === "production" && process.env.RESEND_DOMAIN) {
-    return `opalart.sa <noreply@${process.env.RESEND_DOMAIN}>`;
+    return `Opal Gallery <noreply@${process.env.RESEND_DOMAIN}>`;
   }
-  return "opalart.sa <onboarding@resend.dev>";
+  return "Opal Gallery <onboarding@resend.dev>";
 };
 
 const BRAND = {
@@ -33,7 +33,7 @@ const baseTemplate = (content) => `
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>أوبال جاليري | opalart.sa</title>
+<title>أوبال جاليري</title>
 </head>
 <body style="margin:0;padding:0;background:#F3F0EC;font-family:'IBM Plex Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;-webkit-text-size-adjust:100%;">
   <center style="width:100%;background:#F3F0EC;">
@@ -47,7 +47,7 @@ const baseTemplate = (content) => `
                   أوبال جاليري
                 </td>
                 <td align="left" dir="ltr" style="color:#EADFD8;font-size:11px;letter-spacing:1.5px;line-height:1.2;">
-                  opalart.sa
+                  opalgalley.net
                 </td>
               </tr></table>
             </td>
@@ -146,26 +146,26 @@ class EmailService {
       let finalSubject = subject;
 
       // Dev mode: override للإيميلات اللي مش verified
-      if (process.env.NODE_ENV === "development") {
-        const DEV_EMAIL = "muhammedsaviola@gmail.com";
-        if (to.toLowerCase() !== DEV_EMAIL.toLowerCase()) {
-          finalTo = DEV_EMAIL;
-          finalSubject = `[DEV → ${to}] ${subject}`;
-          const devBanner = `
-          <div style="background:#fff3cd;border:2px solid #ffc107;padding:12px;margin-bottom:16px;border-radius:8px;font-size:12px;color:#856404;text-align:right;">
-            <strong>وضع التطوير:</strong> الرسالة دي في الأساس لـ <strong>${to}</strong> — تم تحويلها للإيميل المطور للاختبار.
-          </div>
-        `;
-          html = html.replace("<body", `<body data-dev-redirect="${to}"`);
-          html = html.replace(
-            /(<table[^>]*role="presentation"[^>]*>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<\/table>)/,
-            (match) => devBanner + match,
-          );
-          logger.info(
-            `[Email Dev Mode] Redirected: ${to} → ${DEV_EMAIL} | Subject: ${subject}`,
-          );
-        }
-      }
+      // if (process.env.NODE_ENV === "development") {
+      //   const DEV_EMAIL = "muhammedsaviola@gmail.com";
+      //   if (to.toLowerCase() !== DEV_EMAIL.toLowerCase()) {
+      //     finalTo = DEV_EMAIL;
+      //     finalSubject = `[DEV → ${to}] ${subject}`;
+      //     const devBanner = `
+      //     <div style="background:#fff3cd;border:2px solid #ffc107;padding:12px;margin-bottom:16px;border-radius:8px;font-size:12px;color:#856404;text-align:right;">
+      //       <strong>وضع التطوير:</strong> الرسالة دي في الأساس لـ <strong>${to}</strong> — تم تحويلها للإيميل المطور للاختبار.
+      //     </div>
+      //   `;
+      //     html = html.replace("<body", `<body data-dev-redirect="${to}"`);
+      //     html = html.replace(
+      //       /(<table[^>]*role="presentation"[^>]*>[\s\S]*?<td[^>]*>[\s\S]*?<\/td>[\s\S]*?<\/table>)/,
+      //       (match) => devBanner + match,
+      //     );
+      //     logger.info(
+      //       `[Email Dev Mode] Redirected: ${to} → ${DEV_EMAIL} | Subject: ${subject}`,
+      //     );
+      //   }
+      // }
 
       const response = await resend.emails.send({
         from: getFromAddress(),

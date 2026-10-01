@@ -30,6 +30,8 @@ import { getMediaUrl } from "../../../utils/media";
 import { ROUTES } from "../../../config/routes";
 import badge from "../../../assets/badge.png";
 import SaCurr from "../../../assets/sa.svg";
+import ArtworkPlaceholder from "../../../assets/ArtworkPlaceholder.png";
+import userPlaceholder from "../../../assets/userPlaceholder.png";
 // ═══════════════════════════════════════════════════
 // Free Shipping Helper
 // ═══════════════════════════════════════════════════
@@ -173,6 +175,9 @@ export default function ArtworkDetailsPage() {
                 <img
                   src={images[selectedImageIndex]}
                   alt={artwork.title}
+                  onError={(e) => {
+                    e.target.src = ArtworkPlaceholder;
+                  }}
                   className={`
                                         w-full h-full object-cover 
                                         transition-all duration-700 
@@ -226,6 +231,9 @@ export default function ArtworkDetailsPage() {
                   >
                     <img
                       src={img}
+                      onError={(e) => {
+                        e.target.src = ArtworkPlaceholder;
+                      }}
                       alt=""
                       className="w-full h-full object-cover"
                     />
@@ -266,6 +274,9 @@ export default function ArtworkDetailsPage() {
                     <img
                       src={getMediaUrl(artwork.artist.avatar)}
                       alt={artwork.artist.name}
+                      onError={(e)=> {
+                        e.target.src = userPlaceholder 
+                      }}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -579,6 +590,9 @@ export default function ArtworkDetailsPage() {
           <img
             src={images[selectedImageIndex]}
             alt={artwork.title}
+            onError={(e)=> {
+              e.target.src = ArtworkPlaceholder
+            }}
             className="max-w-full max-h-full object-contain"
             onClick={(e) => e.stopPropagation()}
           />
