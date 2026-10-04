@@ -43,11 +43,10 @@ const withdrawalSchema = new mongoose.Schema(
     moyasarResponse: {
       type: mongoose.Schema.Types.Mixed,
     },
-    // ═══ دورة حياة السحب (Audit Trail) ═══
     approvedAt: { type: Date },
     approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
-    paidAt: { type: Date }, // ✅ إمتى اتحوّل فعلاً
+    paidAt: { type: Date }, 
     paidBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
     rejectedAt: { type: Date },

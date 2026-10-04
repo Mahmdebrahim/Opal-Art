@@ -4,7 +4,7 @@ const logger = require("../../utils/logger");
 
 class OTOService {
   constructor() {
-    // ✅ استخدام Sandbox URL من الـ env
+    //Sandbox URL env
     this.baseURL = process.env.OTO_BASE_URL || "https://staging-api.tryoto.com";
     this.refreshToken = process.env.OTO_REFRESH_TOKEN;
     this.accessToken = null;
@@ -54,7 +54,6 @@ class OTOService {
       const response = await axios(config);
       let responseData = response.data;
 
-      // ✅ إصلاح: لو axios رجع string، نعمله parse يدوي
       if (typeof responseData === "string") {
         try {
           responseData = JSON.parse(responseData);
@@ -75,7 +74,6 @@ class OTOService {
 
       if (error.response?.data) {
         let errorObj = error.response.data;
-        // ✅ لو error response string، نعمله parse
         if (typeof errorObj === "string") {
           try {
             errorObj = JSON.parse(errorObj);
@@ -94,7 +92,6 @@ class OTOService {
     }
   }
 
-  // ✅ Helper: تنسيق التاريخ بالشكل المطلوب من OTO (dd/MM/yyyy HH:mm)
   _formatOrderDate() {
     const now = new Date();
     const day = String(now.getDate()).padStart(2, "0");
@@ -136,14 +133,12 @@ class OTOService {
         width: width || 80,
         height: height || 3,
 
-        // ✅ الفلترة الذكية من المصدر
         deliveryType: "toCustomerDoorstep",
         serviceType: shippingType === "giant" ? "heavyAndBulky" : "express",
         includeEstimatedDates: true,
         currency: "SAR",
       };
 
-      // ✅ استخدم _request عشان يستفيد من الـ token management والـ error handling
       const response = await this._request(
         "POST",
         "/rest/v2/checkOTODeliveryFee",
@@ -160,24 +155,14 @@ class OTOService {
     }
   }
 
-  /**
-   * ✅ إنشاء Order في OTO (بدون createShipment)
-   * حسب توصية الدعم: نعمل createShipment في خطوة منفصلة
-   */
   async createOrder(orderData) {
     const {
       orderId,
       paymentMethod = "paid",
       amount,
-      amount_due = 0, // ✅ NEW
-      subtotal, // ✅ NEW
-      shippingAmount = 0, // ✅ NEW
-      packageWeight,
-      packageCount = 1,
-      boxWidth = 60,
-      boxLength = 80,
-      boxHeight = 5,
-      boxes, // ✅ NEW
+      amount_due = 0,
+      subtotal,
+      shippingAmount = 0, 
       items,
       senderInformation,
       customer,
@@ -229,7 +214,6 @@ class OTOService {
     if (!finalSenderInfo) throw new Error("Missing sender information");
     if (!finalCustomer) throw new Error("Missing customer information");
 
-    // ✅ استخدام الـ helper method للتنسيق الصحيح
     const orderDate = this._formatOrderDate();
 
     const otoOrderData = {
@@ -238,8 +222,8 @@ class OTOService {
       createShipment: false,
       payment_method: paymentMethod,
       amount: amount,
-      subtotal: subtotal, // ✅ NEW
-      shippingAmount: shippingAmount, // ✅ NEW[]
+      subtotal: subtotal,
+      shippingAmount: shippingAmount,
       amount_due: paymentMethod === "cod" ? amount : 0,
       currency: "SAR",
       packageCount: packageCount,
@@ -276,11 +260,6 @@ class OTOService {
     return response;
   }
 
-  /**
-   * ✅ جديد: إنشاء Shipment منفصل (الخطوة التانية في الـ Flow)
-   * @param {string} orderId - معرف الأوردر (مثلاً: "OPAL-xxx")
-   * @param {number} deliveryOptionId - معرف شركة الشحن
-   */
   async createShipment(orderId, deliveryOptionId, options = {}) {
     console.log(`📦 Creating OTO shipment for order: ${orderId}`);
     console.log(`   Delivery Option ID: ${deliveryOptionId}`);
@@ -297,10 +276,9 @@ class OTOService {
 
     const shipmentData = {
       orderId: orderId,
-      deliveryOptionId: Number(deliveryOptionId), // ✅ convert to int
+      deliveryOptionId: Number(deliveryOptionId), 
     };
 
-    // ✅ أضف الـ optional fields لو موجودة
     if (packageWeight) shipmentData.packageWeight = packageWeight;
     if (boxWidth) shipmentData.boxWidth = boxWidth;
     if (boxLength) shipmentData.boxLength = boxLength;
@@ -364,10 +342,6 @@ class OTOService {
     return await this._request("POST", "/rest/v2/getDeliveryFee", { orderId });
   }
 
-  /**
-   * ✅ جلب تفاصيل العنوان من الـ Short Address Code
-   * @param {string} shortAddressCode - الرمز القصير (مثلاً: "RGUC8214")
-   */
   async getAddressByShortCode(shortAddressCode) {
     console.log(`📍 Looking up address: ${shortAddressCode}`);
     const response = await this._request(

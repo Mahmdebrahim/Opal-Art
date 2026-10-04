@@ -15,7 +15,7 @@ const setBankAccount = catchAsync(async (req, res, next) => {
     throw new BadRequestError(M.wallet.bankFieldsRequired);
   }
 
-  // ✅ IBAN validation (Saudi: SA + 22 digits = 24 chars)
+  // IBAN validation (Saudi: SA + 22 digits = 24 chars)
   const cleanedIban = iban.toUpperCase().replace(/\s/g, "");
   if (!/^SA\d{22}$/.test(cleanedIban)) {
     throw new BadRequestError(M.validation.ibanInvalid);
@@ -27,7 +27,7 @@ const setBankAccount = catchAsync(async (req, res, next) => {
       accountHolder,
       iban: cleanedIban,
       bankName,
-      isVerified: false, // ✅ لازم الأدمن يراجع تاني
+      isVerified: false,
       verifiedAt: undefined,
       verifiedBy: undefined,
       rejectionReason: undefined,

@@ -114,7 +114,7 @@ export default function ContactPage() {
                   className="text-xs text-[var(--color-on-surface-variant)]"
                   dir="ltr"
                 >
-                  support@opalart.sa
+                  support@opalgallery.net
                 </p>
               </div>
             </div>

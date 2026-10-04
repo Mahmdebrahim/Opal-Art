@@ -10,7 +10,7 @@ import {
   Award,
   FileCheck,
 } from "lucide-react";
-import opalLogoWhite from "../../assets/opalLogoWhite.png";
+import opalLogoWhite from "../../assets/opalLogo2.png";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -162,14 +162,14 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="mailto:hello@opalart.sa"
+                  href="mailto:support@opalgallery.net"
                   className="flex items-start gap-3 text-sm text-white/70 hover:text-[var(--color-secondary)] transition-premium group"
                 >
                   <Mail
                     className="w-4 h-4 mt-0.5 flex-shrink-0 group-hover:text-[var(--color-secondary)]"
                     strokeWidth={1.5}
                   />
-                  <span>hello@opalart.sa</span>
+                  <span>support@opalgallery.net</span>
                 </a>
               </li>
               <li>

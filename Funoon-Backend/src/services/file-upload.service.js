@@ -247,7 +247,6 @@ class FileUploadService {
     const uploadDir = path.join(__dirname, "../../uploads/artworks");
     const files = await fs.readdir(uploadDir);
 
-    // ✅ sanitize للأمان
     const safeArtworkId = String(artworkId).replace(/[^a-zA-Z0-9]/g, "");
 
     const artworkFiles = files.filter((file) =>

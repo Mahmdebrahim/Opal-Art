@@ -190,7 +190,6 @@ const checkout = catchAsync(async (req, res, next) => {
 
   if (existingPendingOrders.length > 0) {
     const existingOrder = existingPendingOrders[0];
-    // ✅ NEW: الـ reuse مسموح بس لو محتويات الـ cart مطابقة تماماً للـ pending orders
     const cartIds = cart.items
       .map((i) => i.artwork._id.toString())
       .sort()
@@ -318,7 +317,6 @@ const checkout = catchAsync(async (req, res, next) => {
             `🔄 Quota reversed in checkout cleanup for order ${order._id}`,
           );
 
-          // ✅ حدّث الـ in-memory artist object في الـ cart
           const artistIdStr = order.artist.toString();
           for (const item of cart.items) {
             if (item.artist?._id?.toString() === artistIdStr) {
@@ -478,7 +476,6 @@ const checkout = catchAsync(async (req, res, next) => {
 
   const otoStart = Date.now();
 
-  // ✅ اجمع كل اللوحات في شحنة واحدة
   const totalDimensions = cart.items.reduce(
     (acc, item) => {
       const dims = item.artwork.dimensions || {};
@@ -492,12 +489,11 @@ const checkout = catchAsync(async (req, res, next) => {
     { width: 0, length: 0, height: 0, weight: 0 },
   );
 
-  // ✅ NEW: أضف padding للصندوق (bubble wrap + cardboard)
   const packageDims = {
-    width: Math.ceil(totalDimensions.width + 5), // +5 سم padding
-    length: Math.ceil(totalDimensions.length + 5), // +5 سم padding
-    height: Math.ceil(totalDimensions.height + 2), // +2 سم padding عمودي
-    weight: Math.round(totalDimensions.weight * 10) / 10, // round to 1 decimal
+    width: Math.ceil(totalDimensions.width + 5),
+    length: Math.ceil(totalDimensions.length + 5),
+    height: Math.ceil(totalDimensions.height + 2), 
+    weight: Math.round(totalDimensions.weight * 10) / 10, 
   };
 
   logger.info(
@@ -505,7 +501,6 @@ const checkout = catchAsync(async (req, res, next) => {
       `(artworks: ${totalDimensions.length}×${totalDimensions.width}×${totalDimensions.height} cm, ${totalDimensions.weight} kg)`,
   );
 
-  // ✅ OTO call واحدة للصندوق الكلي
   const artist = cart.items[0].artist;
   const originCity = artist.address?.city || "Riyadh";
   const destinationCity = buyer.address?.city || "Riyadh";
@@ -672,7 +667,6 @@ const checkout = catchAsync(async (req, res, next) => {
     orderData.financials.totalArtistEarning += artistEarning;
   }
 
-  // ✅ أضف الشحن مرة واحدة بس (مش لكل لوحة)
   for (const orderData of ordersByArtist.values()) {
     orderData.financials.shippingCost += buyerPaysShipping;
     orderData.financials.platformShippingExpense += platformShippingExpense;
@@ -1673,7 +1667,7 @@ const updateOrderStatus = catchAsync(async (req, res, next) => {
   return ApiResponse.success(
     res,
     order,
-    `✅ تم تحديث حالة الطلب يدوياً إلى ${status}`,
+    `تم تحديث حالة الطلب يدوياً إلى ${status}`,
   );
 });
 
@@ -1684,19 +1678,16 @@ const confirmDelivery = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.orderId);
   if (!order) throw new NotFoundError(M.orders.notFound);
 
-  // ✅ بس المشتري يقدر
   if (order.buyer.toString() !== req.user._id.toString()) {
     throw new UnauthorizedError(M.orders.confirmOwnOrdersOnly);
   }
 
-  // ✅ لازم يكون DELIVERED
   if (order.status !== "DELIVERED") {
     throw new BadRequestError(
       `Cannot confirm delivery for order with status: ${order.status}`,
     );
   }
 
-  // ✅ لازم يكون لسه مش confirmed
   if (order.status === "COMPLETED") {
     throw new BadRequestError(M.orders.alreadyCompleted);
   }
@@ -1711,13 +1702,11 @@ const confirmDelivery = catchAsync(async (req, res, next) => {
   session.startTransaction();
 
   try {
-    // 1. حدّث الأوردر
     order.status = "COMPLETED";
     order.completedAt = new Date();
     order.fundsReleased = true;
     await order.save({ session });
 
-    // 2. إطلاق الفلوس من pending لـ available
     const wallet = await Wallet.findOne({ user: order.artist }).session(
       session,
     );
@@ -1794,7 +1783,6 @@ const getMyOrders = catchAsync(async (req, res, next) => {
 
   const skip = (Number(page) - 1) * Number(limit);
 
-  // ✅ Aggregation بدل populate
   const pipeline = [
     { $match: matchQuery },
     { $sort: { createdAt: -1 } },
@@ -1847,7 +1835,6 @@ const getMyOrders = catchAsync(async (req, res, next) => {
     Order.countDocuments(matchQuery),
   ]);
 
-  // ✅ Mapping سريع (بدون toObject)
   const finalOrders = orders.map((order) => {
     const artworksMap = new Map(
       order.artworksData.map((a) => [a._id.toString(), a]),
@@ -2001,7 +1988,6 @@ const getMySales = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
   const { status, page = 1, limit = 10 } = req.query;
 
-  // ✅ استبعاد: الطلبات اللي لسه ما اتدفعتش + الملغية اللي ملهاش دفع
   const excludeAutoCancelled = {
     $nor: [
       { status: "PENDING_PAYMENT" },
@@ -2018,7 +2004,6 @@ const getMySales = catchAsync(async (req, res, next) => {
 
   const skip = (Number(page) - 1) * Number(limit);
 
-  // ✅ Aggregation
   const pipeline = [
     { $match: matchQuery },
     { $sort: { createdAt: -1 } },
@@ -2063,7 +2048,6 @@ const getMySales = catchAsync(async (req, res, next) => {
     Order.countDocuments(matchQuery),
   ]);
 
-  // ✅ Mapping (بدون toObject)
   const finalOrders = orders.map((order) => ({
     _id: order._id,
     status: order.status,
@@ -2072,10 +2056,9 @@ const getMySales = catchAsync(async (req, res, next) => {
     cancelledAt: order.cancelledAt,
     cancelledBy: order.cancelledBy,
     refundStatus: order.refundStatus,
-    adminOverrideReason: order.adminOverrideReason, // ✅ NEW
-    refundedAmount: order.refundedAmount, // ✅ NEW
-    refundedAt: order.refundedAt, // ✅ NEW
-    payment: order.payment // ✅ NEW
+    adminOverrideReason: order.adminOverrideReason, 
+    refundedAmount: order.refundedAmount,
+    payment: order.payment 
       ? { paidAt: order.payment.paidAt, paymentId: order.payment.paymentId }
       : null,
     onHold: order.onHold,
@@ -2150,15 +2133,11 @@ const cancelOrder = catchAsync(async (req, res, next) => {
     }
   }
 
-  // ═══════════════════════════════════════════════════
-  // ✅ Moyasar Refund (لو كان PAID) — مع Retry Logic + Idempotency
-  // ═══════════════════════════════════════════════════
   let refundOk = false;
   let refundPaymentId = null;
   let lastError = null;
 
   if (wasPaid) {
-    // Step 1: Resolve paymentId to refund
     let paymentIdToRefund = null;
     let alreadyRefunded = false;
 
@@ -2213,10 +2192,9 @@ const cancelOrder = catchAsync(async (req, res, next) => {
       refundPaymentId = order.payment?.paymentId;
       logger.info(`✅ Payment was already refunded — marking as REFUNDED`);
     }
-    // Step 3: لو لقينا paymentId → حاول refund مع retry
     else if (paymentIdToRefund) {
       const MAX_ATTEMPTS = 3;
-      const DELAYS = [0, 5000, 10000]; // 0, 5s, 10s
+      const DELAYS = [0, 5000, 10000]; 
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         if (DELAYS[attempt - 1] > 0) {
@@ -2251,7 +2229,6 @@ const cancelOrder = catchAsync(async (req, res, next) => {
         }
       }
 
-      // Step 4: لو فشل بعد 3 محاولات → alert للأدمن
       if (!refundOk) {
         logger.error(
           `🚨 CRITICAL: Buyer cancel refund failed after ${MAX_ATTEMPTS} attempts. ` +
@@ -2275,14 +2252,10 @@ const cancelOrder = catchAsync(async (req, res, next) => {
     }
   }
 
-  // ═══════════════════════════════════════════════════
-  // ✅ DB Transaction: cancel + unmark + quota reverse + wallet reverse
-  // ═══════════════════════════════════════════════════
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // 1. Cancel order + set refund status (unified: REFUNDED / FAILED / null)
     order.status = "CANCELLED";
     order.cancelledAt = new Date();
     order.cancellationReason = reason || "Cancelled by buyer";

@@ -31,7 +31,7 @@ import {
 
 import { getMediaUrl } from "../../utils/media";
 
-import opalLogoWhite from "../../assets/opalLogoWhite.png";
+import opalLogoWhite from "../../assets/opalLogo2.png";
 
 export default function DashboardLayout() {
   const { user, isAuthenticated, logout } = useAuthStore();

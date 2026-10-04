@@ -263,7 +263,6 @@ const updateArtwork = catchAsync(async (req, res, next) => {
       Number(parsedDimensions.depth || 0) !==
         Number(artwork.dimensions?.depth || 0);
 
-    // ✅ حد الأبعاد حسب الباقة — بس لو الأبعاد اتغيرت فعلاً
     if (dimsChanged) {
       const newMax = Math.max(
         Number(parsedDimensions.width),
@@ -293,7 +292,7 @@ const updateArtwork = catchAsync(async (req, res, next) => {
   if (paintType !== undefined && paintType !== artwork.paintType)
     hasMajorChange = true;
   if (medium !== undefined && medium !== artwork.medium) hasMajorChange = true;
-  if (dimsChanged) hasMajorChange = true; // ✅ NEW: الأبعاد تغيير جوهري
+  if (dimsChanged) hasMajorChange = true;
   if (req.files && req.files.length > 0) hasMajorChange = true;
 
   // Apply all fields
@@ -397,7 +396,6 @@ const updateArtwork = catchAsync(async (req, res, next) => {
     });
   }
 
-  // لو كانت REJECTED وعدّلها الفنان → ترجع للمراجعة تلقائياً
   if (artwork.approvalStatus === "REJECTED") {
     artwork.approvalStatus = "PENDING_APPROVAL";
     artwork.adminNote = null;
@@ -438,7 +436,6 @@ const deleteArtwork = catchAsync(async (req, res, next) => {
     throw new UnauthorizedError(M.artworks.notOwner);
   }
 
-  // ✅ Guard: لو عليها طلبات → منع الحذف
   const ordersCount = await Order.countDocuments({
     "items.artwork": artwork._id,
   });
@@ -485,7 +482,6 @@ const toggleActiveStatus = catchAsync(async (req, res, next) => {
     throw new UnauthorizedError(M.artworks.notOwner);
   }
 
-  // ═══ ✅ APPROVED فقط هو اللي الفنان يقدر يتحكم فيه ═══
   if (artwork.approvalStatus !== "APPROVED") {
     const statusMessages = {
       PENDING_APPROVAL: "لوحتك قيد المراجعة من فريق المنصة. يرجى الانتظار.",
@@ -795,7 +791,7 @@ const listAllArtworks = catchAsync(async (req, res, next) => {
   }
 
   // ═══════════════════════════════════════════════════
-  // ✅ Build priority branches dynamically from PLAN_CONFIG
+  // Build priority branches dynamically from PLAN_CONFIG
   // ═══════════════════════════════════════════════════
   const priorityBranches = Object.entries(User.PLAN_CONFIG || {}).map(
     ([planId, cfg]) => ({
@@ -880,7 +876,7 @@ const listAllArtworks = catchAsync(async (req, res, next) => {
   basePipeline.push({ $sort: sortStage });
 
   // ═══════════════════════════════════════════════════
-  // ✅ Count: aggregation بسيطة بدون favorites/project
+  // Count: aggregation بسيطة بدون favorites/project
   // ═══════════════════════════════════════════════════
   const countPipeline = [...basePipeline, { $count: "total" }];
   const countResult = await Artwork.aggregate(countPipeline);
@@ -1036,7 +1032,6 @@ const invalidateFilterCache = () => {
 // Get available filter options (cached + parallel)
 // ═══════════════════════════════════════════════════
 const getFilterOptions = catchAsync(async (req, res, next) => {
-  // ✅ Step 1: Check cache
   const now = Date.now();
   if (filterCache.data && now < filterCache.expiresAt) {
     return ApiResponse.success(
@@ -1046,7 +1041,6 @@ const getFilterOptions = catchAsync(async (req, res, next) => {
     );
   }
 
-  // ✅ Step 2: Parallel queries
   const commonFilter = { isActive: true, isSold: false };
 
   const [
@@ -1144,7 +1138,6 @@ const getFilterOptions = catchAsync(async (req, res, next) => {
     totalCount,
   };
 
-  // ✅ Step 3: Save to cache
   filterCache.data = responseData;
   filterCache.expiresAt = now + CACHE_TTL;
 
@@ -1184,7 +1177,7 @@ const featureArtwork = catchAsync(async (req, res, next) => {
 
   const previousFeatured = await Artwork.findOneAndUpdate(
     { artist: user._id, isFeatured: true, _id: { $ne: artwork._id } },
-    { $set: { isFeatured: false, featuredAt: null } }, // ✅ كان فيه bug: isFeatured: true
+    { $set: { isFeatured: false, featuredAt: null } },
     { new: false },
   );
 
@@ -1192,7 +1185,7 @@ const featureArtwork = catchAsync(async (req, res, next) => {
   artwork.featuredAt = new Date();
   await artwork.save();
 
-  invalidateFilterCache(); // ✅ invalidate cache
+  invalidateFilterCache(); 
 
   const message = previousFeatured
     ? `تم تمييز اللوحة بنجاح. تم إلغاء تمييز لوحتك السابقة "${previousFeatured.title}" تلقائياً.`

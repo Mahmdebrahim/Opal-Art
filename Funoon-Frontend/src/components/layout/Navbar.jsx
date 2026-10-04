@@ -16,7 +16,7 @@ import { useUnreadCount } from "../../hooks/useNotifications";
 
 import NotificationBell from "../NotificationBell";
 
-import opalLogo from "../../assets/opalLogo.png";
+import opalLogo from "../../assets/opalLogo2.png";
 
 import {
   ShoppingCart,

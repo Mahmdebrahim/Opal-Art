@@ -358,7 +358,6 @@ class EmailService {
     reason,
     refundInitiated,
   ) {
-    // ✅ Reasons الجديدة + القديمة
     const reasons = {
       buyer_banned_before_payment: "نظراً لتعليق حسابك في المنصة",
       buyer_banned_during_checkout: "نظراً لتعليق حسابك في المنصة",
@@ -373,7 +372,6 @@ class EmailService {
       superseded_by_new_checkout: "لإنشاء طلب جديد لنفس اللوحة",
     };
 
-    // ✅ Subject ديناميكي حسب حالة الـ refund
     const subject = refundInitiated
       ? `إلغاء الطلب #${escapeHtml(orderNumber)} واسترداد المبلغ`
       : `إلغاء الطلب #${escapeHtml(orderNumber)} — جاري معالجة الاسترداد`;
@@ -901,11 +899,8 @@ class EmailService {
     return this.sendEmail(admin.email, subject, html);
   }
 
-  // ═══════════════════════════════════════════════════
-  //* 🔴 BAN NOTICE — إصلاح نهائي
-  // ═══════════════════════════════════════════════════
+
   static async sendBanNotice(email, name, reason) {
-    // ✅ Validation: لازم email string
     if (!email || typeof email !== "string") {
       logger.error(`❌ sendBanNotice: invalid email type: ${typeof email}`);
       return false;

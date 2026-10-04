@@ -48,9 +48,6 @@ const getAllArtists = catchAsync(async (req, res, next) => {
 
   const total = await User.countDocuments(query);
 
-  // ═══════════════════════════════════════════════════
-  // ✅ إضافة معلومات الباقة + Badge + التقييمات
-  // ═══════════════════════════════════════════════════
   const artistsWithPlan = artists.map((artist) => {
     const planConfig = PLAN_CONFIG[artist.subscription.plan];
     const isVerified = planConfig?.features?.verifiedBadge || false;
@@ -106,16 +103,12 @@ const getArtistPublicProfile = catchAsync(async (req, res, next) => {
     throw new NotFoundError(M.user.artistNotFound);
   }
 
-  // ═══════════════════════════════════════════════════
-  // ✅ حساب زيارة للبروفايل — Fixed Version
-  // ═══════════════════════════════════════════════════
   const userId = req.user?._id;
   const ipAddress =
     req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     req.ip ||
     req.connection?.remoteAddress;
 
-  // ✅ تحويل لـ ObjectId (type safety)
   const profileObjectId = new mongoose.Types.ObjectId(artistId);
   const userObjectId = userId
     ? new mongoose.Types.ObjectId(String(userId))
@@ -126,7 +119,6 @@ const getArtistPublicProfile = catchAsync(async (req, res, next) => {
   console.log("userId:", userId, "→ userObjectId:", userObjectId);
   console.log("ipAddress:", ipAddress);
 
-  // ✅ لو مفيش userId ولا ipAddress، مش هنقدر نتتبع
   if (!userObjectId && !ipAddress) {
     console.warn("⚠️ No userId and no ipAddress — skipping view tracking");
   } else {
@@ -369,7 +361,6 @@ const getArtistOrders = catchAsync(async (req, res, next) => {
 
   const skip = (Number(page) - 1) * Number(limit);
 
-  // ✅ لو محتاج شحن (PAID) → الأقدم الأول (FIFO)، غير كده الأحدث الأول
   const sortOrder = status === "PAID" ? { createdAt: 1 } : { createdAt: -1 };
 
   const orders = await Order.find(query)
@@ -428,8 +419,8 @@ const getMyArtworksAnalytics = catchAsync(async (req, res, next) => {
     artworks: [],
     topByViews: [],
     topByFavorites: [],
-    topByEarnings: [], // ✅ جديد: بدلاً من topByOrders
-    lostOpportunities: [], // ✅ جديد: فرص ضائعة
+    topByEarnings: [], 
+    lostOpportunities: [],
   };
 
   if (!artworks.length) {

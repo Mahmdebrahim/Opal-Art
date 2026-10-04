@@ -98,12 +98,11 @@ app.post(
       } else if (typeof req.body === "object" && req.body !== null) {
         const keys = Object.keys(req.body);
 
-        // ✅ Case A: character-map (keys are "0", "1", "2"...)
         if (keys.length > 0 && keys.every((k) => /^\d+$/.test(k))) {
           rawBody = Object.values(req.body).join("");
           logger.warn("⚠️ Body came as character-map — reconstructed");
         }
-        // ✅ Case B: already parsed as object
+
         else {
           rawBody = JSON.stringify(req.body);
           logger.warn("⚠️ Body was pre-parsed by another middleware");
@@ -112,26 +111,16 @@ app.post(
         throw new Error(`Unknown body type: ${typeof req.body}`);
       }
 
-      // logger.info("📥 Raw webhook body (first 500 chars):", rawBody.substring(0, 500));
-
-      // ═══════════════════════════════════════════════════
-      // ✅ Layer 2: Parse الـ JSON
-      // ═══════════════════════════════════════════════════
       let parsedBody;
       try {
         parsedBody = JSON.parse(rawBody);
       } catch (jsonErr) {
-        // لو rawBody نفسه مش JSON → ممكن يكون فيه encoding issues
-        // جرب نطهر الـ string من أي non-printable characters
         const cleaned = rawBody.replace(/[^\x20-\x7E\n\r\t]/g, "");
         parsedBody = JSON.parse(cleaned);
       }
 
       req.rawBody = rawBody;
 
-      // ═══════════════════════════════════════════════════
-      // ✅ Layer 3: Unwrap إذا كان enveloped
-      // ═══════════════════════════════════════════════════
       const isEnveloped =
         typeof parsedBody?.type === "string" && parsedBody?.data;
       payment = isEnveloped ? parsedBody.data : parsedBody;
@@ -141,9 +130,6 @@ app.post(
       logger.info(`🏷️ Payment status: ${payment?.status || "N/A"}`);
       logger.info(`🏷️ Invoice ID: ${payment?.invoice_id || payment?.id}`);
 
-      // ═══════════════════════════════════════════════════
-      // ✅ Signature verification
-      // ═══════════════════════════════════════════════════
       const signature =
         req.headers["x-moyasar-signature"] ||
         req.headers["x-signature"] ||
@@ -183,9 +169,7 @@ app.post(
       return res.status(400).json({ error: "Invalid webhook payload" });
     }
 
-    // ═══════════════════════════════════════════════════
-    // SMART ROUTING (زي ما هو)
-    // ═══════════════════════════════════════════════════
+    // SMART ROUTING
     const metadataType = req.body?.metadata?.type;
     const invoiceId = req.body?.invoice_id || req.body?.id;
 
@@ -216,8 +200,8 @@ app.post(
       // }).select("_id");
       const subPayment = await SubscriptionPayment.findOne({
         $or: [
-          { moyasarPaymentId: invoiceId }, // قبل الدفع (invoice id)
-          { moyasarPaymentId: req.body?.id }, // بعد الدفع (payment id)
+          { moyasarPaymentId: invoiceId }, 
+          { moyasarPaymentId: req.body?.id }, 
         ],
       }).select("_id");
       if (subPayment) {
@@ -260,7 +244,7 @@ app.post(
 );
 
 //══════════════════════════════════════════════════════════════════════════════
-// Body Parsing (بعد الـ webhooks!)
+// Body Parsing 
 // ═════════════════════════════════════════════════════════════════════════════
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));

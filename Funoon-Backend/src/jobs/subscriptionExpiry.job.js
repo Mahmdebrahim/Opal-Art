@@ -6,20 +6,11 @@ const logger = require("../utils/logger");
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-/**
- * ✅ Subscription Expiry Job
- * Finds users whose subscription ended (any time) and still marked as active.
- * Deactivates them and removes plan-specific features.
- * 
- * Safe to run multiple times (idempotent).
- * Safe even if server was down for days.
- */
 async function runSubscriptionExpiryJob() {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // ✅ جيب أي user انتهى اشتراكه (أي وقت قبل اليوم) ولا يزال active
     const expiredUsers = await User.find({
       "subscription.isActive": true,
       "subscription.endDate": { $lt: today },
@@ -37,7 +28,6 @@ async function runSubscriptionExpiryJob() {
       const endDate = new Date(user.subscription.endDate);
       const daysSinceExpiry = Math.round((today - endDate) / MS_PER_DAY);
 
-      // ✅ نلغي الاشتراك + نشيل الـ features
       await User.updateOne(
         { _id: user._id },
         {
@@ -54,7 +44,6 @@ async function runSubscriptionExpiryJob() {
         `🔒 Subscription expired for user ${user._id} (${user.name}) — expired ${daysSinceExpiry} day(s) ago`,
       );
 
-      // ✅ Event للإشعارات والإيميل
       const planConfig = User.PLAN_CONFIG?.[user.subscription.plan];
       const planLabel = planConfig?.labelAr || user.subscription.plan;
 

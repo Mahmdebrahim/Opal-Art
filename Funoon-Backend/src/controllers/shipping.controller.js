@@ -143,7 +143,6 @@ const createOtoOrder = catchAsync(async (req, res, next) => {
 
   const opalOrderId = `OPAL-${order._id}`;
 
-  // ✅ الأبعاد الخام (مجموع اللوحات)
   const rawDims = order.items.reduce(
     (acc, item) => {
       const d = item.artworkSnapshot?.dimensions || {};
@@ -157,7 +156,6 @@ const createOtoOrder = catchAsync(async (req, res, next) => {
     { width: 0, length: 0, height: 0, weight: 0 },
   );
 
-  // ✅ نفس padding الـ checkout بالظبط (+5/+5/+2 و +0.5 kg)
   const dims = {
     width: Math.ceil(rawDims.width + 5),
     length: Math.ceil(rawDims.length + 5),
@@ -165,7 +163,6 @@ const createOtoOrder = catchAsync(async (req, res, next) => {
     weight: Math.round((rawDims.weight + 0.5) * 10) / 10,
   };
 
-  // ✅ سعر أكبر لوحة
   const maxArtworkPrice = Math.max(
     ...order.items.map((item) => item.artworkSnapshot?.price || 0),
   );
@@ -188,7 +185,6 @@ const createOtoOrder = catchAsync(async (req, res, next) => {
     shippingAmount: order.financials.shippingCost || 0,
     currency: order.financials.currency || "SAR",
 
-    // ✅ صندوق واحد دايماً (مش عدد اللوحات)
     packageCount: 1,
     packageWeight: dims.weight,
 
@@ -285,7 +281,7 @@ const createOtoOrder = catchAsync(async (req, res, next) => {
   );
 });
 
-//! test فقط حاليا // checkOrderStatus
+//! test checkOrderStatus
 const createShipment = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
 
@@ -316,7 +312,6 @@ const createShipment = catchAsync(async (req, res, next) => {
     throw new BadRequestError(M.shipping.noDeliveryOption);
   }
 
-  // نعتبر الشحنة موجودة فقط عند وجود رقم تتبع أو بوليصة فعلية
   const shipmentAlreadyExists = Boolean(
     order.shipping?.trackingNumber || order.shipping?.awbUrl,
   );
@@ -413,7 +408,6 @@ const createShipment = catchAsync(async (req, res, next) => {
     );
   }
 
-  // فحص orderStatus بعد طلب الإنشاء
   let trackingNumber = "";
   let trackingUrl = "";
   let awbUrl = "";
@@ -575,7 +569,6 @@ const getAWBUrl = catchAsync(async (req, res, next) => {
   }
 
   if (!order.shipping?.awbUrl) {
-    // ✅ محاولة 1: نجيب الـ awbUrl من orderStatus (الأفضل)
     try {
       const orderStatus = await otoService.getOrderStatus(`OPAL-${order._id}`);
 
@@ -604,7 +597,6 @@ const getAWBUrl = catchAsync(async (req, res, next) => {
       logger.warn("Could not retrieve AWB from orderStatus:", err.message);
     }
 
-    // ✅ محاولة 2 (fallback): نجرب printAWB endpoint
     try {
       const awbResponse = await otoService.printAWB(`OPAL-${order._id}`);
       if (awbResponse?.printAWBURL || awbResponse?.awbUrl) {

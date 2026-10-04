@@ -22,7 +22,6 @@ const verifyMoyasarSignature = (rawBody, signature) => {
     .digest("hex");
 
   try {
-    // ✅ timingSafeEqual يمنع timing attacks
     return crypto.timingSafeEqual(
       Buffer.from(signature),
       Buffer.from(expected),

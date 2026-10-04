@@ -61,7 +61,6 @@ EMAIL_EVENTS.forEach((event) => {
         }
         case EVENTS.ORDER_CANCELLED: {
           try {
-            // ✅ لو إلغاء من OTO → نبعت إيميل مختلف للفنان
             if (payload.isOtoCancellation && payload.artistId) {
               const artist = await User.findById(payload.artistId).select(
                 "name email",
@@ -79,7 +78,6 @@ EMAIL_EVENTS.forEach((event) => {
               }
             }
 
-            // ✅ إيميل للمشتري (زي ما كان)
             const buyer = await User.findById(payload.buyerId).select(
               "name email",
             );

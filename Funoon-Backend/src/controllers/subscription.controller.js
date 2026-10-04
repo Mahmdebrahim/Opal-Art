@@ -201,7 +201,6 @@ const calculateSubscriptionQuote = (user, targetPlanId) => {
     };
   }
 
-  // باقة أعلى = Upgrade
   if (targetRank > currentRank) {
     const yearlyDiff = targetPlan.price - currentPlan.price;
     const termDays = 365;
@@ -224,7 +223,6 @@ const calculateSubscriptionQuote = (user, targetPlanId) => {
     };
   }
 
-  // باقة أقل = ممنوع حالياً
   return {
     scenario: "downgrade_not_supported",
     canPurchase: false,
@@ -253,7 +251,6 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
   const user = await User.findById(userId);
   if (!user) throw new NotFoundError("المستخدم غير موجود");
 
-  // ✅ احسب الـ quote
   const quote = calculateSubscriptionQuote(user, planId);
 
   if (!quote.canPurchase) {
@@ -413,11 +410,6 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
     throw new BadRequestError("تعذّر حساب سعر الاشتراك بعد الخصم");
   }
 
-  // ═══════════════════════════════════════════════════
-  // ✅ تنظيف حجز كوبون قديم معلّق على باقة مختلفة
-  // (الـ unique index على {coupon, user} بيمنع حجز تاني
-  //  طالما الـ redemption القديم لسه موجود)
-  // ═══════════════════════════════════════════════════
   if (coupon) {
     const staleRedemption = await CouponRedemption.findOne({
       coupon: coupon._id,
@@ -816,11 +808,6 @@ const getCheckoutDetails = catchAsync(async (req, res) => {
 //     );
 
 //     if (!subPayment) {
-//       // ═══════════════════════════════════════════════════
-//       // ✅ جديد: السجل ممكن يكون اتحط EXPIRED (بسبب الـ cleanup)
-//       // قبل ما تأكيد الدفع يوصل من Moyasar. بما إن العميل
-//       // فعليًا دفع الفلوس، نفعّل الاشتراك بدل ما نتجاهله بصمت.
-//       // ═══════════════════════════════════════════════════
 //       const anyPayment = await SubscriptionPayment.findById(
 //         subscriptionPaymentId,
 //       ).session(session);
@@ -892,9 +879,6 @@ const getCheckoutDetails = catchAsync(async (req, res) => {
 
 //     await user.save({ session });
 
-//     // ═══════════════════════════════════════════════════
-//     // ✅ Wallet creation (لو مفيش)
-//     // ═══════════════════════════════════════════════════
 //     let wallet = await Wallet.findOne({ user: userId }).session(session);
 //     if (!wallet) {
 //       wallet = new Wallet({ user: userId });
@@ -1015,9 +999,6 @@ const getCheckoutDetails = catchAsync(async (req, res) => {
 //     return res.status(200).json({ received: true });
 //   }
 
-//   // ═══════════════════════════════════════════════════
-//   // ✅ PAID flow (زي ما هو — كود متين)
-//   // ═══════════════════════════════════════════════════
 //   const metadata = event.metadata || {};
 //   logger.info("📦 Metadata:", metadata);
 

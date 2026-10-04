@@ -22,7 +22,6 @@ const getCookieOptions = () => ({
 });
 
 const generateRefreshToken = async (user) => {
-  // ✅ امسح tokens القديمة، سيب آخر 5 بس (بدل كلهم)
   const existingTokens = await RefreshToken.find({ user: user._id })
     .sort({ createdAt: -1 })
     .limit(100);
@@ -68,7 +67,6 @@ const normalizePhone = (rawPhone) => {
 const register = catchAsync(async (req, res, next) => {
   const { name, email, password, phone, role, termsAccepted } = req.body;
 
-  // 1. Check duplicate email
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new BadRequestError(M.auth.emailExists);
@@ -122,8 +120,6 @@ const register = catchAsync(async (req, res, next) => {
     await EmailService.sendVerificationOTP(user, otp);
   } catch (err) {
     logger.warn(`⚠️ Verification email failed (OTP in console): ${otp}`);
-    // ✅ في dev mode: نكمل — الـ OTP مطبوع في console
-    // في production: ممكن نرمي error هنا لو عايزين
     if (process.env.NODE_ENV === "production") {
       user.emailVerificationOTP = undefined;
       user.emailVerificationOTPExpires = undefined;
@@ -444,7 +440,6 @@ const verifyEmail = catchAsync(async (req, res, next) => {
     throw new BadRequestError("رمز التأكيد غير صحيح أو منتهي الصلاحية");
   }
 
-  // ✅ OTP صحيح — فعّل الحساب
   user.emailVerified = true;
   user.emailVerificationOTP = undefined;
   user.emailVerificationOTPExpires = undefined;
@@ -500,7 +495,6 @@ const resendVerificationOTP = catchAsync(async (req, res, next) => {
     throw new UnauthorizedError(M.auth.otpLocked(minutesLeft));
   }
 
-  // ✅ 2) لو القفل انتهى → افتح صفحة جديدة من المحاولات
   if (user.otpLockedUntil && user.otpLockedUntil <= new Date()) {
     user.otpAttempts = 0;
     user.otpLockedUntil = undefined;

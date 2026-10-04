@@ -11,10 +11,6 @@ const ApiResponse = require("../utils/api-response");
 const catchAsync = require("../utils/catch-async");
 const M = require("../utils/messages");
 
-/**
- * ✅ SHIPPING COST = 0 في الـ cart
- * الشحن الحقيقي بيتحسب في الـ checkout من OTO
- */
 const calculateShippingCost = (artwork, artistPlan) => {
   return 0;
 };

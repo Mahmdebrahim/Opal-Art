@@ -41,7 +41,6 @@ const getAllWithdrawals = catchAsync(async (req, res) => {
 
   const total = await Withdrawal.countDocuments(filter);
 
-  // ✅ Best-effort: إرفاق الحساب البنكي لكل فنان (لو الموديل موجود)
   let bankByUser = {};
   try {
     const BankAccount = mongoose.model("BankAccount");
@@ -506,7 +505,6 @@ const holdOrderFunds = catchAsync(async (req, res) => {
     },
   ]);
 
-  // ✅ إشعار للفنان
   eventEmitter.safeEmit(EVENTS.ORDER_HELD, {
     orderId: order._id,
     orderNumber: order._id.toString().slice(-6).toUpperCase(),
@@ -552,7 +550,6 @@ const unholdOrderFunds = catchAsync(async (req, res) => {
     },
   ]);
 
-  // ✅ إشعار للفنان
   eventEmitter.safeEmit(EVENTS.ORDER_UNHELD, {
     orderId: order._id,
     orderNumber: order._id.toString().slice(-6).toUpperCase(),
@@ -580,7 +577,6 @@ const releaseOrderFunds = catchAsync(async (req, res) => {
     throw new BadRequestError("الأموال أُطلقت بالفعل");
   }
 
-  // ✅ لازم الطلب يكون DELIVERED (مفيش إطلاق لطلبات مش مُوصّلة)
   if (order.status !== "DELIVERED") {
     throw new BadRequestError(
       `لا يمكن إطلاق أموال طلب حالته ${order.status}. يجب أن يكون الطلب مُوصَّلاً أولاً.`,
@@ -662,9 +658,6 @@ const getAdminOrders = catchAsync(async (req, res) => {
   const { status, search, hold, page = 1, limit = 20 } = req.query;
   const filter = {};
 
-  // ✅ استبعاد: الطلبات اللي لسه ما اتدفعتش + الملغية اللي ملهاش دفع
-  // ده بيشيل: expired_pending_order, expired_jit_cleanup, superseded_by_new_checkout,
-  // وأي canceled قبل الدفع
   filter.$nor = [
     { status: "PENDING_PAYMENT" },
     { status: "CANCELLED", "payment.paidAt": null },
@@ -762,7 +755,7 @@ const forceCancelOrder = catchAsync(async (req, res) => {
   const wasPaid = order.status === "PAID" || order.status === "PROCESSING";
 
   // ═══════════════════════════════════════════════════
-  // ✅ Moyasar Refund مع Retry Logic (3 attempts)
+  // Moyasar Refund مع Retry Logic (3 attempts)
   // ═══════════════════════════════════════════════════
   let refundOk = false;
   let refundResult = null;
@@ -804,7 +797,6 @@ const forceCancelOrder = catchAsync(async (req, res) => {
       }
     }
 
-    // ✅ لو فشل بعد 3 محاولات → alert للأدمن
     if (!refundOk) {
       logger.error(
         `🚨 CRITICAL: Admin refund failed after ${MAX_ATTEMPTS} attempts. ` +
@@ -826,14 +818,10 @@ const forceCancelOrder = catchAsync(async (req, res) => {
     }
   }
 
-  // ═══════════════════════════════════════════════════
-  // ✅ DB Transaction (زي ما هو)
-  // ═══════════════════════════════════════════════════
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    // 1. إلغاء الطلب
     order.status = "CANCELLED";
     order.cancellationReason = `إلغاء بواسطة الإدارة: ${reason}`;
     order.cancelledBy = "admin";
@@ -845,7 +833,6 @@ const forceCancelOrder = catchAsync(async (req, res) => {
     order.refundRequestedAt = new Date();
     await order.save({ session });
 
-    // 2. رجوع اللوحات للسوق
     for (const item of order.items) {
       await Artwork.findOneAndUpdate(
         { _id: item.artwork },
@@ -855,7 +842,6 @@ const forceCancelOrder = catchAsync(async (req, res) => {
       logger.info(`✅ Artwork ${item.artwork} unmarked by admin force-cancel`);
     }
 
-    // 3. Reverse Free Shipping Quota
     if (order.financials?.platformShippingExpense > 0 && order.artist) {
       const updatedArtist = await User.findOneAndUpdate(
         {
@@ -942,7 +928,7 @@ const forceCancelOrder = catchAsync(async (req, res) => {
     throw error;
   }
 
-  // 6. Event للإشعارات
+  // 6. Event 
   if (EVENTS?.ORDER_CANCELLED) {
     eventEmitter.safeEmit(EVENTS.ORDER_CANCELLED, {
       buyerId: order.buyer,
@@ -1952,7 +1938,6 @@ const banUser = catchAsync(async (req, res) => {
       }
     }
 
-    // 3. ✅ قطع كل الجلسات الحالية — IMPORTANT!
     await RefreshToken.deleteMany({ user: user._id }).session(session);
 
     // 4. Audit log
@@ -2034,7 +2019,7 @@ const unbanUser = catchAsync(async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    // ✅ Event emission — USER_UNBANNED
+    // Event emission — USER_UNBANNED
     try {
       eventEmitter.safeEmit(EVENTS.USER_UNBANNED, {
         userId: user._id,
@@ -2137,7 +2122,7 @@ const getAdminArtworks = catchAsync(async (req, res) => {
             $group: {
               _id: "$items.artwork",
               ordersCount: { $sum: 1 },
-              totalRevenue: { $sum: "$items.financials.artworkPrice" }, // ✅ سعر اللوحة نفسها، مش totalAmount الأوردر كله
+              totalRevenue: { $sum: "$items.financials.artworkPrice" },
             },
           },
         ])

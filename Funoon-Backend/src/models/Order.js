@@ -129,7 +129,7 @@ const orderSchema = new mongoose.Schema(
     payment: {
       provider: { type: String, default: "Moyasar" },
       paymentId: { type: String },
-      invoiceId: { type: String }, // ✅ مهم - Moyasar invoice ID
+      invoiceId: { type: String }, 
       method: { type: String },
       paidAt: { type: Date },
     },
@@ -140,13 +140,11 @@ const orderSchema = new mongoose.Schema(
       deliveryCompanyName: { type: String },
       deliveryOptionName: { type: String },
 
-      // ❌ شيل: estimatedDeliveryDate: { type: String },
-      // ✅ بدالها الاسم الصح المطابق لـ response بتاع OTO فعليًا
-      avgDeliveryTime: { type: String }, // "1to3WorkingDays"
-      pickupCutOffTime: { type: String }, // "11:00"
-      maxFreeWeight: { type: Number }, // 15
-      extraWeightPerKg: { type: Number }, // 2
-      returnFee: { type: Number }, // 22 - داخلي، مش للعرض للمشتري بالضرورة
+      avgDeliveryTime: { type: String },
+      pickupCutOffTime: { type: String }, 
+      maxFreeWeight: { type: Number },
+      extraWeightPerKg: { type: Number }, 
+      returnFee: { type: Number }, 
 
       pickupDropoff: { type: String },
       deliveryType: { type: String },
