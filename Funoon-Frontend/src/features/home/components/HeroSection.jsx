@@ -3,14 +3,9 @@ import { ROUTES } from "../../../config/routes";
 import Button from "../../../components/Ui/Button";
 import { ArrowLeft, Shield, Truck, Award, Sparkles } from "lucide-react";
 
-// Import local images
-import heroMain from "../../../assets/hero (1).png";
-import hero2 from "../../../assets/hero (2).png";
-import hero3 from "../../../assets/hero (3).png";
-
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[calc(100vh-5rem)] flex items-center overflow-hidden bg-surface py-8 lg:py-4">
+    <section className="relative min-h-[calc(100vh-5rem)] flex items-center overflow-hidden py-8 lg:py-4">
       {/* ═══ Background Layers ═══ */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-linear-to-bl from-surface via-surface-container-low to-surface" />
@@ -106,14 +101,17 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* ═══ الصور — ارتفاع ثابت عشان الشاشة متطولش ═══ */}
           <div className="hidden lg:block lg:col-span-7 relative">
             <div className="grid grid-cols-12 gap-5 h-[400px] xl:h-[480px] 2xl:h-[540px]">
               {/* Main Large Artwork */}
               <div className="col-span-8 relative group overflow-hidden bg-surface-container h-full">
                 <img
-                  src={heroMain}
+                  src="/images/hero-main.webp"
                   alt="لوحة فنية سعودية"
+                  width={1376}
+                  height={786}
+                  fetchPriority="high"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-premium" />
@@ -124,8 +122,12 @@ export default function HeroSection() {
               <div className="col-span-4 flex flex-col gap-5 h-full">
                 <div className="flex-1 relative group overflow-hidden bg-surface-container">
                   <img
-                    src={hero2}
+                    src="/images/hero-side-1.webp"
                     alt="لوحة فنية"
+                    width={1376}
+                    height={768}
+                    fetchPriority="low"
+                    decoding="async"
                     className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-premium" />
@@ -134,8 +136,12 @@ export default function HeroSection() {
 
                 <div className="flex-1 relative group overflow-hidden bg-surface-container">
                   <img
-                    src={hero3}
+                    src="/images/hero-side-2.webp"
                     alt="لوحة فنية"
+                    width={1264}
+                    height={848}
+                    fetchPriority="low"
+                    decoding="async"
                     className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-premium" />

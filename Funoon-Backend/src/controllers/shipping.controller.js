@@ -826,7 +826,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
     return res.status(200).json({ received: true });
   }
 
-  // ═══ تحديد الطلب ═══
   let opalOrderId = null;
   if (orderId) {
     const rawId = String(orderId).replace("OPAL-", "");
@@ -884,7 +883,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
   const wasPaid =
     !!existingOrder.payment?.paidAt || !!existingOrder.payment?.paymentId;
 
-  // ═══ حماية الترتيب ═══
   const STATUS_RANK = { PROCESSING: 2, SHIPPED: 3, DELIVERED: 4, COMPLETED: 5 };
   const currentRank = STATUS_RANK[previousStatus] || 0;
   const newRank = STATUS_RANK[newStatus] || 0;
@@ -899,11 +897,9 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
     logger.info(`⏭️ Skipping out-of-order: ${previousStatus} → ${newStatus}`);
   }
 
-  // ═══ بناء التحديث ═══
   const updateData = {};
   if (applyStatus) updateData.status = newStatus;
 
-  // ─── بيانات الشحن ───
   const incomingTrackingNumber = trackingNumber || shipmentNumber || "";
   const shipmentExists =
     !!existingOrder.shipping?.shipmentCreatedAt ||
@@ -949,7 +945,7 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
   }
 
   // ═══════════════════════════════════════════════════
-  // ✅ CANCELLED handling (returned / cancelled by OTO)
+  // CANCELLED handling (returned / cancelled by OTO)
   // ═══════════════════════════════════════════════════
   let otoCancellationDetails = null;
 
@@ -966,10 +962,7 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
       ? `الشحنة ارتجعت من شركة الشحن (${deliveryCompany || "OTO"})`
       : `شركة الشحن (${deliveryCompany || "OTO"}) ألغت الشحنة`;
 
-    // لو الطلب كان مدفوع → تعامل مع الـ refund
     if (wasPaid && existingOrder.payment?.paymentId) {
-      // ═══ ✅ Race Condition Protection ═══
-      // لو Moyasar webhook وصل قبل OTO webhook والـ refund حصل بالفعل
       if (existingOrder.refundStatus === "REFUNDED") {
         logger.info(
           `ℹ️ Refund already processed for order ${opalOrderId} (likely from Moyasar webhook). Skipping attemptRefund.`,
@@ -981,7 +974,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
         updateData.refundPaymentId =
           existingOrder.refundPaymentId || existingOrder.payment.paymentId;
       } else {
-        // الـ refund لسه ما حصلش → نحاول
         const { refundOk, refundPaymentId, lastError } = await attemptRefund(
           existingOrder.payment.paymentId,
           existingOrder.financials.totalAmount,
@@ -996,7 +988,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
           updateData.refundedAt = new Date();
         }
 
-        // لو فشل → alert للأدمن
         if (!refundOk) {
           logger.error(
             `🚨 CRITICAL: OTO ${status} refund failed for order ${opalOrderId}. ` +
@@ -1013,13 +1004,11 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
         }
       }
 
-      // ═══ ✅ Wallet Reverse (في الحالتين) ═══
       const wallet = await Wallet.findOne({ user: existingOrder.artist });
       if (wallet) {
         const artistEarning = existingOrder.financials.totalArtistEarning;
 
         if (!existingOrder.fundsReleased) {
-          // الحالة العادية: الفلوس لسه pending
           if (wallet.balance.pending >= artistEarning) {
             try {
               await wallet.debitPending(artistEarning);
@@ -1054,7 +1043,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
             updateData.needsManualClawback = true;
           }
         } else {
-          // الحالة النادرة: الفلوس اتحولت لـ available
           if (wallet.balance.available >= artistEarning) {
             try {
               await wallet.debit(artistEarning);
@@ -1092,7 +1080,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
         }
       }
 
-      // ✅ Quota reverse للشحن المجاني
       if (existingOrder.financials?.platformShippingExpense > 0) {
         await User.updateOne(
           { _id: existingOrder.artist, freeShippingUsed: { $gt: 0 } },
@@ -1100,7 +1087,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
         );
       }
 
-      // حفظ التفاصيل للإشعارات
       otoCancellationDetails = {
         isReturned,
         refundOk: updateData.refundStatus === "REFUNDED",
@@ -1111,7 +1097,6 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
         fundsWereReleased: existingOrder.fundsReleased,
       };
     } else {
-      // الطلب ما اتدفعش أصلاً
       updateData.refundStatus = "NONE";
     }
   }
@@ -1166,7 +1151,7 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
       totalAmount: existingOrder.financials.totalAmount,
       reason: updateData.cancellationReason,
       refundInitiated: wasPaid && updateData.refundStatus === "REFUNDED",
-      // حقول إضافية للفنان
+
       isOtoCancellation: true,
       isReturned: otoCancellationDetails?.isReturned,
       carrier: otoCancellationDetails?.carrier,

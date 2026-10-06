@@ -3,11 +3,10 @@ import { useAuthStore } from "../../features/auth/stores/authStore";
 import { ROUTES } from "../../config/routes";
 import { ArrowLeft, Landmark } from "lucide-react";
 import loginBg from "../../assets/login.png";
-import opalLogo from "../../assets/opalLogo.png";
+import opalLogo from "../../assets/opalLogo2.png";
 export default function AuthLayout() {
   const { isAuthenticated } = useAuthStore();
 
-  // Redirect to home if already authenticated
   if (isAuthenticated) {
     return <Navigate to={ROUTES.HOME} replace />;
   }
@@ -19,10 +18,6 @@ export default function AuthLayout() {
         {/* Top Header */}
         <div className="flex items-center justify-between w-full">
           <Link to={ROUTES.HOME} className="flex items-center gap-3 group">
-            {/* Elegant minimal logo frame */}
-            {/* <div className="w-10 h-10 border border-primary/20 flex items-center justify-center group-hover:border-primary transition-premium bg-surface-container-low rounded-none">
-              <span className="font-display text-primary text-xl font-bold">ف</span>
-            </div> */}
             <span className="text-2xl font-display font-semibold tracking-tight text-primary transition-premium">
               <img src={opalLogo} alt="أوبال جاليري" className="w-15" />
             </span>
@@ -48,7 +43,6 @@ export default function AuthLayout() {
         </div>
       </div>
 
-      {/* Left Column: Artistic Brand Banner (5/12 width) - Fixed Height, Hidden on Mobile */}
       <div className="hidden lg:block lg:col-span-5 relative h-full overflow-hidden bg-primary">
         {/* Gallery Image */}
         <img

@@ -1,12 +1,24 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
   <head>
+    <link
+      rel="preload"
+      as="image"
+      href="/images/hero-main.webp"
+      fetchpriority="high"
+      media="(min-width: 1024px)"
+    />
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href={opalLogoBg} />
+    <meta name="description" content="منصة راقية لاقتناء اللوحات الفنية الأصلية من أمهر الفنانين السعوديين" />
+    <link rel="icon" type="image/jpeg" href="/images/opalLogoBg.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>أوبال جاليري | OPAL GALLERY </title>
+    <title>أوبال جاليري | OPAL GALLERY</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- <link
+      href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Sans+Arabic:wght@100..700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
+      rel="stylesheet"
+    /> -->
     <link
       href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=IBM+Plex+Sans+Arabic:wght@100..700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap"
       rel="stylesheet"
@@ -14,8 +26,6 @@
   </head>
   <body class="antialiased">
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx">
-      import opalLogoBg from "../Funoon-Frontend/src/assets/opalLogoBg.jpg"
-    </script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

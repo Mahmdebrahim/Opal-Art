@@ -175,9 +175,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* =========================
-          Header
-      ========================== */}
       <header className="sticky top-0 z-50 w-full glass-card border-b border-[var(--color-outline-variant)]/30">
         <div className="max-w-[1280px] mx-auto px-5 lg:px-16">
           <div className="flex justify-between h-20 items-center">
