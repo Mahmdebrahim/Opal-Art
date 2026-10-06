@@ -19,10 +19,8 @@ import { useIsInCart } from "../../features/cart/hooks/useCart";
 import { useAuthStore } from "../../features/auth/stores/authStore";
 import toast from "../../services/toast.service";
 import { getMediaUrl } from "../../utils/media";
-import badge from "../../assets/badge.png";
 import { useCartStore } from "../../features/cart/stores/cartStore";
 import SaCurr from "../../assets/sa.svg";
-import ArtworkPlaceholder from "../../assets/ArtworkPlaceholder2.png";
 import userPlaceholder from "../../assets/userPlaceholder.png";
 // ═══════════════════════════════════════════════════
 // Free Shipping Helper
@@ -223,17 +221,21 @@ export default function ArtworkCard({
           <img
             src={coverImageUrl}
             alt={title}
+            width={600}
+            height={800}
+            loading="lazy"
+            decoding="async"
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
-              e.target.src = ArtworkPlaceholder;
+              e.target.src = "/images/artwork-placeholder";
             }}
             className={`
-                            absolute inset-0 w-full h-full object-cover
-                            transition-all duration-1200 ease-out
-                            group-hover:scale-105
-                            ${isSold ? "grayscale-[50%] opacity-80" : ""}
-                            ${!imageLoaded ? "opacity-0" : "opacity-100"}
-                        `}
+    absolute inset-0 w-full h-full object-cover
+    transition-all duration-1200 ease-out
+    group-hover:scale-105
+    ${isSold ? "grayscale-[50%] opacity-80" : ""}
+    ${!imageLoaded ? "opacity-0" : "opacity-100"}
+  `}
           />
 
           {!imageLoaded && (
@@ -371,9 +373,13 @@ export default function ArtworkCard({
                   <img
                     src={getMediaUrl(artist.avatar)}
                     alt={artist.name}
+                    width={80}
+                    height={80}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.src = userPlaceholder;
+                      e.target.src = "/images/user-placeholder.webp";
                     }}
                   />
                 ) : (
@@ -390,8 +396,12 @@ export default function ArtworkCard({
 
               {artist.isVerified && (
                 <img
-                  src={badge}
+                  src="/images/badge.webp"
                   alt="badge"
+                  width={32}
+                  height={32}
+                  loading="lazy"
+                  decoding="async"
                   className="w-7 h-7 object-contain pt-1"
                 />
               )}

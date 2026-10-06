@@ -10,7 +10,6 @@ import {
   Award,
   FileCheck,
 } from "lucide-react";
-import opalLogoWhite from "../../assets/opalLogo2.png";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -27,7 +26,16 @@ export default function Footer() {
           {/* ═══ Brand Column ═══ */}
           <div className="lg:col-span-4">
             <Link to={ROUTES.HOME} className="inline-block mb-2">
-              <img src={opalLogoWhite} alt="Opal" className="h-15 w-auto" />
+              {/* <img src={opalLogoWhite} alt="Opal" className="h-15 w-auto" /> */}
+              <img
+                className="h-15 w-auto"
+                src="/images/opalLogoWhite.webp"
+                alt="أوبال جاليري"
+                width={418}
+                height={361}
+                fetchPriority="high"
+                decoding="async"
+              />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-sm">
               منصة سعودية راقية تربط بين الفنانين السعوديين الموهوبين ومقتني

@@ -2,7 +2,6 @@ import { Outlet, Link, Navigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/stores/authStore";
 import { ROUTES } from "../../config/routes";
 import { ArrowLeft, Landmark } from "lucide-react";
-import loginBg from "../../assets/login.png";
 import opalLogo from "../../assets/opalLogo2.png";
 export default function AuthLayout() {
   const { isAuthenticated } = useAuthStore();
@@ -13,13 +12,20 @@ export default function AuthLayout() {
 
   return (
     <div className="h-screen w-screen overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-surface font-body select-none">
-      {/* Right Column: Form Container (7/12 width) - Scrollable Internally */}
       <div className="col-span-1 lg:col-span-7 flex flex-col justify-between h-full overflow-y-auto p-6 sm:p-12 md:p-16 lg:p-20 bg-surface-container-lowest border-l border-outline/10">
         {/* Top Header */}
         <div className="flex items-center justify-between w-full">
           <Link to={ROUTES.HOME} className="flex items-center gap-3 group">
             <span className="text-2xl font-display font-semibold tracking-tight text-primary transition-premium">
-              <img src={opalLogo} alt="أوبال جاليري" className="w-15" />
+              {/* <img src={opalLogo} alt="أوبال جاليري" className="w-15" /> */}
+              <img
+                src="/images/opal-logo.webp"
+                alt="Opal"
+                width={384}
+                height={353}
+                decoding="async"
+                className="w-15"
+              />
             </span>
           </Link>
           <Link
@@ -46,8 +52,12 @@ export default function AuthLayout() {
       <div className="hidden lg:block lg:col-span-5 relative h-full overflow-hidden bg-primary">
         {/* Gallery Image */}
         <img
-          src={loginBg}
+          src="/images/login-bg.webp"
           alt="معرض فنون"
+          width={768}
+          height={1376}
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover select-none"
         />
         {/* Subtle, elegant vignette overlay */}

@@ -94,7 +94,6 @@ function FeaturedCard({ item }) {
           <p className="font-display text-xl flex items-center gap-2 text-[#C5A880]">
             {formatPrice(item.price)}
             <img src={SaCurr} className="w-5 h-5 opacity-80" alt="SAR" />
-            {/* <span className="text-[10px] font-body mr-1">ر.س</span> */}
           </p>
 
           {item.dimensions && (
@@ -110,7 +109,6 @@ function FeaturedCard({ item }) {
         </div>
       </div>
 
-      {/* ═══ معلومات أساسية تحت الصورة (دايماً ظاهرة) ═══ */}
       <div className="pt-3 space-y-1">
         <p className="font-display text-sm text-[var(--color-on-surface)] line-clamp-1 group-hover:text-[var(--color-primary)] transition-colors">
           {item.title}

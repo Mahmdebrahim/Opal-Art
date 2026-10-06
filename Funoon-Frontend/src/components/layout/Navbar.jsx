@@ -182,8 +182,11 @@ export default function Navbar() {
             <div className="flex items-center gap-12">
               <Link to={ROUTES.HOME} className="flex items-center group">
                 <img
-                  src={opalLogo}
+                  src="/images/opal-logo.webp"
                   alt="Opal"
+                  width={384} 
+                  height={353} 
+                  decoding="async"
                   className="h-9 md:h-13 w-auto transition-premium group-hover:opacity-80"
                 />
               </Link>

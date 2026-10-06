@@ -393,7 +393,15 @@ function FeaturedArtistsSection() {
                   <h3 className="font-display font-bold text-lg text-[var(--color-on-surface)] flex items-center justify-center gap-1.5">
                     {artist.name}
                     {artist.isVerified && (
-                      <img src={badge} alt="badge" className="w-8 h-8 mt-1.5" />
+                      <img
+                        src="/images/badge.webp"
+                        alt="badge"
+                        width={32}
+                        height={32}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-8 h-8 mt-1.5"
+                      />
                     )}
                   </h3>
                 </div>
