@@ -227,7 +227,7 @@ export default function ArtworkCard({
             decoding="async"
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
-              e.target.src = "/images/artwork-placeholder";
+              e.target.src = "/images/artwork-placeholder.webp";
             }}
             className={`
     absolute inset-0 w-full h-full object-cover
@@ -261,7 +261,6 @@ export default function ArtworkCard({
                         "
           />
 
-          {/* ═══ 1) Corner Ribbon — شحن مجاني (ثابت) ═══ */}
           {freeShipping && (
             <CornerRibbon className="bg-emerald-600">
               <Truck className="w-3 h-3" strokeWidth={2.5} />
@@ -269,7 +268,6 @@ export default function ArtworkCard({
             </CornerRibbon>
           )}
 
-          {/* ═══ 2) Badges الثابتة (فوق يمين) ═══ */}
           <div className="absolute top-3 right-3 z-20 flex flex-col items-start gap-2">
             {artwork.isFeatured && (
               <div className="px-3 py-1 bg-secondary text-white text-[10px] font-body font-bold backdrop-blur-sm flex items-center gap-1 shadow-xs pointer-events-none">
