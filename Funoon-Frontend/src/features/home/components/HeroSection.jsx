@@ -111,6 +111,7 @@ export default function HeroSection() {
                   width={1376}
                   height={786}
                   fetchPriority="high"
+                  loading="lazy"
                   decoding="async"
                   className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                 />
@@ -127,6 +128,7 @@ export default function HeroSection() {
                     width={1376}
                     height={768}
                     fetchPriority="low"
+                    loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                   />
@@ -141,6 +143,7 @@ export default function HeroSection() {
                     width={1264}
                     height={848}
                     fetchPriority="low"
+                    loading="lazy"
                     decoding="async"
                     className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                   />

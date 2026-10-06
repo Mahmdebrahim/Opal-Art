@@ -78,8 +78,12 @@ export default function GalleryIntro() {
         <p className="gallery-intro__eyebrow">أوبال جاليري</p>
         <img
           className="gallery-intro__logo"
-          src={opalLogoWhite}
+          src="/images/opalLogoWhite.webp"
           alt="أوبال جاليري"
+          width={418}
+          height={361}
+          fetchPriority="high"
+          decoding="async"
         />
         <span className="gallery-intro__rule" aria-hidden="true" />
         <h1 className="gallery-intro__title">حيث تبدأ الحكاية الفنية</h1>

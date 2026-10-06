@@ -5,9 +5,12 @@
   --font-body: "Plus Jakarta Sans", "IBM Plex Sans Arabic", sans-serif;
 
   /* Brand Colors */
-  --color-primary: #3d0006; /* Nabeeti (Deep Maroon) */
-  --color-secondary: #775a19; /* Dahabi (Elegant Gold) */
-  --color-tertiary: #191a19; /* Ink Black */
+  --color-primary: #3d0006;
+  /* Nabeeti (Deep Maroon) */
+  --color-secondary: #775a19;
+  /* Dahabi (Elegant Gold) */
+  --color-tertiary: #191a19;
+  /* Ink Black */
 
   /* Material/Gallery Surface Colors */
   --color-surface: #fbf8f0;
@@ -25,7 +28,7 @@
   --color-outline: #887271;
   --color-outline-variant: #dbc0bf;
   --color-surface-tint: #9d4042;
-  
+
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
@@ -38,6 +41,7 @@
   --color-brand-600: #3d0006;
   --color-brand-700: #260004;
 }
+
 @media print {
   /* بيخفي الـ sidebar والـ buttons لما يطبع */
   /* بيخلي الصفحة عمود واحد */
@@ -56,8 +60,11 @@
 
   /* عشان الـ section ما يختفيش تحت الـ navbar */
 }
+
 @layer base {
-  html, body {
+
+  html,
+  body {
     font-family: var(--font-body);
     background-color: var(--color-surface);
     color: var(--color-on-surface);
@@ -67,7 +74,12 @@
   }
 
   /* Font styling utilities */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     font-weight: 400;
   }
@@ -79,15 +91,29 @@
 
   /* Glassmorphism utility */
   .glass-card {
-    background: rgba(252, 249, 248, 0.75);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(136, 114, 113, 0.15);
+    background: rgba(252, 249, 248, 0.95);
+    backdrop-filter: none;
   }
 
   .glass-card-dark {
-    background: rgba(25, 26, 25, 0.85);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(25, 26, 25, 0.95);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* ديسكتوب بس */
+  @media (min-width: 1024px) {
+    .glass-card {
+      background: rgba(252, 249, 248, 0.75);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+
+    .glass-card-dark {
+      background: rgba(25, 26, 25, 0.85);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+    }
   }
 
   /* Scrollbar styles */
@@ -95,44 +121,48 @@
     width: 3px;
     height: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: var(--color-surface-container-low);
   }
+
   ::-webkit-scrollbar-thumb {
     background: var(--color-surface-dim);
     border-radius: 9999px;
   }
+
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-primary);
   }
-    .btn-underline-effect::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: var(--color-secondary);
-      /* Dahabi Gold */
-      transform: scaleX(0);
-      transform-origin: center;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-  
-    .btn-underline-effect:hover::after {
-      transform: scaleX(1);
-    }
 
-        .glass-card {
-          background: rgba(252, 249, 248, 0.75);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(136, 114, 113, 0.15);
-        }
-    
-        .transition-premium {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+  .btn-underline-effect::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-secondary);
+    /* Dahabi Gold */
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-underline-effect:hover::after {
+    transform: scaleX(1);
+  }
+
+  .glass-card {
+    background: rgba(252, 249, 248, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(136, 114, 113, 0.15);
+  }
+
+  .transition-premium {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 /* ── Button Fill Hover Effects ── */
@@ -316,8 +346,13 @@
    Marquee Seamless Scroll (RTL & LTR Compatible)
    ═══════════════════════════════════════════════════ */
 @keyframes marqueeRTL {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(calc(50% - 0.75rem)); }
+  0% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(calc(50% - 0.75rem));
+  }
 }
 
 .animate-marquee {
@@ -447,6 +482,7 @@
     opacity: 0;
     transform: translate3d(1rem, -0.5rem, 0) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
@@ -454,7 +490,9 @@
 }
 
 @keyframes funoon-toast-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 640px) {
@@ -466,6 +504,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .funoon-toast,
   .funoon-toast__spinner {
     animation: none;
@@ -636,6 +675,7 @@
     opacity: 0;
     transform: translateY(0.75rem) scale(0.96);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -643,7 +683,9 @@
 }
 
 @keyframes gallery-intro-rule-in {
-  to { width: 4.5rem; }
+  to {
+    width: 4.5rem;
+  }
 }
 
 @keyframes gallery-intro-copy-in {
@@ -651,6 +693,7 @@
     opacity: 0;
     transform: translateY(0.5rem);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -658,12 +701,21 @@
 }
 
 @keyframes gallery-intro-progress-in {
-  to { transform: scaleX(1); }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 @keyframes gallery-intro-frame-in {
-  from { opacity: 0; transform: scale(1.03); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @media (max-width: 640px) {
@@ -678,6 +730,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .gallery-intro__panel,
   .gallery-intro__frame,
   .gallery-intro__content {

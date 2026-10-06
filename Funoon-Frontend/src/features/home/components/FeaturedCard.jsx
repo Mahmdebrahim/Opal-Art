@@ -44,6 +44,7 @@ function FeaturedCard({ item }) {
           }}
           alt={item.title}
           loading="lazy"
+          decoding="async"
           className={`
                         w-full h-full object-cover
                         transition-transform duration-[1200ms] ease-out

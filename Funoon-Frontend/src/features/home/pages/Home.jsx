@@ -29,7 +29,6 @@ import { artistService } from "../../artist/services/artist.service";
 import { reviewService } from "../../reviews/services/review.service";
 import { getMediaUrl } from "../../../utils/media";
 import badge from "../../../assets/badge.png";
-import banner from "../../../assets/opalBanner.jpg";
 import { useAuthStore } from "../../../features/auth/stores/authStore";
 
 // ═══════════════════════════════════════════════════
@@ -379,6 +378,8 @@ function FeaturedArtistsSection() {
                   <img
                     src={getMediaUrl(artist.avatar)}
                     alt={artist.name}
+                    loading="lazy"
+                    decoding="async"
                     crossOrigin="anonymous"
                     className="h-24 w-24 absolute -top-12 rounded-full object-cover border-4 border-[var(--color-surface)] shadow-md"
                   />
@@ -630,6 +631,8 @@ function CustomerReviewsSection() {
                   <img
                     src={getMediaUrl(rev.reviewer.avatar)}
                     alt={rev.reviewer.name}
+                    loading="lazy"
+                    decoding="async"
                     crossOrigin="anonymous"
                     className="w-10 h-10 rounded-full object-cover"
                   />
@@ -728,8 +731,12 @@ function Banner() {
     <div className="w-full max-w-[1280px] mx-auto px-5 lg:px-16 my-8">
       <div className="overflow-hidden rounded-2xl">
         <img
-          src={banner}
-          alt="banner"
+          src="/images/opalBanner.webp"
+          alt="بانر أوبال جاليري"
+          width={1024}
+          height={434} 
+          loading="lazy"
+          decoding="async"
           className="w-full h-auto object-cover object-center"
         />
       </div>
