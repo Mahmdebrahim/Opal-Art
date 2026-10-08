@@ -18,7 +18,7 @@ import ContactUsPage from "../features/pages/ContactPage";
 import TermsPage from "../features/pages/TermsPage";
 import PrivacyPage from "../features/pages/PrivacyPage";
 import HowItWorksPage from "../features/pages/HowItWorksPage";
-
+import ReturnsPage from "../features/pages/ReturnsPage";
 // Auth
 import LoginPage from "../features/auth/pages/LoginPage";
 import RegisterPage from "../features/auth/pages/RegisterPage";
@@ -101,6 +101,7 @@ export function AppRouter() {
         <Route path={ROUTES.TERMS} element={<TermsPage />} />
         <Route path={ROUTES.PRIVACY} element={<PrivacyPage />} />
         <Route path={ROUTES.HOW_IT_WORKS} element={<HowItWorksPage />} />
+        <Route path={ROUTES.RETURNS} element={<ReturnsPage />} />
       </Route>
 
       {/* ═══ Auth Pages ═══ */}

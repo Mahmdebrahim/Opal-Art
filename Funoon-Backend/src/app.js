@@ -31,20 +31,17 @@ app.use(
     },
     crossOriginEmbedderPolicy: false,
   }),
-);
+)
 
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
-  : ["https://opal-art.vercel.app", "http://localhost:5173"];
+const allowedOrigins = (process.env.CORS_ORIGINS )
+  .split(",")
+  .map((s) => s.trim());
 
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        cb(null, true);
-      } else {
-        cb(new Error("CORS not allowed"));
-      }
+      if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+      else cb(new Error("CORS not allowed"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -76,11 +73,200 @@ app.use("/api", limiter);
 // ─── API Version ─────────────────────────────────────────────────────────────
 const apiVersion = process.env.API_VERSION || "v1";
 
-//══════════════════════════════════════════════════════════════════════════════
-// Webhooks
-// ═════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// ⚠️ Webhooks — لازم تكون قبل express.json()!
+// ═══════════════════════════════════════════════════════════════════════════════
 
-// Moyasar Webhook — Smart Router + Conditional Signature
+// ✅ Moyasar Webhook — Smart Router + Conditional Signature
+// app.post(
+//   `/api/${apiVersion}/webhooks/moyasar`,
+//   express.raw({ type: "application/json" }),
+//   (req, res, next) => {
+//     let parsedBody;
+//     try {
+//       const rawBody = Buffer.isBuffer(req.body)
+//         ? req.body.toString("utf8")
+//         : String(req.body || "");
+//       console.log("🔍 RAW WEBHOOK BODY:", rawBody);
+//       const signature =
+//         req.headers["x-moyasar-signature"] ||
+//         req.headers["x-signature"] ||
+//         req.headers["moyasar-signature"] ||
+//         req.headers["signature"];
+
+//       parsedBody = JSON.parse(rawBody);
+//       req.rawBody = rawBody;
+
+//       // ✅ جديد: حدد الشكل — enveloped (type + data) ولا direct (payment object مباشر)
+//       const isEnveloped =
+//         typeof parsedBody?.type === "string" && parsedBody?.data;
+
+//       const payment = isEnveloped ? parsedBody.data : parsedBody;
+//       const eventType = isEnveloped ? parsedBody.type : null;
+
+//       // ═══════════════════════════════════════════════════
+//       // Signature verification — تختلف حسب الشكل
+//       // ═══════════════════════════════════════════════════
+//       const isProduction = process.env.NODE_ENV === "production";
+//       const WEBHOOK_SECRET = process.env.MOYASAR_WEBHOOK_SECRET;
+
+//       if (isEnveloped) {
+//         // ✅ في الشكل ده، Moyasar بتحط الـ secret جوه الـ body نفسه (secret_token)
+//         // مش في الـ header — ده موثّق صراحة في الـ docs
+//         if (isProduction && parsedBody.secret_token !== WEBHOOK_SECRET) {
+//           logger.error(`🚨 Invalid secret_token in production from ${req.ip}`);
+//           return res.status(401).json({ error: "Invalid secret token" });
+//         }
+//       } else {
+//         // الشكل القديم (direct) — نفس التحقق بالـ header زي ما هو
+//         if (isProduction) {
+//           if (!signature) {
+//             logger.error(`🚨 Missing signature header in production`);
+//             return res.status(401).json({ error: "Missing signature" });
+//           }
+//           if (!verifyMoyasarSignature(rawBody, signature, WEBHOOK_SECRET)) {
+//             logger.error(`🚨 Invalid signature in production from ${req.ip}`);
+//             return res.status(401).json({ error: "Invalid signature" });
+//           }
+//         } else if (!signature) {
+//           logger.warn(
+//             `⚠️ No signature header — allowing in dev mode (IP: ${req.ip})`,
+//           );
+//         } else if (!WEBHOOK_SECRET) {
+//           logger.warn(
+//             `⚠️ MOYASAR_WEBHOOK_SECRET not set — skipping verification`,
+//           );
+//         } else if (
+//           !verifyMoyasarSignature(rawBody, signature, WEBHOOK_SECRET)
+//         ) {
+//           logger.warn(
+//             `⚠️ Invalid signature — allowing in dev mode (IP: ${req.ip})`,
+//           );
+//         }
+//       }
+
+//       // ✅ من هنا، req.body دايمًا "payment object" موحّد، بغض النظر عن الشكل الأصلي
+//       req.body = payment;
+//       req.moyasarEventType = eventType; // اختياري: لو حبيت تستخدمه في اللوجات
+//     } catch (err) {
+//       logger.error("❌ Moyasar webhook parse error:", err.message);
+//       return res.status(400).json({ error: "Invalid JSON" });
+//     }
+
+//     // SMART ROUTING — زي ما هو، لكن دلوقتي req.body.metadata دايمًا صح
+//     const metadataType = req.body?.metadata?.type;
+
+//     if (metadataType === "subscription") {
+//       logger.info("📦 Routing to Subscription Webhook Handler");
+//       const {
+//         handleSubscriptionWebhook,
+//       } = require("./controllers/subscription.controller");
+//       return handleSubscriptionWebhook(req, res, next);
+//     }
+
+//     logger.info("🛒 Routing to Order Webhook Handler");
+//     const { handleMoyasarWebhook } = require("./controllers/order.controller");
+//     return handleMoyasarWebhook(req, res, next);
+//   },
+// );
+
+// app.post(
+//   `/api/${apiVersion}/webhooks/moyasar`,
+//   express.raw({ type: "application/json" }),
+//   async (req, res, next) => {
+//     let payment;
+//     try {
+//       const rawBody = Buffer.isBuffer(req.body)
+//         ? req.body.toString("utf8")
+//         : String(req.body || "");
+
+//       const signature =
+//         req.headers["x-moyasar-signature"] ||
+//         req.headers["x-signature"] ||
+//         req.headers["moyasar-signature"] ||
+//         req.headers["signature"];
+
+//       const parsedBody = JSON.parse(rawBody);
+//       req.rawBody = rawBody;
+
+//       // ✅ الشكل الملفوف (Dashboard webhook) بيبقى فيه type + data
+//       // الشكل المباشر (Invoice callback_url) بيبقى الـ payload نفسه هو الكيان
+//       const isEnveloped = typeof parsedBody?.type === "string" && parsedBody?.data;
+//       payment = isEnveloped ? parsedBody.data : parsedBody;
+
+//       const isProduction = process.env.NODE_ENV === "production";
+//       const WEBHOOK_SECRET = process.env.MOYASAR_WEBHOOK_SECRET;
+
+//       if (isEnveloped) {
+//         if (isProduction && parsedBody.secret_token !== WEBHOOK_SECRET) {
+//           logger.error(`🚨 Invalid secret_token in production from ${req.ip}`);
+//           return res.status(401).json({ error: "Invalid secret token" });
+//         }
+//       } else {
+//         if (isProduction) {
+//           if (!signature) {
+//             logger.error(`🚨 Missing signature header in production`);
+//             return res.status(401).json({ error: "Missing signature" });
+//           }
+//           if (!verifyMoyasarSignature(rawBody, signature, WEBHOOK_SECRET)) {
+//             logger.error(`🚨 Invalid signature in production from ${req.ip}`);
+//             return res.status(401).json({ error: "Invalid signature" });
+//           }
+//         } else if (!signature) {
+//           logger.warn(`⚠️ No signature header — allowing in dev mode (IP: ${req.ip})`);
+//         } else if (!WEBHOOK_SECRET) {
+//           logger.warn(`⚠️ MOYASAR_WEBHOOK_SECRET not set — skipping verification`);
+//         } else if (!verifyMoyasarSignature(rawBody, signature, WEBHOOK_SECRET)) {
+//           logger.warn(`⚠️ Invalid signature — allowing in dev mode (IP: ${req.ip})`);
+//         }
+//       }
+
+//       req.body = payment;
+//     } catch (err) {
+//       logger.error("❌ Moyasar webhook parse error:", err.message);
+//       return res.status(400).json({ error: "Invalid JSON" });
+//     }
+
+//     // ═══════════════════════════════════════════════════
+//     // ✅ التوجيه النهائي: metadata أولاً (أسرع لو موجودة)،
+//     // ولو مش موجودة، دايمًا رجّع للبحث بالـ invoice_id — الطريقة الموثوقة 100%
+//     // ═══════════════════════════════════════════════════
+//     const metadataType = req.body?.metadata?.type;
+//     const invoiceId = req.body?.invoice_id || req.body?.id;
+
+//     if (metadataType === "subscription") {
+//       logger.info("📦 Routing to Subscription Handler (via metadata)");
+//       const { handleSubscriptionWebhook } = require("./controllers/subscription.controller");
+//       return handleSubscriptionWebhook(req, res, next);
+//     }
+
+//     if (metadataType === "artwork_purchase") {
+//       logger.info("🛒 Routing to Order Handler (via metadata)");
+//       const { handleMoyasarWebhook } = require("./controllers/order.controller");
+//       return handleMoyasarWebhook(req, res, next);
+//     }
+
+//     // ✅ مفيش metadata (الحالة الشائعة لـ Dashboard webhooks) → دوّر بالـ invoice_id
+//     if (invoiceId) {
+//       const SubscriptionPayment = require("./models/SubscriptionPayment");
+//       const subPayment = await SubscriptionPayment.findOne({
+//         moyasarPaymentId: invoiceId,
+//       }).select("_id");
+
+//       if (subPayment) {
+//         logger.info("📦 Routing to Subscription Handler (via invoice_id lookup)");
+//         const { handleSubscriptionWebhook } = require("./controllers/subscription.controller");
+//         return handleSubscriptionWebhook(req, res, next);
+//       }
+//     }
+
+//     // Default: Order handler (وهو نفسه عنده بحث احتياطي بالـ invoiceId جوّاه)
+//     logger.info("🛒 Routing to Order Handler (default/fallback)");
+//     const { handleMoyasarWebhook } = require("./controllers/order.controller");
+//     return handleMoyasarWebhook(req, res, next);
+//   },
+// );
+
 app.post(
   `/api/${apiVersion}/webhooks/moyasar`,
   express.raw({ type: "application/json" }),
@@ -89,6 +275,9 @@ app.post(
     let rawBody;
 
     try {
+      // ═══════════════════════════════════════════════════
+      // ✅ Layer 1: استخراج الـ raw body من أي شكل جاي
+      // ═══════════════════════════════════════════════════
       if (Buffer.isBuffer(req.body)) {
         rawBody = req.body.toString("utf8");
         logger.info("📥 Body came as Buffer (ideal)");
@@ -98,11 +287,12 @@ app.post(
       } else if (typeof req.body === "object" && req.body !== null) {
         const keys = Object.keys(req.body);
 
+        // ✅ Case A: character-map (keys are "0", "1", "2"...)
         if (keys.length > 0 && keys.every((k) => /^\d+$/.test(k))) {
           rawBody = Object.values(req.body).join("");
           logger.warn("⚠️ Body came as character-map — reconstructed");
         }
-
+        // ✅ Case B: already parsed as object
         else {
           rawBody = JSON.stringify(req.body);
           logger.warn("⚠️ Body was pre-parsed by another middleware");
@@ -111,16 +301,26 @@ app.post(
         throw new Error(`Unknown body type: ${typeof req.body}`);
       }
 
+      // logger.info("📥 Raw webhook body (first 500 chars):", rawBody.substring(0, 500));
+
+      // ═══════════════════════════════════════════════════
+      // ✅ Layer 2: Parse الـ JSON
+      // ═══════════════════════════════════════════════════
       let parsedBody;
       try {
         parsedBody = JSON.parse(rawBody);
       } catch (jsonErr) {
+        // لو rawBody نفسه مش JSON → ممكن يكون فيه encoding issues
+        // جرب نطهر الـ string من أي non-printable characters
         const cleaned = rawBody.replace(/[^\x20-\x7E\n\r\t]/g, "");
         parsedBody = JSON.parse(cleaned);
       }
 
       req.rawBody = rawBody;
 
+      // ═══════════════════════════════════════════════════
+      // ✅ Layer 3: Unwrap إذا كان enveloped
+      // ═══════════════════════════════════════════════════
       const isEnveloped =
         typeof parsedBody?.type === "string" && parsedBody?.data;
       payment = isEnveloped ? parsedBody.data : parsedBody;
@@ -130,6 +330,9 @@ app.post(
       logger.info(`🏷️ Payment status: ${payment?.status || "N/A"}`);
       logger.info(`🏷️ Invoice ID: ${payment?.invoice_id || payment?.id}`);
 
+      // ═══════════════════════════════════════════════════
+      // ✅ Signature verification
+      // ═══════════════════════════════════════════════════
       const signature =
         req.headers["x-moyasar-signature"] ||
         req.headers["x-signature"] ||
@@ -169,7 +372,9 @@ app.post(
       return res.status(400).json({ error: "Invalid webhook payload" });
     }
 
-    // SMART ROUTING
+    // ═══════════════════════════════════════════════════
+    // SMART ROUTING (زي ما هو)
+    // ═══════════════════════════════════════════════════
     const metadataType = req.body?.metadata?.type;
     const invoiceId = req.body?.invoice_id || req.body?.id;
 
@@ -200,8 +405,8 @@ app.post(
       // }).select("_id");
       const subPayment = await SubscriptionPayment.findOne({
         $or: [
-          { moyasarPaymentId: invoiceId }, 
-          { moyasarPaymentId: req.body?.id }, 
+          { moyasarPaymentId: invoiceId }, // قبل الدفع (invoice id)
+          { moyasarPaymentId: req.body?.id }, // بعد الدفع (payment id)
         ],
       }).select("_id");
       if (subPayment) {
@@ -221,7 +426,7 @@ app.post(
   },
 );
 
-// OTO Webhook
+// ✅ OTO Webhook
 app.post(
   `/api/${apiVersion}/webhooks/oto`,
   express.text({ type: ["application/json", "text/plain", "application/*"] }),
@@ -243,9 +448,9 @@ app.post(
   },
 );
 
-//══════════════════════════════════════════════════════════════════════════════
-// Body Parsing 
-// ═════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+// Body Parsing (بعد الـ webhooks!)
+// ═══════════════════════════════════════════════════════════════════════════════
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(mongoSanitize());

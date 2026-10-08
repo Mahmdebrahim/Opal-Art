@@ -162,12 +162,17 @@ class OTOService {
       amount,
       amount_due = 0,
       subtotal,
-      shippingAmount = 0, 
+      shippingAmount = 0,
       items,
       senderInformation,
       customer,
       artist,
       buyer,
+      packageCount,
+      packageWeight,
+      boxWidth,
+      boxLength,
+      boxHeight,
     } = orderData;
 
     const finalSenderInfo =

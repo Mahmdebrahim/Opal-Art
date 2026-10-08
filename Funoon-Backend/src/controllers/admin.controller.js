@@ -481,9 +481,10 @@ const holdOrderFunds = catchAsync(async (req, res) => {
     throw new BadRequestError("الطلب مجمّد بالفعل");
   }
 
-  if (order.status !== "DELIVERED") {
+  const allowedStatusesForHold = ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"];
+  if (!allowedStatusesForHold.includes(order.status)) {
     throw new BadRequestError(
-      `لا يمكن تجميد الطلب في الحالة الحالية (${order.status}). التجميد متاح فقط بعد التوصيل وقبل الإطلاق.`,
+      `لا يمكن تجميد الطلب في الحالة الحالية (${order.status}).`,
     );
   }
 
@@ -928,7 +929,7 @@ const forceCancelOrder = catchAsync(async (req, res) => {
     throw error;
   }
 
-  // 6. Event 
+  // 6. Event
   if (EVENTS?.ORDER_CANCELLED) {
     eventEmitter.safeEmit(EVENTS.ORDER_CANCELLED, {
       buyerId: order.buyer,

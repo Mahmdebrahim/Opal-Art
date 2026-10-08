@@ -33,6 +33,7 @@ export const ROUTES = {
   TERMS: "/terms",
   PRIVACY: "/privacy",
   HOW_IT_WORKS: "/how",
+  RETURNS: "/returns",
 
   // Artist Dashboard
   ARTIST_DASHBOARD: "/dashboard",

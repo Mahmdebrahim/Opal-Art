@@ -22,7 +22,7 @@ const M = require("../utils/messages");
 const eventEmitter = require("../events/event-emitter");
 const EVENTS = require("../events/events");
 /**
- * - Helper function: فلترة خيارات الشحن من OTO
+ * ✅ Helper function: فلترة خيارات الشحن من OTO
  * - استبعاد PUDO (pickupByCustomer) - العميل مش هيرفع ياخد من فرع
  * - استبعاد dropoffOnly - الفنان مش هيرفع يودّي للفرع
  * - لازم يوصل لحد البيت (toCustomerDoorstep)
@@ -40,6 +40,7 @@ const filterShippingOptions = (deliveryOptions = [], artworkPrice = null) => {
       return false;
     }
 
+    // ✅ جديد: استبعاد شركات الشحن اللي قيمة اللوحة أكبر من حد التأمين بتاعها
     if (
       artworkPrice != null &&
       opt.maxOrderValue &&
@@ -147,9 +148,573 @@ const cleanupExpiredOrdersForArtists = async (artistIds, session = null) => {
   return cleaned;
 };
 
+// @desc    Checkout - Create orders from cart and initiate payment
 // @route   POST /api/v1/orders/checkout
-// @desc    Checkout cart and create order(s)
 // @access  Private (Buyer only)
+// const checkout = catchAsync(async (req, res, next) => {
+//   const buyer = req.user;
+//   const { paymentMethod = "creditcard" } = req.body;
+
+//   // 1. Get cart
+//   let cart = await Cart.findOne({ user: buyer._id });
+//   if (!cart || cart.items.length === 0) {
+//     throw new BadRequestError(M.orders.cartEmpty);
+//   }
+
+//   // 2. Clean invalid items
+//   await cart.cleanInvalidItems();
+//   if (cart.items.length === 0) {
+//     throw new BadRequestError(M.orders.cartEmptyCleaned);
+//   }
+
+//   // 3. Populate all data
+//   await cart.populate([
+//     { path: "items.artwork" },
+//     {
+//       path: "items.artist",
+//       select: "name email subscription address phone isBanned",
+//     },
+//   ]);
+
+//   // ✅ 4. Check for existing PENDING_PAYMENT orders (prevent duplicates)
+//   const REUSE_WINDOW = 10 * 60 * 1000;
+
+//   const existingPendingOrders = await Order.find({
+//     buyer: buyer._id,
+//     status: "PENDING_PAYMENT",
+//     createdAt: { $gt: new Date(Date.now() - REUSE_WINDOW) },
+//   }).populate(
+//     "items.artwork",
+//     "title isSold isActive reservedBy reservedUntil",
+//   );
+
+//   if (existingPendingOrders.length > 0) {
+//     const existingOrder = existingPendingOrders[0];
+
+//     let allAvailable = true;
+//     for (const item of existingOrder.items) {
+//       const artwork = item.artwork;
+//       if (!artwork || artwork.isSold || !artwork.isActive) {
+//         allAvailable = false;
+//         break;
+//       }
+//       // محجوزة لحد تاني والـ hold لسه active؟
+//       if (
+//         artwork.reservedBy &&
+//         artwork.reservedBy.toString() !== buyer._id.toString() &&
+//         artwork.reservedUntil > new Date()
+//       ) {
+//         allAvailable = false;
+//         break;
+//       }
+//     }
+
+//     const artistIds = [
+//       ...new Set(
+//         existingOrder.items.map((i) => i.artwork?.artist).filter(Boolean),
+//       ),
+//     ];
+
+//     const bannedArtists = await User.find({
+//       _id: { $in: artistIds },
+//       isBanned: true,
+//     }).select("_id");
+
+//     if (bannedArtists.length > 0) {
+//       logger.warn(`⚠️ Reuse blocked: artist(s) banned since original order`);
+//     } else if (allAvailable && existingOrder.payment?.invoiceId) {
+//       try {
+//         const invoice = await MoyasarService.fetchInvoice(
+//           existingOrder.payment.invoiceId,
+//         );
+
+//         if (invoice.status === "initiated" || invoice.status === "pending") {
+//           logger.info(
+//             `♻️ Reusing existing pending order: ${existingOrder._id}`,
+//           );
+
+//           return ApiResponse.success(
+//             res,
+//             {
+//               orders: existingPendingOrders.map((o) => ({
+//                 _id: o._id,
+//                 artist: o.artist,
+//                 totalAmount: o.financials.totalAmount,
+//                 items: o.items.length,
+//                 shipping: {
+//                   deliveryCompanyName: o.shipping?.deliveryCompanyName,
+//                   deliveryOptionName: o.shipping?.deliveryOptionName,
+//                   avgDeliveryTime: o.shipping?.avgDeliveryTime,
+//                   logo: o.shipping?.logo,
+//                 },
+//               })),
+//               paymentUrl: invoice.url,
+//               invoiceId: invoice.id,
+//               grandTotal: existingPendingOrders.reduce(
+//                 (sum, o) => sum + o.financials.totalAmount,
+//                 0,
+//               ),
+//             },
+//             "Existing pending order found",
+//           );
+//         }
+//       } catch (err) {
+//         logger.warn("Existing invoice invalid or expired, creating new orders");
+//       }
+//     }
+
+//     // Cancel invoices + cancel orders + release artworks + reverse quota
+//     for (const order of existingPendingOrders) {
+//       // 1. Cancel invoice
+//       if (order.payment?.invoiceId) {
+//         try {
+//           await MoyasarService.cancelInvoice(order.payment.invoiceId);
+//         } catch (err) {
+//           logger.warn(
+//             `Failed to cancel invoice ${order.payment.invoiceId}: ${err.message}`,
+//           );
+//         }
+//       }
+
+//       // 2. Release artworks
+//       await Artwork.updateMany(
+//         {
+//           _id: { $in: order.items.map((i) => i.artwork) },
+//           reservedBy: order.buyer,
+//         },
+//         {
+//           $set: {
+//             reservedBy: null,
+//             reservedUntil: null,
+//           },
+//         },
+//       );
+
+//       // 3. ✅ Reverse quota
+//       if (order.financials?.platformShippingExpense > 0 && order.artist) {
+//         const reversed = await User.updateOne(
+//           { _id: order.artist, freeShippingUsed: { $gt: 0 } },
+//           { $inc: { freeShippingUsed: -1 } },
+//         );
+//         if (reversed.modifiedCount > 0) {
+//           logger.info(
+//             `🔄 Quota reversed in checkout cleanup for order ${order._id}`,
+//           );
+//         }
+//       }
+//     }
+//     // 4. Mark orders as cancelled
+//     await Order.updateMany(
+//       { _id: { $in: existingPendingOrders.map((o) => o._id) } },
+//       {
+//         $set: {
+//           status: "CANCELLED",
+//           cancelledAt: new Date(),
+//           cancellationReason: "superseded_by_new_checkout",
+//         },
+//       },
+//     );
+//     logger.info(
+//       `🗑️ Cancelled ${existingPendingOrders.length} superseded pending orders`,
+//     );
+//   }
+
+//   // 5. Validate all items and group by artist
+//   const ordersByArtist = new Map();
+//   // Cache للـ quota عشان منعملش query لكل لوحة
+//   const quotaCache = new Map();
+
+//   for (const item of cart.items) {
+//     const artwork = item.artwork;
+//     const artist = item.artist;
+
+//     if (!artwork || !artwork.isActive || artwork.isSold) {
+//       throw new BadRequestError(
+//         `Artwork "${artwork?.title}" is no longer available`,
+//       );
+//     }
+
+//     if (!artist || !artist.hasActiveSubscription()) {
+//       throw new BadRequestError(
+//         `Artist "${artist?.name}" does not have an active subscription`,
+//       );
+//     }
+//     if (artist.isBanned) {
+//       throw new BadRequestError(
+//         `أحد الأعمال في سلتك لفنان محظور ولم يعد متاحاً للشراء`,
+//       );
+//     }
+
+//     const commissionRate = artist.getCommissionRate();
+//     const artistPlan = artist.subscription.plan;
+
+//     const artworkPrice = artwork.price;
+
+//     let shippingCost = 0;
+//     let selectedOption = null;
+//     const otoStart = Date.now();
+
+//     try {
+//       const originCity = artist.address?.city || "Riyadh";
+//       const destinationCity = buyer.address?.city || "Riyadh";
+
+//       const otoResponse = await otoService.checkOTODeliveryFee({
+//         originCity,
+//         destinationCity,
+//         weight: artwork.weight || 2,
+//         length: artwork.dimensions?.width || 60,
+//         width: artwork.dimensions?.height || 80,
+//         height: artwork.dimensions?.depth || 3,
+//         shippingType: artwork.shippingType || "standard",
+//       });
+//       logger.info(`⏱️ OTO call took ${Date.now() - otoStart}ms`);
+
+//       const allOptions = otoResponse.deliveryCompany || [];
+
+//       // ✅ الآن artworkPrice معرف وممكن نمرره safely
+//       const validOptions = filterShippingOptions(allOptions, artworkPrice);
+//       selectedOption = selectCheapestOption(validOptions);
+
+//       if (selectedOption) {
+//         shippingCost = selectedOption.price;
+//       } else {
+//         const fallbackOption = selectCheapestOption(allOptions);
+//         if (fallbackOption) {
+//           selectedOption = fallbackOption;
+//           shippingCost = fallbackOption.price;
+//         } else {
+//           shippingCost = 25;
+//         }
+//       }
+//     }
+//     catch (error) {
+//       logger.error("❌ OTO shipping calculation error:", error.message);
+//       logger.error(
+//         `⏱️ OTO call FAILED after ${Date.now() - otoStart}ms:`,
+//         error.message,
+//       );
+
+//       shippingCost = 25;
+//     }
+
+//     // 🧪🧪🧪 TESTING ONLY — ثابت على SMSA Same Day (secom) 🧪🧪🧪
+//     selectedOption = {
+//       deliveryOptionId: 56469,
+//       deliveryCompanyName: "secom",
+//       deliveryOptionName: "SMSA Same Day",
+//       price: 25,
+//       avgDeliveryTime: "1to4WorkingDays",
+//       pickupDropoff: "freePickupDropoff",
+//       deliveryType: "toCustomerDoorstep",
+//       serviceType: "sameDay",
+//       maxOrderValue: 5000,
+//       logo: "https://storage.googleapis.com/tryoto-public/delivery-logo/smsav2.png",
+//     };
+//     shippingCost = 25;
+//     // 🧪🧪🧪 نهاية جزء الاختبار 🧪🧪🧪
+
+//     // شيك على الـ quota (مرة واحدة لكل فنان)
+//     if (!quotaCache.has(artist._id.toString())) {
+//       quotaCache.set(
+//         artist._id.toString(),
+//         await checkFreeShippingQuota(artist),
+//       );
+//     }
+//     const hasQuotaLeft = quotaCache.get(artist._id.toString());
+
+//     // المنصة بتغطي الشحن بس لو: Prestige + standard + لسه فيه quota
+//     const platformShippingExpense =
+//       artistPlan === "opal_prestige" &&
+//       artwork.shippingType === "standard" &&
+//       hasQuotaLeft
+//         ? shippingCost
+//         : 0;
+
+//     const buyerPaysShipping = platformShippingExpense === 0 ? shippingCost : 0;
+
+//     // const artworkPrice = artwork.price;
+//     const platformCommission =
+//       Math.round(artworkPrice * commissionRate * 100) / 100;
+//     const artistEarning = artworkPrice - platformCommission;
+
+//     if (!ordersByArtist.has(artist._id.toString())) {
+//       ordersByArtist.set(artist._id.toString(), {
+//         buyer: buyer._id,
+//         artist: artist._id,
+//         items: [],
+//         financials: {
+//           subtotal: 0,
+//           shippingCost: 0,
+//           totalCommission: 0,
+//           totalArtistEarning: 0,
+//           totalAmount: 0,
+//           currency: "SAR",
+//           platformShippingExpense: 0,
+//         },
+//         shipping: {
+//           deliveryOptionId: selectedOption?.deliveryOptionId || null,
+//           deliveryCompanyName: selectedOption?.deliveryCompanyName || null,
+//           deliveryOptionName: selectedOption?.deliveryOptionName || null,
+//           avgDeliveryTime: selectedOption?.avgDeliveryTime || null,
+//           pickupCutOffTime: selectedOption?.pickupCutOffTime || null, // ✅ جديد
+//           maxFreeWeight: selectedOption?.maxFreeWeight || null, // ✅ جديد
+//           extraWeightPerKg: selectedOption?.extraWeightPerKg || null, // ✅ جديد
+//           returnFee: selectedOption?.returnFee || null, // ✅ جديد
+//           pickupDropoff: selectedOption?.pickupDropoff || null,
+//           deliveryType: selectedOption?.deliveryType || null,
+//           serviceType: selectedOption?.serviceType || null,
+//           logo: selectedOption?.logo || null,
+//           buyerAddress: {
+//             name: buyer.name,
+//             phone: buyer.phone,
+//             street: buyer.address?.street || "",
+//             city: buyer.address?.city || "",
+//             district: buyer.address?.district || "",
+//             zipCode: buyer.address?.zipCode || "",
+//             country: buyer.address?.country || "SA",
+//             buildingNo: buyer.address?.buildingNo || "",
+//             shortAddressCode: buyer.address?.shortAddressCode || "",
+//             lat: buyer.address?.lat || "",
+//             lon: buyer.address?.lon || "",
+//           },
+//           artistAddress: {
+//             name: artist.name,
+//             phone: artist.phone,
+//             street: artist.address?.street || "",
+//             city: artist.address?.city || "",
+//             district: artist.address?.district || "",
+//             zipCode: artist.address?.zipCode || "",
+//             country: artist.address?.country || "SA",
+//             buildingNo: artist.address?.buildingNo || "",
+//             shortAddressCode: artist.address?.shortAddressCode || "",
+//             lat: artist.address?.lat || "",
+//             lon: artist.address?.lon || "",
+//           },
+//         },
+//       });
+//     }
+
+//     const orderData = ordersByArtist.get(artist._id.toString());
+
+//     orderData.items.push({
+//       artwork: artwork._id,
+//       artworkSnapshot: {
+//         title: artwork.title,
+//         coverImage: artwork.coverImage,
+//         price: artworkPrice,
+//         dimensions: artwork.dimensions,
+//         shippingType: artwork.shippingType,
+//       },
+//       financials: {
+//         artworkPrice,
+//         commissionRate,
+//         platformCommission,
+//         artistEarning,
+//       },
+//     });
+
+//     orderData.financials.subtotal += artworkPrice;
+//     orderData.financials.shippingCost += buyerPaysShipping;
+//     orderData.financials.totalCommission += platformCommission;
+//     orderData.financials.totalArtistEarning += artistEarning;
+//     orderData.financials.totalAmount += artworkPrice + buyerPaysShipping;
+//     orderData.financials.platformShippingExpense += platformShippingExpense;
+//   }
+
+//   // Create orders
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     const HOLD_DURATION = 5 * 60 * 1000;
+
+//     // ═══════════════════════════════════════════════════
+//     // ✅ NEW: Just-in-Time Cleanup قبل حجز الـ quota
+//     // ═══════════════════════════════════════════════════
+//     const artistIds = [...ordersByArtist.keys()].map(
+//       (id) => new mongoose.Types.ObjectId(id),
+//     );
+//     await cleanupExpiredOrdersForArtists(artistIds, session);
+//     // ═══════════════════════════════════════════════════
+//     // ✅ STEP 1: Atomic Free Shipping Quota Reservation
+//     // ═══════════════════════════════════════════════════
+//     // بنحجز الـ quota ذرياً قبل حجز اللوحات
+//     // لو 2 buyers دخلوا مع بعض، واحد بس اللي ياخد الشحن المجاني
+//     for (const orderData of ordersByArtist.values()) {
+//       const artistId = orderData.artist;
+
+//       // لو في platformShippingExpense > 0 → يعني الفنان مؤهل للشحن المجاني
+//       const wantsFreeShipping =
+//         orderData.financials.platformShippingExpense > 0;
+
+//       if (wantsFreeShipping) {
+//         const quotaLimit =
+//           User.PLAN_CONFIG?.opal_prestige?.freeShippingQuota ?? 10;
+
+//         // ✅ Atomic findOneAndUpdate جوه نفس الـ session (transactional)
+//         const updated = await User.findOneAndUpdate(
+//           {
+//             _id: artistId,
+//             "subscription.plan": "opal_prestige",
+//             freeShippingUsed: { $lt: quotaLimit }, // شرط ذري: لسه فيه quota
+//           },
+//           { $inc: { freeShippingUsed: 1 } },
+//           { new: true, session },
+//         );
+
+//         if (!updated) {
+//           // ❌ الـ quota خلصت (أو اتحجزت من buyer تاني)
+//           // → حوّل الشحن على المشتري
+//           logger.warn(
+//             `⚠️ Free shipping quota exhausted for artist ${artistId} during checkout — shipping moved to buyer`,
+//           );
+
+//           // عدّل الـ financials: المشتري يدفع الشحن
+//           const platformExpense = orderData.financials.platformShippingExpense;
+//           orderData.financials.shippingCost += platformExpense;
+//           orderData.financials.platformShippingExpense = 0;
+//           orderData.financials.totalAmount =
+//             orderData.financials.subtotal + orderData.financials.shippingCost;
+
+//           // حدّث الـ snapshot في كل item (عشان الـ order يعكس الواقع)
+//           // مش محتاج — لأن shippingCost في الـ items مش محفوظ، بس في الـ financials
+//         } else {
+//           logger.info(
+//             `✅ Free shipping quota reserved for artist ${artistId} (used: ${updated.freeShippingUsed}/${quotaLimit})`,
+//           );
+//         }
+//       }
+//     }
+
+//     // ═══════════════════════════════════════════════════
+//     // ✅ STEP 2: Reserve Artworks (Hold)
+//     // ═══════════════════════════════════════════════════
+//     for (const orderData of ordersByArtist.values()) {
+//       for (const item of orderData.items) {
+//         const reservedArtwork = await Artwork.findOneAndUpdate(
+//           {
+//             _id: item.artwork,
+//             isActive: true,
+//             isSold: false,
+//             $or: [
+//               { reservedBy: null },
+//               { reservedUntil: { $lt: new Date() } },
+//               { reservedBy: buyer._id },
+//             ],
+//           },
+//           {
+//             reservedBy: buyer._id,
+//             reservedUntil: new Date(Date.now() + HOLD_DURATION),
+//           },
+//           { new: true, session },
+//         );
+
+//         if (!reservedArtwork) {
+//           throw new BadRequestError(
+//             `للأسف، لوحة ${item.artworkSnapshot?.title || "فنية"} محجوزة لمشترٍ آخر أو لم تعد متاحة.`,
+//           );
+//         }
+//       }
+//     }
+
+//     // ═══════════════════════════════════════════════════
+//     // ✅ STEP 3: Create Orders
+//     // ═══════════════════════════════════════════════════
+//     const orders = [];
+
+//     for (const orderData of ordersByArtist.values()) {
+//       const order = await Order.create([orderData], { session });
+//       orders.push(order[0]);
+//     }
+
+//     const grandTotal = orders.reduce(
+//       (sum, order) => sum + order.financials.totalAmount,
+//       0,
+//     );
+
+//     // ═══════════════════════════════════════════════════
+//     // ✅ STEP 4: Create Moyasar Invoice
+//     // ═══════════════════════════════════════════════════
+//     const invoiceData = {
+//       amount: grandTotal * 100,
+//       description: `فُنون - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
+//       callbackUrl: `${process.env.NGROK_URL}/api/v1/webhooks/moyasar`,
+//       successUrl: `${process.env.FRONTEND_URL}/payment/success`,
+//       backUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
+//       expired_at: new Date(Date.now() + HOLD_DURATION).toISOString(),
+//       metadata: {
+//         orderIds: orders.map((o) => o._id.toString()).join(","),
+//         buyerId: buyer._id.toString(),
+//         type: "artwork_purchase",
+//       },
+//     };
+//     const moyasarStart = Date.now();
+//     const moyasarInvoice = await MoyasarService.createInvoice(invoiceData);
+//     logger.info(`⏱️ Moyasar createInvoice took ${Date.now() - moyasarStart}ms`);
+//     for (const order of orders) {
+//       order.payment.invoiceId = moyasarInvoice.id;
+//       order.payment.method = paymentMethod;
+//       await order.save({ session });
+//     }
+
+//     // ═══════════════════════════════════════════════════
+//     // ✅ STEP 5: Commit Transaction
+//     // ═══════════════════════════════════════════════════
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     return ApiResponse.success(
+//       res,
+//       {
+//         orders: orders.map((o) => ({
+//           _id: o._id,
+//           artist: o.artist,
+//           totalAmount: o.financials.totalAmount,
+//           items: o.items.length,
+//           shipping: {
+//             deliveryCompanyName: o.shipping?.deliveryCompanyName,
+//             deliveryOptionName: o.shipping?.deliveryOptionName,
+//             avgDeliveryTime: o.shipping?.avgDeliveryTime,
+//             logo: o.shipping?.logo,
+//             // ✅ اعرض للمستخدم لو الشحن مجاني
+//             isFreeShipping: o.financials.platformShippingExpense > 0,
+//           },
+//         })),
+//         paymentUrl: moyasarInvoice.url,
+//         invoiceId: moyasarInvoice.id,
+//         grandTotal,
+//       },
+//       "Checkout initiated successfully",
+//     );
+//   }
+//   catch (error) {
+//     if (session.inTransaction()) {
+//       await session.abortTransaction();
+//     }
+//     session.endSession();
+
+//     // ✅ WriteConflict → user-friendly error
+//     const isWriteConflict =
+//       error?.codeName === "WriteConflict" ||
+//       error?.code === 112 ||
+//       error?.errorLabels?.includes?.("TransientTransactionError") ||
+//       error?.hasErrorLabel?.("TransientTransactionError") ||
+//       /write conflict/i.test(error?.message || "");
+
+//     if (isWriteConflict) {
+//       logger.warn(
+//         "⚠️ Checkout WriteConflict — artwork reserved by another buyer OR quota exhausted",
+//       );
+//       throw new BadRequestError(
+//         "للأسف، إحدى اللوحات في سلتك تم حجزها لمشترٍ آخر للتو. يرجى المحاولة مرة أخرى أو اختيار لوحة أخرى.",
+//       );
+//     }
+
+//     logger.error("Checkout error:", error);
+//     throw error;
+//   }
+// });
+
 const checkout = catchAsync(async (req, res, next) => {
   const buyer = req.user;
   const { paymentMethod = "creditcard" } = req.body;
@@ -190,6 +755,7 @@ const checkout = catchAsync(async (req, res, next) => {
 
   if (existingPendingOrders.length > 0) {
     const existingOrder = existingPendingOrders[0];
+    // ✅ NEW: الـ reuse مسموح بس لو محتويات الـ cart مطابقة تماماً للـ pending orders
     const cartIds = cart.items
       .map((i) => i.artwork._id.toString())
       .sort()
@@ -317,6 +883,7 @@ const checkout = catchAsync(async (req, res, next) => {
             `🔄 Quota reversed in checkout cleanup for order ${order._id}`,
           );
 
+          // ✅ حدّث الـ in-memory artist object في الـ cart
           const artistIdStr = order.artist.toString();
           for (const item of cart.items) {
             if (item.artist?._id?.toString() === artistIdStr) {
@@ -476,6 +1043,7 @@ const checkout = catchAsync(async (req, res, next) => {
 
   const otoStart = Date.now();
 
+  // ✅ اجمع كل اللوحات في شحنة واحدة
   const totalDimensions = cart.items.reduce(
     (acc, item) => {
       const dims = item.artwork.dimensions || {};
@@ -489,11 +1057,12 @@ const checkout = catchAsync(async (req, res, next) => {
     { width: 0, length: 0, height: 0, weight: 0 },
   );
 
+  // ✅ NEW: أضف padding للصندوق (bubble wrap + cardboard)
   const packageDims = {
-    width: Math.ceil(totalDimensions.width + 5),
-    length: Math.ceil(totalDimensions.length + 5),
-    height: Math.ceil(totalDimensions.height + 2), 
-    weight: Math.round(totalDimensions.weight * 10) / 10, 
+    width: Math.ceil(totalDimensions.width + 5), // +5 سم padding
+    length: Math.ceil(totalDimensions.length + 5), // +5 سم padding
+    height: Math.ceil(totalDimensions.height + 2), // +2 سم padding عمودي
+    weight: Math.round(totalDimensions.weight * 10) / 10, // round to 1 decimal
   };
 
   logger.info(
@@ -501,6 +1070,7 @@ const checkout = catchAsync(async (req, res, next) => {
       `(artworks: ${totalDimensions.length}×${totalDimensions.width}×${totalDimensions.height} cm, ${totalDimensions.weight} kg)`,
   );
 
+  // ✅ OTO call واحدة للصندوق الكلي
   const artist = cart.items[0].artist;
   const originCity = artist.address?.city || "Riyadh";
   const destinationCity = buyer.address?.city || "Riyadh";
@@ -556,9 +1126,11 @@ const checkout = catchAsync(async (req, res, next) => {
   // ═══════════════════════════════════════════════════
   const ordersByArtist = new Map();
 
+  // ✅ احسب الـ quota remaining مرة واحدة
   const artistId = cart.items[0].artist._id.toString();
   const quotaRemaining = checkFreeShippingQuota(cart.items[0].artist);
 
+  // ✅ لو في quota remaining + كل اللوحات standard → شحن مجاني (شحنة واحدة بس)
   const allStandard = cart.items.every(
     (i) => i.artwork.shippingType === "standard",
   );
@@ -577,6 +1149,7 @@ const checkout = catchAsync(async (req, res, next) => {
     `💰 Shipping decision: platformShippingExpense=${platformShippingExpense}, buyerPaysShipping=${buyerPaysShipping}`,
   );
 
+  // ✅ بناء الـ order (شحنة واحدة لكل الفنانين)
   for (const item of cart.items) {
     const artwork = item.artwork;
     const artist = item.artist;
@@ -667,6 +1240,7 @@ const checkout = catchAsync(async (req, res, next) => {
     orderData.financials.totalArtistEarning += artistEarning;
   }
 
+  // ✅ أضف الشحن مرة واحدة بس (مش لكل لوحة)
   for (const orderData of ordersByArtist.values()) {
     orderData.financials.shippingCost += buyerPaysShipping;
     orderData.financials.platformShippingExpense += platformShippingExpense;
@@ -924,7 +1498,7 @@ const checkout = catchAsync(async (req, res, next) => {
 
     const invoiceData = {
       amount: grandTotal * 100,
-      description: `أوبال جاليري - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
+      description: `فُنون - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
       successUrl: `${process.env.FRONTEND_URL}/payment/success`,
       backUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
       expired_at: new Date(Date.now() + INVOICE_DURATION).toISOString(),
@@ -1020,7 +1594,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   }
 
   // ═══════════════════════════════════════════════════
-  // Unified Refund Helper (3 retries + tracking)
+  // ✅ Unified Refund Helper (3 retries + tracking)
   // ═══════════════════════════════════════════════════
   async function attemptRefund(paymentId, amount, reason) {
     const MAX_ATTEMPTS = 3;
@@ -1057,12 +1631,10 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   }
 
   // ═══════════════════════════════════════════════════
-  // Handle "refunded" events (manual refund من Moyasar)
+  // ✅ Handle "refunded" events (manual refund من Moyasar)
   // ═══════════════════════════════════════════════════
   if (event.status === "refunded") {
-    logger.info(
-      `💰 Moyasar refund event: id=${event.id}, amount=${event.refunded}`,
-    );
+    logger.info(`💰 Moyasar refund event: id=${event.id}, amount=${event.refunded}`);
 
     const paymentId = event.id;
     const invoiceId = event.invoice_id;
@@ -1154,10 +1726,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   }
 
   // Idempotency check
-  const existingOrders = await Order.find({
-    _id: { $in: orderIds },
-    status: "PAID",
-  });
+  const existingOrders = await Order.find({ _id: { $in: orderIds }, status: "PAID" });
   if (existingOrders.length === orderIds.length) {
     return res.status(200).json({ received: true });
   }
@@ -1175,14 +1744,11 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   if (bannedBuyer) {
     logger.warn(`🚫 Moyasar webhook blocked: buyer is banned`);
     const totalAmount = pendingOrdersForCheck.reduce(
-      (sum, o) => sum + o.financials.totalAmount,
-      0,
+      (sum, o) => sum + o.financials.totalAmount, 0,
     );
 
     const { refundOk, lastError } = await attemptRefund(
-      paymentId,
-      totalAmount,
-      "Buyer account banned during checkout",
+      paymentId, totalAmount, "Buyer account banned during checkout",
     );
 
     for (const o of pendingOrdersForCheck) {
@@ -1199,11 +1765,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     if (!refundOk && paymentId) {
       logger.error(`🚨 CRITICAL: Buyer ban refund failed after 3 attempts`);
       eventEmitter.safeEmit(EVENTS.REFUND_FAILED, {
-        paymentId,
-        amount: totalAmount,
+        paymentId, amount: totalAmount,
         reason: "buyer_banned_during_checkout",
-        error: lastError,
-        orderIds,
+        error: lastError, orderIds,
       });
     }
 
@@ -1240,8 +1804,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     }
 
     return res.status(200).json({
-      received: true,
-      blocked: "banned_buyer",
+      received: true, blocked: "banned_buyer",
       refundStatus: refundOk ? "REFUNDED" : "FAILED",
     });
   }
@@ -1251,14 +1814,11 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   if (bannedArtists.length > 0) {
     logger.warn(`🚫 Moyasar webhook blocked: banned artist(s)`);
     const totalAmount = pendingOrdersForCheck.reduce(
-      (sum, o) => sum + o.financials.totalAmount,
-      0,
+      (sum, o) => sum + o.financials.totalAmount, 0,
     );
 
     const { refundOk, lastError } = await attemptRefund(
-      paymentId,
-      totalAmount,
-      "Artist account(s) banned during checkout",
+      paymentId, totalAmount, "Artist account(s) banned during checkout",
     );
 
     for (const o of pendingOrdersForCheck) {
@@ -1275,11 +1835,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     if (!refundOk && paymentId) {
       logger.error(`🚨 CRITICAL: Artist ban refund failed after 3 attempts`);
       eventEmitter.safeEmit(EVENTS.REFUND_FAILED, {
-        paymentId,
-        amount: totalAmount,
+        paymentId, amount: totalAmount,
         reason: "artist_banned_during_checkout",
-        error: lastError,
-        orderIds,
+        error: lastError, orderIds,
       });
     }
 
@@ -1307,8 +1865,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     );
 
     return res.status(200).json({
-      received: true,
-      blocked: "banned_artist",
+      received: true, blocked: "banned_artist",
       refundStatus: refundOk ? "REFUNDED" : "FAILED",
     });
   }
@@ -1323,11 +1880,11 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   try {
     for (const orderId of orderIds) {
       const pendingOrder = await Order.findOne({
-        _id: orderId,
-        status: "PENDING_PAYMENT",
+        _id: orderId, status: "PENDING_PAYMENT",
       }).session(session);
 
       if (!pendingOrder) {
+        // 🛡️ شبكة أمان: late webhook بعد cancel
         const deadOrder = await Order.findById(orderId)
           .select("status payment refundStatus financials")
           .lean();
@@ -1340,9 +1897,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
           deadOrder.refundStatus !== "REFUNDED" &&
           deadOrder.refundStatus !== "FAILED"
         ) {
-          logger.warn(
-            `🚨 Paid-after-cancellation detected for order ${orderId}`,
-          );
+          logger.warn(`🚨 Paid-after-cancellation detected for order ${orderId}`);
           const { refundOk, lastError } = await attemptRefund(
             deadOrder.payment.paymentId,
             deadOrder.financials.totalAmount,
@@ -1367,8 +1922,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
               paymentId: deadOrder.payment.paymentId,
               amount: deadOrder.financials.totalAmount,
               reason: "late_webhook_after_cancel",
-              error: lastError,
-              orderIds: [orderId],
+              error: lastError, orderIds: [orderId],
             });
           }
         }
@@ -1382,9 +1936,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       for (const item of pendingOrder.items) {
         const artwork = await Artwork.findOneAndUpdate(
           {
-            _id: item.artwork,
-            isSold: false,
-            isActive: true,
+            _id: item.artwork, isSold: false, isActive: true,
             $or: [
               { reservedBy: pendingOrder.buyer },
               { reservedBy: null },
@@ -1392,11 +1944,8 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
             ],
           },
           {
-            isSold: true,
-            reservedBy: null,
-            reservedUntil: null,
-            isFeatured: false,
-            featuredAt: null,
+            isSold: true, reservedBy: null, reservedUntil: null,
+            isFeatured: false, featuredAt: null,
           },
           { new: true, session },
         );
@@ -1416,9 +1965,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
 
       if (!allSold) {
         // ═══ artwork sold to another buyer — with retry! ═══
-        console.log(
-          `⚠️ Order ${orderId}: artwork "${soldArtworkTitle}" already sold`,
-        );
+        console.log(`⚠️ Order ${orderId}: artwork "${soldArtworkTitle}" already sold`);
 
         const { refundOk, lastError } = await attemptRefund(
           paymentId,
@@ -1438,9 +1985,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
               "payment.paidAt": new Date(),
               refundStatus: refundOk ? "REFUNDED" : "FAILED",
               refundPaymentId: paymentId,
-              refundedAmount: refundOk
-                ? pendingOrder.financials.totalAmount
-                : null,
+              refundedAmount: refundOk ? pendingOrder.financials.totalAmount : null,
               refundedAt: refundOk ? new Date() : null,
             },
           },
@@ -1462,8 +2007,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
             paymentId,
             amount: pendingOrder.financials.totalAmount,
             reason: "artwork_sold_to_another_buyer",
-            error: lastError,
-            orderIds: [orderId],
+            error: lastError, orderIds: [orderId],
           });
         }
 
@@ -1486,9 +2030,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
 
       processedOrders.push(order);
 
-      let wallet = await Wallet.findOne({ user: order.artist }).session(
-        session,
-      );
+      let wallet = await Wallet.findOne({ user: order.artist }).session(session);
       if (!wallet) {
         wallet = await Wallet.create([{ user: order.artist }], { session });
         wallet = wallet[0];
@@ -1497,21 +2039,17 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       await wallet.creditPending(order.financials.totalArtistEarning, session);
 
       await Transaction.create(
-        [
-          {
-            wallet: wallet._id,
-            order: order._id,
-            user: order.artist,
-            type: "CREDIT_SALE",
-            amount: order.financials.totalArtistEarning,
-            description: `بيع ${order.items.length === 1 ? "لوحة واحدة" : `${order.items.length} لوحات`} - طلب #${order._id.toString().slice(-6).toUpperCase()}`,
-            balanceAfter: {
-              available: wallet.balance.available,
-              pending: wallet.balance.pending,
-            },
-            status: "COMPLETED",
+        [{
+          wallet: wallet._id, order: order._id, user: order.artist,
+          type: "CREDIT_SALE",
+          amount: order.financials.totalArtistEarning,
+          description: `بيع ${order.items.length === 1 ? "لوحة واحدة" : `${order.items.length} لوحات`} - طلب #${order._id.toString().slice(-6).toUpperCase()}`,
+          balanceAfter: {
+            available: wallet.balance.available,
+            pending: wallet.balance.pending,
           },
-        ],
+          status: "COMPLETED",
+        }],
         { session },
       );
     }
@@ -1521,11 +2059,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       metadata.buyerId ||
       (await Order.findById(orderIds[0]).select("buyer").lean())?.buyer;
     if (buyerId) {
-      await Cart.findOneAndUpdate(
-        { user: buyerId },
-        { $set: { items: [] } },
-        { session },
-      );
+      await Cart.findOneAndUpdate({ user: buyerId }, { $set: { items: [] } }, { session });
     }
 
     await session.commitTransaction();
@@ -1541,9 +2075,7 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       error?.hasErrorLabel?.("TransientTransactionError");
 
     if (isTransient) {
-      return res
-        .status(500)
-        .json({ received: false, retry: true, error: error.message });
+      return res.status(500).json({ received: false, retry: true, error: error.message });
     }
     return res.status(200).json({ received: true, error: error.message });
   }
@@ -1568,6 +2100,367 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
 
   return res.status(200).json({ received: true });
 });
+
+//! old
+// @desc    Moyasar webhook handler
+// @route   POST /api/v1/webhooks/moyasar
+// @access  Public (Moyasar server)
+// const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
+//   console.log("📥 Moyasar Webhook received");
+
+//   // ✅ Parse the event
+//   let event;
+//   try {
+//     if (Buffer.isBuffer(req.body)) {
+//       event = JSON.parse(req.body.toString("utf8"));
+//     } else if (typeof req.body === "string") {
+//       event = JSON.parse(req.body);
+//     } else if (typeof req.body === "object" && req.body !== null) {
+//       event = req.body;
+//     } else {
+//       throw new Error("Invalid body type");
+//     }
+//     console.log("✅ Parsed event, id:", event.id, "status:", event.status);
+//   } catch (err) {
+//     console.error("❌ Parse error:", err.message);
+//     return res.status(400).json({ error: "Invalid JSON" });
+//   }
+
+//   if (event.status !== "paid") {
+//     console.log("⚠️ Ignoring non-paid event, status:", event.status);
+//     return res.status(200).json({ received: true });
+//   }
+
+//   const metadata = event.metadata || {};
+//   console.log("📦 Metadata:", metadata);
+
+//   // ✅ Subscription routing
+//   if (metadata.type === "subscription") {
+//     console.log("🔄 Processing subscription webhook...");
+//     const { handleSubscriptionWebhook } = require("./subscription.controller");
+//     return handleSubscriptionWebhook(req, res, next);
+//   }
+
+//   if (metadata.type !== "artwork_purchase") {
+//     console.log("⚠️ Not an artwork purchase");
+//     return res.status(200).json({ received: true });
+//   }
+
+//   // ✅ Extract orderIds
+//   let orderIds = metadata.orderIds ? metadata.orderIds.split(",") : [];
+
+//   if (orderIds.length === 0) {
+//     const orders = await Order.find({ "payment.invoiceId": event.id });
+//     orderIds = orders.map((o) => o._id.toString());
+//     if (orderIds.length === 0) {
+//       console.error("❌ No orders found for invoiceId:", event.id);
+//       return res.status(200).json({ received: true });
+//     }
+//   }
+
+//   console.log("🔢 Order IDs to process:", orderIds);
+
+//   // ✅ Idempotency check
+//   const existingOrders = await Order.find({
+//     _id: { $in: orderIds },
+//     status: "PAID",
+//   });
+
+//   if (existingOrders.length === orderIds.length) {
+//     console.log("⚠️ All orders already processed (idempotent response)");
+//     return res.status(200).json({ received: true });
+//   }
+
+//   // ═══════════════════════════════════════════════════
+//   // حماية من البان
+//   // ═══════════════════════════════════════════════════
+//   const pendingOrdersForCheck = await Order.find({
+//     _id: { $in: orderIds },
+//     status: "PENDING_PAYMENT",
+//   })
+//     .populate("artist", "isBanned name")
+//     .populate("buyer", "isBanned name");
+
+//   // 1. فحص المشتري
+//   const bannedBuyer = pendingOrdersForCheck.find((o) => o.buyer?.isBanned);
+//   if (bannedBuyer) {
+//     logger.warn(`🚫 Moyasar webhook blocked: buyer is banned`);
+//     const paymentIdForRefund = event.payments?.[0]?.id;
+//     if (paymentIdForRefund) {
+//       try {
+//         const totalAmount = pendingOrdersForCheck.reduce(
+//           (sum, o) => sum + o.financials.totalAmount,
+//           0,
+//         );
+//         await MoyasarService.refundPayment(paymentIdForRefund, {
+//           amount: totalAmount,
+//           reason: "Buyer account banned before payment completion",
+//         });
+//       } catch (refundErr) {
+//         logger.error(`❌ Refund failed:`, refundErr.message);
+//       }
+//     }
+//     await Order.updateMany(
+//       { _id: { $in: orderIds }, status: "PENDING_PAYMENT" },
+//       {
+//         $set: {
+//           status: "CANCELLED",
+//           cancellationReason: "buyer_banned_before_payment",
+//           cancelledAt: new Date(),
+//         },
+//       },
+//     );
+//     await Artwork.updateMany(
+//       { reservedBy: { $in: pendingOrdersForCheck.map((o) => o.buyer) } },
+//       { $set: { reservedBy: null, reservedUntil: null } },
+//     );
+//     return res.status(200).json({ received: true, blocked: "banned_buyer" });
+//   }
+
+//   // 2. فحص الفنانين
+//   const bannedArtists = pendingOrdersForCheck.filter((o) => o.artist?.isBanned);
+//   if (bannedArtists.length > 0) {
+//     logger.warn(`🚫 Moyasar webhook blocked: banned artist(s)`);
+//     const paymentIdForRefund = event.payments?.[0]?.id;
+//     if (paymentIdForRefund) {
+//       try {
+//         const totalAmount = pendingOrdersForCheck.reduce(
+//           (sum, o) => sum + o.financials.totalAmount,
+//           0,
+//         );
+//         await MoyasarService.refundPayment(paymentIdForRefund, {
+//           amount: totalAmount,
+//           reason: "Artist account(s) banned before payment completion",
+//         });
+//       } catch (refundErr) {
+//         logger.error(`❌ Refund failed:`, refundErr.message);
+//       }
+//     }
+//     await Order.updateMany(
+//       { _id: { $in: orderIds }, status: "PENDING_PAYMENT" },
+//       {
+//         $set: {
+//           status: "CANCELLED",
+//           cancellationReason: "artist_banned_before_payment",
+//           cancelledAt: new Date(),
+//         },
+//       },
+//     );
+//     await Artwork.updateMany(
+//       { reservedBy: { $in: pendingOrdersForCheck.map((o) => o.buyer) } },
+//       { $set: { reservedBy: null, reservedUntil: null } },
+//     );
+//     return res.status(200).json({ received: true, blocked: "banned_artist" });
+//   }
+
+//   // ═══════════════════════════════════════════════════
+//   // ✅ Transaction للمعاملات المالية
+//   // ═══════════════════════════════════════════════════
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   let processedOrders = [];
+
+//   try {
+//     console.log("🔄 Processing orders...");
+
+//     const paymentId = event.payments?.[0]?.id || null;
+
+//     for (const orderId of orderIds) {
+//       const pendingOrder = await Order.findOne({
+//         _id: orderId,
+//         status: "PENDING_PAYMENT",
+//       }).session(session);
+
+//       if (!pendingOrder) {
+//         console.log(
+//           "⚠️ Skipping order (not found or not PENDING_PAYMENT):",
+//           orderId,
+//         );
+//         continue;
+//       }
+
+//       // Atomic sold + hold cleanup
+//       let allSold = true;
+//       let soldArtworkTitle = null;
+
+//       for (const item of pendingOrder.items) {
+//         const artwork = await Artwork.findOneAndUpdate(
+//           {
+//             _id: item.artwork,
+//             isSold: false,
+//             isActive: true,
+//             $or: [
+//               { reservedBy: pendingOrder.buyer },
+//               { reservedBy: null },
+//               { reservedUntil: { $lt: new Date() } },
+//             ],
+//           },
+//           {
+//             isSold: true,
+//             reservedBy: null,
+//             reservedUntil: null,
+//             isFeatured: false,
+//             featuredAt: null,
+//           },
+//           { new: true, session },
+//         );
+
+//         if (!artwork) {
+//           allSold = false;
+//           soldArtworkTitle = item.artworkSnapshot?.title || "Unknown";
+//           break;
+//         }
+
+//         console.log("✅ Artwork sold (atomic) + hold cleared:", item.artwork);
+
+//         await Cart.updateMany(
+//           { "items.artwork": item.artwork },
+//           { $pull: { items: { artwork: item.artwork } } },
+//           { session },
+//         );
+//       }
+
+//       if (!allSold) {
+//         console.log(
+//           `⚠️ Order ${orderId}: artwork "${soldArtworkTitle}" already sold`,
+//         );
+//         await Order.findOneAndUpdate(
+//           { _id: orderId, status: "PENDING_PAYMENT" },
+//           {
+//             $set: {
+//               status: "CANCELLED",
+//               cancellationReason: `auto_cancelled: artwork "${soldArtworkTitle}" sold to another buyer`,
+//               cancelledAt: new Date(),
+//             },
+//           },
+//           { session },
+//         );
+
+//         const paymentIdForRefund = event.payments?.[0]?.id;
+//         if (paymentIdForRefund) {
+//           try {
+//             await MoyasarService.refundPayment(paymentIdForRefund, {
+//               amount: pendingOrder.financials.totalAmount,
+//               reason: `Artwork "${soldArtworkTitle}" sold to another buyer`,
+//             });
+//           } catch (refundErr) {
+//             console.error(`❌ Refund failed:`, refundErr.message);
+//           }
+//         }
+//         continue;
+//       }
+
+//       const order = await Order.findOneAndUpdate(
+//         { _id: orderId, status: "PENDING_PAYMENT" },
+//         {
+//           $set: {
+//             status: "PAID",
+//             "payment.paymentId": paymentId,
+//             "payment.paidAt": new Date(),
+//           },
+//         },
+//         { new: true, session, runValidators: false },
+//       );
+
+//       if (!order) {
+//         console.log("⚠️ Order already processed (race condition):", orderId);
+//         continue;
+//       }
+
+//       console.log("✅ Order updated to PAID:", orderId);
+//       processedOrders.push(order);
+
+//       let wallet = await Wallet.findOne({ user: order.artist }).session(
+//         session,
+//       );
+//       if (!wallet) {
+//         wallet = await Wallet.create([{ user: order.artist }], { session });
+//         wallet = wallet[0];
+//       }
+
+//       await wallet.creditPending(order.financials.totalArtistEarning, session);
+
+//       await Transaction.create(
+//         [
+//           {
+//             wallet: wallet._id,
+//             order: order._id,
+//             user: order.artist,
+//             type: "CREDIT_SALE",
+//             amount: order.financials.totalArtistEarning,
+//             // description: `Sale of ${order.items.length} artwork(s) - Order #${order._id}`,
+//             description: `بيع ${order.items.length === 1 ? "لوحة واحدة" : `${order.items.length} لوحات`} - طلب #${order._id.toString().slice(-6).toUpperCase()}`,
+//             balanceAfter: {
+//               available: wallet.balance.available,
+//               pending: wallet.balance.pending,
+//             },
+//             status: "COMPLETED",
+//           },
+//         ],
+//         { session },
+//       );
+//       console.log("✅ Transaction created");
+//     }
+
+//     await Cart.findOneAndUpdate(
+//       { user: metadata.buyerId },
+//       { $set: { items: [] } },
+//       { session },
+//     );
+//     console.log("✅ Cart cleared");
+
+//     // ✅ Commit Transaction
+//     await session.commitTransaction();
+//     console.log("✅ Transaction committed successfully");
+//   } catch (error) {
+//     // ✅ Safe abort: بس لو الـ transaction لسه active
+//     if (session.inTransaction()) {
+//       await session.abortTransaction();
+//     }
+//     session.endSession();
+//     console.error("❌ Webhook processing error:", error);
+
+//     const isTransient =
+//       error?.codeName === "WriteConflict" ||
+//       error?.code === 112 ||
+//       error?.errorLabels?.includes?.("TransientTransactionError") ||
+//       error?.hasErrorLabel?.("TransientTransactionError");
+
+//     if (isTransient) {
+//       return res
+//         .status(500)
+//         .json({ received: false, retry: true, error: error.message });
+//     }
+//     return res.status(200).json({ received: true, error: error.message });
+//   }
+
+//   // ✅ بره الـ try-catch تماماً — الـ transaction خلاص اتعمل commit
+//   session.endSession();
+
+//   // ═══════════════════════════════════════════════════
+//   // ✅ Async operations (Events) — بره الـ transaction
+//   // لو فشلوا هنا، مش هياثروا على الـ webhook response
+//   // ═══════════════════════════════════════════════════
+//   try {
+//     for (const order of processedOrders) {
+//       eventEmitter.safeEmit(EVENTS.ORDER_PAID, {
+//         artistId: order.artist,
+//         buyerId: order.buyer,
+//         orderId: order._id,
+//         orderNumber: order._id.toString().slice(-6).toUpperCase(),
+//         totalAmount: order.financials.totalAmount,
+//         order,
+//       });
+//     }
+//     console.log(`✅ Emitted ORDER_PAID for ${processedOrders.length} order(s)`);
+//   } catch (eventError) {
+//     // لو حصل error في الـ events، سجله بس — الـ webhook نجح بالفعل
+//     logger.error("❌ Event emission error (non-critical):", eventError);
+//   }
+
+//   return res.status(200).json({ received: true });
+// });
 
 // @desc    Artist processes order (PAID → PROCESSING)
 // @route   PUT /api/v1/orders/:orderId/process
@@ -1596,6 +2489,7 @@ const processOrder = catchAsync(async (req, res, next) => {
 // @route   PUT /api/v1/orders/:orderId/status
 // @access  Private (Admin only)
 const updateOrderStatus = catchAsync(async (req, res, next) => {
+  // ✅ Admin only — في الحالة الطبيعية الـ webhook بيعمل ده
   if (req.user.role !== "admin") {
     throw new UnauthorizedError(
       "هذه العملية متاحة لفريق المنصة فقط. تحديث الحالة يتم تلقائياً عبر شركة الشحن.",
@@ -1667,7 +2561,7 @@ const updateOrderStatus = catchAsync(async (req, res, next) => {
   return ApiResponse.success(
     res,
     order,
-    `تم تحديث حالة الطلب يدوياً إلى ${status}`,
+    `✅ تم تحديث حالة الطلب يدوياً إلى ${status}`,
   );
 });
 
@@ -1678,16 +2572,19 @@ const confirmDelivery = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.orderId);
   if (!order) throw new NotFoundError(M.orders.notFound);
 
+  // ✅ بس المشتري يقدر
   if (order.buyer.toString() !== req.user._id.toString()) {
     throw new UnauthorizedError(M.orders.confirmOwnOrdersOnly);
   }
 
+  // ✅ لازم يكون DELIVERED
   if (order.status !== "DELIVERED") {
     throw new BadRequestError(
       `Cannot confirm delivery for order with status: ${order.status}`,
     );
   }
 
+  // ✅ لازم يكون لسه مش confirmed
   if (order.status === "COMPLETED") {
     throw new BadRequestError(M.orders.alreadyCompleted);
   }
@@ -1702,11 +2599,13 @@ const confirmDelivery = catchAsync(async (req, res, next) => {
   session.startTransaction();
 
   try {
+    // 1. حدّث الأوردر
     order.status = "COMPLETED";
     order.completedAt = new Date();
     order.fundsReleased = true;
     await order.save({ session });
 
+    // 2. إطلاق الفلوس من pending لـ available
     const wallet = await Wallet.findOne({ user: order.artist }).session(
       session,
     );
@@ -1783,6 +2682,7 @@ const getMyOrders = catchAsync(async (req, res, next) => {
 
   const skip = (Number(page) - 1) * Number(limit);
 
+  // ✅ Aggregation بدل populate
   const pipeline = [
     { $match: matchQuery },
     { $sort: { createdAt: -1 } },
@@ -1835,6 +2735,7 @@ const getMyOrders = catchAsync(async (req, res, next) => {
     Order.countDocuments(matchQuery),
   ]);
 
+  // ✅ Mapping سريع (بدون toObject)
   const finalOrders = orders.map((order) => {
     const artworksMap = new Map(
       order.artworksData.map((a) => [a._id.toString(), a]),
@@ -1988,6 +2889,7 @@ const getMySales = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
   const { status, page = 1, limit = 10 } = req.query;
 
+  // ✅ استبعاد: الطلبات اللي لسه ما اتدفعتش + الملغية اللي ملهاش دفع
   const excludeAutoCancelled = {
     $nor: [
       { status: "PENDING_PAYMENT" },
@@ -2004,6 +2906,7 @@ const getMySales = catchAsync(async (req, res, next) => {
 
   const skip = (Number(page) - 1) * Number(limit);
 
+  // ✅ Aggregation
   const pipeline = [
     { $match: matchQuery },
     { $sort: { createdAt: -1 } },
@@ -2048,6 +2951,7 @@ const getMySales = catchAsync(async (req, res, next) => {
     Order.countDocuments(matchQuery),
   ]);
 
+  // ✅ Mapping (بدون toObject)
   const finalOrders = orders.map((order) => ({
     _id: order._id,
     status: order.status,
@@ -2056,9 +2960,10 @@ const getMySales = catchAsync(async (req, res, next) => {
     cancelledAt: order.cancelledAt,
     cancelledBy: order.cancelledBy,
     refundStatus: order.refundStatus,
-    adminOverrideReason: order.adminOverrideReason, 
-    refundedAmount: order.refundedAmount,
-    payment: order.payment 
+    adminOverrideReason: order.adminOverrideReason, // ✅ NEW
+    refundedAmount: order.refundedAmount, // ✅ NEW
+    refundedAt: order.refundedAt, // ✅ NEW
+    payment: order.payment // ✅ NEW
       ? { paidAt: order.payment.paidAt, paymentId: order.payment.paymentId }
       : null,
     onHold: order.onHold,
@@ -2098,6 +3003,276 @@ const getMySales = catchAsync(async (req, res, next) => {
   );
 });
 
+//! with OTO
+// @desc    Cancel order (buyer only, before shipping)
+// @route   PATCH /api/v1/orders/:orderId/cancel
+// @access  Private (Buyer)
+// const cancelOrder = catchAsync(async (req, res, next) => {
+//   const { orderId } = req.params;
+//   const { reason } = req.body;
+
+//   const order = await Order.findById(orderId);
+//   if (!order) throw new NotFoundError(M.orders.notFound);
+
+//   // ✅ بس المشتري يقدر يلغي
+//   if (order.buyer.toString() !== req.user._id.toString()) {
+//     throw new UnauthorizedError(M.orders.cancelOwnOrdersOnly);
+//   }
+
+//   // ✅ بس قبل الشحن
+//   const cancellableStatuses = ["PENDING_PAYMENT", "PAID", "PROCESSING"];
+//   if (!cancellableStatuses.includes(order.status)) {
+//     throw new BadRequestError(
+//       `Cannot cancel order with status: ${order.status}. Only pending/paid/processing orders can be cancelled.`,
+//     );
+//   }
+
+//   const originalStatus = order.status;
+//   const wasPaid = ["PAID", "PROCESSING"].includes(originalStatus);
+
+//   // ═══════════════════════════════════════════════════
+//   // ✅ لو PROCESSING: نتأكد من حالة الشحنة في OTO ونلغيها هناك الأول
+//   // ═══════════════════════════════════════════════════
+//   if (originalStatus === "PROCESSING" && order.shipping?.otoListId) {
+//     try {
+//       const otoStatus = await otoService.getOrderStatus(
+//         order.shipping.otoListId,
+//       );
+//       const liveStatus = Array.isArray(otoStatus)
+//         ? otoStatus[0]?.status
+//         : otoStatus?.status;
+
+//       // لو الشحنة خرجت فعلاً من الفنان → مفيش إلغاء
+//       const postPickupStatuses = [
+//         "pickedUp",
+//         "inTransit",
+//         "outForDelivery",
+//         "delivered",
+//       ];
+//       if (liveStatus && postPickupStatuses.includes(liveStatus)) {
+//         throw new BadRequestError(
+//           "الشحنة خرجت بالفعل مع المندوب ولا يمكن إلغاؤها الآن. تواصل مع الدعم للمساعدة.",
+//         );
+//       }
+
+//       // إلغاء الشحنة في OTO (رسوم الشحن هترجع لرصيدنا في OTO)
+//       const cancelRes = await otoService.cancelOrder(order.shipping.otoListId);
+//       if (cancelRes?.success === false) {
+//         throw new BadRequestError(
+//           cancelRes.otoErrorMessage || "OTO رفض إلغاء الشحنة",
+//         );
+//       }
+//       logger.info(`✅ OTO shipment cancelled: ${order.shipping.otoListId}`);
+//     } catch (err) {
+//       if (err instanceof BadRequestError) throw err;
+//       logger.error("❌ Failed to cancel OTO shipment:", err.message);
+//       throw new BadRequestError(
+//         "تعذر إلغاء الشحنة لدى شركة الشحن حالياً، حاول مرة أخرى أو تواصل مع الدعم.",
+//       );
+//     }
+//   }
+
+//   // ═══════════════════════════════════════════════════
+//   // ✅ Moyasar Refund (قبل الـ DB transaction)
+//   // ═══════════════════════════════════════════════════
+//   let refundResult = null;
+//   let shouldReverseWallet = false;
+
+//   if (wasPaid) {
+//     shouldReverseWallet = true;
+
+//     let paymentIdToRefund = null;
+//     let alreadyRefunded = false; // ✅ جديد
+
+//     // المحاولة 1: الـ paymentId المحفوظ
+//     if (order.payment?.paymentId) {
+//       try {
+//         const payment = await MoyasarService.fetchPayment(
+//           order.payment.paymentId,
+//         );
+//         if (payment?.status === "paid" || payment?.status === "captured") {
+//           paymentIdToRefund = order.payment.paymentId;
+//           logger.info(`✅ Using stored paymentId: ${paymentIdToRefund}`);
+//         } else if (payment?.status === "refunded") {
+//           // ✅ الفلوس رجعت قبل كده — نسجلها ومش هنعمل refund تاني
+//           alreadyRefunded = true;
+//           logger.info(
+//             `ℹ️ Payment was already refunded: ${order.payment.paymentId}`,
+//           );
+//         } else {
+//           logger.warn(
+//             `⚠️ Stored paymentId status is "${payment?.status}" — trying invoice`,
+//           );
+//         }
+//       } catch (e) {
+//         logger.warn(
+//           `⚠️ Stored paymentId invalid (${e.message}) — trying invoice`,
+//         );
+//       }
+//     }
+
+//     // المحاولة 2: من الـ invoice (زي ما هي)
+//     if (!paymentIdToRefund && !alreadyRefunded && order.payment?.invoiceId) {
+//       // ... نفس الكود القديم بتاع الـ invoice fallback ...
+//     }
+
+//     // ── refund لو لسه محتاج ──
+//     if (paymentIdToRefund) {
+//       try {
+//         refundResult = await MoyasarService.refundPayment(paymentIdToRefund, {
+//           amount: Math.round(order.financials.totalAmount * 100),
+//           reason: reason || "Order cancelled by buyer",
+//         });
+//         logger.info(`✅ Refund initiated: ${refundResult.id}`);
+//       } catch (refundError) {
+//         logger.error(`❌ Refund failed: ${refundError.message}`);
+//       }
+//     } else if (!alreadyRefunded) {
+//       logger.warn(
+//         `⚠️ No paid payment found for order ${orderId} — cancelling without Moyasar refund`,
+//       );
+//     }
+
+//     // ✅ نسجل alreadyRefunded عشان الـ refundStatus يطلع صح تحت
+//     if (alreadyRefunded)
+//       refundResult = { id: "already-refunded", status: "refunded" };
+//   }
+
+//   // ═══════════════════════════════════════════════════
+//   // ✅ DB Transaction: cancel + unsold + wallet reverse + quota reverse
+//   // ═══════════════════════════════════════════════════
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     // 1. Cancel order
+//     order.status = "CANCELLED";
+//     order.cancelledAt = new Date();
+//     order.cancellationReason = reason || "Cancelled by buyer";
+//     order.cancelledBy = "buyer";
+
+//     if (wasPaid && refundResult) {
+//       order.refundStatus = "COMPLETED";
+//       order.refundRequestedAt = new Date();
+//     }
+//     await order.save({ session });
+
+//     // 2. Unmark artworks as sold
+//     for (const item of order.items) {
+//       await Artwork.findOneAndUpdate(
+//         { _id: item.artwork },
+//         {
+//           isSold: false,
+//           reservedBy: null,
+//           reservedUntil: null,
+//         },
+//         { session },
+//       );
+//       logger.info(`✅ Artwork ${item.artwork} unmarked as sold`);
+//     }
+
+//     // ═══════════════════════════════════════════════════
+//     // ✅ 3. Reverse Free Shipping Quota (جديد)
+//     // ═══════════════════════════════════════════════════
+//     // لو الطلب استخدم شحن مجاني (platformShippingExpense > 0)
+//     // والمنصة ألغت الشحنة في OTO → الفنان يستحق ترجع له الـ quota
+//     if (
+//       wasPaid &&
+//       order.financials?.platformShippingExpense > 0 &&
+//       order.artist
+//     ) {
+//       const updatedArtist = await User.findOneAndUpdate(
+//         {
+//           _id: order.artist,
+//           "subscription.plan": "opal_prestige", // شرط أمان: لسه prestige
+//           freeShippingUsed: { $gt: 0 }, // شرط أمان: مش نزل تحت الصفر
+//         },
+//         { $inc: { freeShippingUsed: -1 } },
+//         { new: true, session },
+//       );
+
+//       if (updatedArtist) {
+//         logger.info(
+//           `🔄 Free shipping quota reversed for artist ${order.artist} ` +
+//             `(order ${order._id}): now ${updatedArtist.freeShippingUsed}`,
+//         );
+//       } else {
+//         // الفنان مش prestige أو الـ quota كانت 0 — مش مشكلة
+//         logger.info(
+//           `ℹ️ Skipped quota reversal for artist ${order.artist} ` +
+//             `(plan changed or quota was 0)`,
+//         );
+//       }
+//     }
+
+//     // 4. Reverse wallet pending (لو كان مدفوع)
+//     if (shouldReverseWallet) {
+//       const wallet = await Wallet.findOne({ user: order.artist }).session(
+//         session,
+//       );
+//       if (
+//         wallet &&
+//         wallet.balance.pending >= order.financials.totalArtistEarning
+//       ) {
+//         await wallet.debitPending(order.financials.totalArtistEarning, session);
+
+//         await Transaction.create(
+//           [
+//             {
+//               wallet: wallet._id,
+//               order: order._id,
+//               user: order.artist,
+//               type: "DEBIT_REFUND",
+//               amount: -order.financials.totalArtistEarning,
+//               description: `استرداد - طلب ملغي #${order._id.toString().slice(-6).toUpperCase()}`,
+//               balanceAfter: {
+//                 available: wallet.balance.available,
+//                 pending: wallet.balance.pending,
+//               },
+//               status: "COMPLETED",
+//             },
+//           ],
+//           { session },
+//         );
+//       }
+//     }
+
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     logger.info(
+//       `✅ Order ${orderId} cancelled (was: ${originalStatus}, refund: ${refundResult ? refundResult.id : "none"})`,
+//     );
+
+//     return ApiResponse.success(
+//       res,
+//       {
+//         order: {
+//           _id: order._id,
+//           status: order.status,
+//           cancelledAt: order.cancelledAt,
+//           cancellationReason: order.cancellationReason,
+//           cancelledBy: order.cancelledBy,
+//           refundStatus: order.refundStatus || null,
+//         },
+//         refund: refundResult
+//           ? { id: refundResult.id, status: refundResult.status }
+//           : null,
+//       },
+//       wasPaid && refundResult
+//         ? "تم إلغاء الطلب بنجاح. سيتم استرداد المبلغ خلال 3-14 يوم عمل."
+//         : wasPaid
+//           ? "تم إلغاء الطلب. تعذّر استرداد المبلغ تلقائياً — يرجى التواصل مع الدعم."
+//           : "تم إلغاء الطلب بنجاح.",
+//     );
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     logger.error(`❌ Cancel order transaction error for ${orderId}:`, error);
+//     throw error;
+//   }
+// });
+
 //! without OTO
 // @desc    Cancel order (buyer only, BEFORE shipping)
 // @route   PATCH /api/v1/orders/:orderId/cancel
@@ -2133,11 +3308,15 @@ const cancelOrder = catchAsync(async (req, res, next) => {
     }
   }
 
+  // ═══════════════════════════════════════════════════
+  // ✅ Moyasar Refund (لو كان PAID) — مع Retry Logic + Idempotency
+  // ═══════════════════════════════════════════════════
   let refundOk = false;
   let refundPaymentId = null;
   let lastError = null;
 
   if (wasPaid) {
+    // Step 1: Resolve paymentId to refund
     let paymentIdToRefund = null;
     let alreadyRefunded = false;
 
@@ -2192,9 +3371,10 @@ const cancelOrder = catchAsync(async (req, res, next) => {
       refundPaymentId = order.payment?.paymentId;
       logger.info(`✅ Payment was already refunded — marking as REFUNDED`);
     }
+    // Step 3: لو لقينا paymentId → حاول refund مع retry
     else if (paymentIdToRefund) {
       const MAX_ATTEMPTS = 3;
-      const DELAYS = [0, 5000, 10000]; 
+      const DELAYS = [0, 5000, 10000]; // 0, 5s, 10s
 
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         if (DELAYS[attempt - 1] > 0) {
@@ -2229,6 +3409,7 @@ const cancelOrder = catchAsync(async (req, res, next) => {
         }
       }
 
+      // Step 4: لو فشل بعد 3 محاولات → alert للأدمن
       if (!refundOk) {
         logger.error(
           `🚨 CRITICAL: Buyer cancel refund failed after ${MAX_ATTEMPTS} attempts. ` +
@@ -2252,10 +3433,14 @@ const cancelOrder = catchAsync(async (req, res, next) => {
     }
   }
 
+  // ═══════════════════════════════════════════════════
+  // ✅ DB Transaction: cancel + unmark + quota reverse + wallet reverse
+  // ═══════════════════════════════════════════════════
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    // 1. Cancel order + set refund status (unified: REFUNDED / FAILED / null)
     order.status = "CANCELLED";
     order.cancelledAt = new Date();
     order.cancellationReason = reason || "Cancelled by buyer";
@@ -2382,6 +3567,172 @@ const cancelOrder = catchAsync(async (req, res, next) => {
   }
 });
 
+// @desc    Verify credit card payment (client-side verification fallback)
+// @route   POST /api/v1/orders/verify-payment
+// @access  Protected
+// const verifyPayment = catchAsync(async (req, res, next) => {
+//   const { paymentId } = req.body;
+//   if (!paymentId) {
+//     throw new BadRequestError("Payment ID is required");
+//   }
+
+//   logger.info(`🔍 Verifying payment with ID: ${paymentId}`);
+
+//   // 1. Fetch payment details from Moyasar
+//   const payment = await MoyasarService.fetchPayment(paymentId);
+//   if (!payment) {
+//     throw new NotFoundError("Payment not found on Moyasar");
+//   }
+
+//   // 2. Verify status
+//   if (payment.status !== "paid" && payment.status !== "captured") {
+//     return ApiResponse.success(
+//       res,
+//       { verified: false, status: payment.status },
+//       "Payment not paid yet",
+//     );
+//   }
+
+//   // 3. Extract metadata
+//   let metadata = payment.metadata || {};
+//   if (!metadata.orderIds && payment.invoice_id) {
+//     const invoice = await MoyasarService.fetchInvoice(payment.invoice_id);
+//     metadata = invoice.metadata || {};
+//   }
+
+//   if (metadata.type !== "artwork_purchase") {
+//     return ApiResponse.success(
+//       res,
+//       { verified: false },
+//       "Not an artwork purchase payment",
+//     );
+//   }
+
+//   let orderIds = metadata.orderIds ? metadata.orderIds.split(",") : [];
+//   if (orderIds.length === 0) {
+//     const ordersInDb = await Order.find({
+//       $or: [
+//         { "payment.invoiceId": payment.invoice_id },
+//         { "payment.paymentId": paymentId },
+//       ],
+//     });
+//     orderIds = ordersInDb.map((o) => o._id.toString());
+//   }
+
+//   if (orderIds.length === 0) {
+//     throw new NotFoundError("No orders associated with this payment");
+//   }
+
+//   // ✅ 4. Idempotency check - لو كل الـ orders already PAID، ارجع success
+//   const existingPaidOrders = await Order.find({
+//     _id: { $in: orderIds },
+//     status: {
+//       $in: ["PAID", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED"],
+//     },
+//   });
+
+//   if (existingPaidOrders.length === orderIds.length) {
+//     logger.info("⚠️ All orders already processed (idempotent response)");
+//     return ApiResponse.success(
+//       res,
+//       { verified: true, orders: existingPaidOrders, alreadyProcessed: true },
+//       "Orders already processed successfully",
+//     );
+//   }
+
+//   // 5. Process orders
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//     const processedOrders = [];
+
+//     for (const orderId of orderIds) {
+//       const order = await Order.findOneAndUpdate(
+//         { _id: orderId, status: "PENDING_PAYMENT" },
+//         {
+//           $set: {
+//             status: "PAID",
+//             "payment.paymentId": paymentId,
+//             "payment.paidAt": new Date(),
+//           },
+//         },
+//         { new: true, session, runValidators: false },
+//       );
+
+//       if (!order) {
+//         logger.warn(`⚠️ Skipping order (not PENDING_PAYMENT): ${orderId}`);
+//         continue;
+//       }
+
+//       processedOrders.push(order);
+
+//       // Mark artworks as sold
+//       for (const item of order.items) {
+//         await Artwork.findByIdAndUpdate(
+//           item.artwork,
+//           { isSold: true },
+//           { session },
+//         );
+//       }
+
+//       // Wallet credit
+//       let wallet = await Wallet.findOne({ user: order.artist }).session(
+//         session,
+//       );
+//       if (!wallet) {
+//         wallet = await Wallet.create([{ user: order.artist }], { session });
+//         wallet = wallet[0];
+//       }
+
+//       await wallet.creditPending(order.financials.totalArtistEarning, session);
+
+//       await Transaction.create(
+//         [
+//           {
+//             wallet: wallet._id,
+//             order: order._id,
+//             user: order.artist,
+//             type: "CREDIT_SALE",
+//             amount: order.financials.totalArtistEarning,
+//             description: `Sale of ${order.items.length} artwork(s) - Order #${order._id}`,
+//             balanceAfter: {
+//               available: wallet.balance.available,
+//               pending: wallet.balance.pending,
+//             },
+//             status: "COMPLETED",
+//           },
+//         ],
+//         { session },
+//       );
+//     }
+
+//     // Clear buyer's cart
+//     const buyerId = metadata.buyerId || req.user?._id;
+//     if (buyerId) {
+//       await Cart.findOneAndUpdate(
+//         { user: buyerId },
+//         { $set: { items: [] } },
+//         { session },
+//       );
+//     }
+
+//     await session.commitTransaction();
+//     session.endSession();
+
+//     return ApiResponse.success(
+//       res,
+//       { verified: true, orders: processedOrders },
+//       "Payment verified and orders processed",
+//     );
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     logger.error("❌ Verification transaction error:", error);
+//     throw error;
+//   }
+// });
+
 module.exports = {
   checkout,
   handleMoyasarWebhook,
@@ -2394,4 +3745,5 @@ module.exports = {
   cancelOrder,
   getOrderByPaymentId,
   getCheckoutInvoiceStatus,
+  // verifyPayment
 };

@@ -118,6 +118,11 @@ const calculateShipping = catchAsync(async (req, res, next) => {
 const createOtoOrder = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
   const order = await Order.findById(orderId);
+  if (req.user.isBanned) {
+    throw new ForbiddenError(
+      "حسابك موقوف حالياً — لا يمكنك إنشاء شحنات جديدة. يرجى التواصل مع الدعم.",
+    );
+  }
 
   if (!order) throw new NotFoundError(M.orders.notFound);
   if (order.artist.toString() !== req.user._id.toString()) {
@@ -287,6 +292,11 @@ const createShipment = catchAsync(async (req, res, next) => {
 
   const order = await Order.findById(orderId);
   if (!order) throw new NotFoundError(M.orders.notFound);
+  if (req.user.isBanned) {
+    throw new ForbiddenError(
+      "حسابك موقوف حالياً — لا يمكنك إنشاء شحنات جديدة. يرجى التواصل مع الدعم.",
+    );
+  }
 
   if (order.artist.toString() !== req.user._id.toString()) {
     throw new UnauthorizedError(M.shipping.notAuthorizedToShip);
@@ -768,6 +778,401 @@ async function attemptRefund(paymentId, amount, reason) {
   }
 }
 
+// // @desc    Handle OTO Webhook
+// // @route   POST /api/v1/webhooks/oto
+// const handleOTOWebhook = catchAsync(async (req, res) => {
+//   let payload = req.body;
+
+//   logger.info("📥 OTO Webhook received");
+
+//   // ─── Parse ───
+//   if (Buffer.isBuffer(payload)) {
+//     try {
+//       payload = JSON.parse(payload.toString("utf8"));
+//     } catch {
+//       return res.status(400).json({ error: "Invalid JSON" });
+//     }
+//   } else if (typeof payload === "string") {
+//     try {
+//       payload = JSON.parse(payload);
+//     } catch {
+//       return res.status(400).json({ error: "Invalid JSON" });
+//     }
+//   } else if (typeof payload === "object" && payload !== null) {
+//     const keys = Object.keys(payload);
+//     if (keys.length > 0 && keys.every((k) => !isNaN(parseInt(k)))) {
+//       try {
+//         payload = JSON.parse(Object.values(payload).join(""));
+//       } catch {
+//         return res.status(400).json({ error: "Invalid JSON" });
+//       }
+//     }
+//   }
+
+//   if (!payload || typeof payload !== "object") {
+//     return res.status(400).json({ error: "Invalid body" });
+//   }
+
+//   logger.info(
+//     `📦 OTO Webhook: status=${payload.status}, orderId=${payload.orderId}, otoId=${payload.otoId}`,
+//   );
+
+//   const {
+//     orderId,
+//     otoId,
+//     status,
+//     trackingNumber,
+//     trackingUrl,
+//     trackingURL,
+//     brandedTrackingURL,
+//     printAWBURL,
+//     dcTrackingNumber,
+//     shipmentNumber,
+//     deliveryCompany,
+//   } = payload;
+
+//   if (!orderId && !otoId) {
+//     logger.warn("⚠️ OTO Webhook: No orderId or otoId");
+//     return res.status(200).json({ received: true });
+//   }
+
+//   let opalOrderId = null;
+//   if (orderId) {
+//     const rawId = String(orderId).replace("OPAL-", "");
+//     if (mongoose.Types.ObjectId.isValid(rawId)) {
+//       opalOrderId = rawId;
+//     } else {
+//       logger.info(`⏭️ Ignoring test webhook: ${rawId}`);
+//       return res
+//         .status(200)
+//         .json({ received: true, note: "test webhook ignored" });
+//     }
+//   } else {
+//     const foundOrder = await Order.findOne({
+//       "shipping.otoShipmentId": String(otoId),
+//     });
+//     if (!foundOrder) {
+//       logger.warn(`⚠️ Order not found for otoId: ${otoId}`);
+//       return res.status(200).json({ received: true });
+//     }
+//     opalOrderId = foundOrder._id.toString();
+//   }
+
+//   // ═══ خريطة الحالات ═══
+//   const statusMap = {
+//     new: "PROCESSING",
+//     branchAssigned: "PROCESSING",
+//     assignedToWarehouse: "PROCESSING",
+//     searchingDriver: "PROCESSING",
+//     shipmentCreated: "PROCESSING",
+//     shipmentProcessing: "PROCESSING",
+//     shipmentConfirmed: "PROCESSING",
+//     goingToPickup: "PROCESSING",
+//     pickedUp: "SHIPPED",
+//     arrivedTerminal: "SHIPPED",
+//     inTransit: "SHIPPED",
+//     outForDelivery: "SHIPPED",
+//     delivered: "DELIVERED",
+//     returned: "CANCELLED",
+//     cancelled: "CANCELLED",
+//   };
+
+//   const newStatus = statusMap[status];
+//   if (!newStatus) {
+//     logger.warn(`⚠️ Unknown OTO status: ${status}`);
+//     return res.status(200).json({ received: true });
+//   }
+
+//   const existingOrder = await Order.findById(opalOrderId);
+//   if (!existingOrder) {
+//     logger.warn(`⚠️ Order not found: ${opalOrderId}`);
+//     return res.status(200).json({ received: true });
+//   }
+
+//   const previousStatus = existingOrder.status;
+//   const wasPaid =
+//     !!existingOrder.payment?.paidAt || !!existingOrder.payment?.paymentId;
+
+//   const STATUS_RANK = { PROCESSING: 2, SHIPPED: 3, DELIVERED: 4, COMPLETED: 5 };
+//   const currentRank = STATUS_RANK[previousStatus] || 0;
+//   const newRank = STATUS_RANK[newStatus] || 0;
+
+//   let applyStatus = true;
+//   if (previousStatus === "COMPLETED") {
+//     applyStatus = false;
+//   } else if (newStatus === "CANCELLED") {
+//     applyStatus = previousStatus !== "CANCELLED";
+//   } else if (newRank > 0 && newRank <= currentRank) {
+//     applyStatus = false;
+//     logger.info(`⏭️ Skipping out-of-order: ${previousStatus} → ${newStatus}`);
+//   }
+
+//   const updateData = {};
+//   if (applyStatus) updateData.status = newStatus;
+
+//   const incomingTrackingNumber = trackingNumber || shipmentNumber || "";
+//   const shipmentExists =
+//     !!existingOrder.shipping?.shipmentCreatedAt ||
+//     !!existingOrder.shipping?.trackingNumber ||
+//     !!existingOrder.shipping?.awbUrl;
+//   const shipmentLevelStatus = [
+//     "shipmentCreated",
+//     "shipmentProcessing",
+//     "shipmentConfirmed",
+//     "goingToPickup",
+//     "pickedUp",
+//     "arrivedTerminal",
+//     "inTransit",
+//     "outForDelivery",
+//     "delivered",
+//   ].includes(status);
+
+//   if (incomingTrackingNumber || shipmentExists || shipmentLevelStatus) {
+//     if (incomingTrackingNumber)
+//       updateData["shipping.trackingNumber"] = incomingTrackingNumber;
+//     const finalTrackingUrl = trackingUrl || trackingURL || brandedTrackingURL;
+//     if (finalTrackingUrl) updateData["shipping.trackingUrl"] = finalTrackingUrl;
+//     if (printAWBURL) updateData["shipping.awbUrl"] = printAWBURL;
+//     if (deliveryCompany) updateData["shipping.carrier"] = deliveryCompany;
+//     if (!existingOrder.shipping?.shipmentCreatedAt) {
+//       updateData["shipping.shipmentCreatedAt"] = new Date();
+//     }
+//   } else if (otoId) {
+//     updateData["shipping.otoShipmentId"] = String(otoId);
+//   }
+
+//   if (dcTrackingNumber) updateData["shipping.otoShipmentId"] = dcTrackingNumber;
+
+//   if (
+//     applyStatus &&
+//     newStatus === "SHIPPED" &&
+//     !existingOrder.shipping?.shippedAt
+//   ) {
+//     updateData["shipping.shippedAt"] = new Date();
+//   }
+//   if (applyStatus && newStatus === "DELIVERED") {
+//     updateData["shipping.deliveredAt"] = new Date();
+//   }
+
+//   // ═══════════════════════════════════════════════════
+//   // CANCELLED handling (returned / cancelled by OTO)
+//   // ═══════════════════════════════════════════════════
+//   let otoCancellationDetails = null;
+
+//   if (applyStatus && newStatus === "CANCELLED") {
+//     const isReturned = status === "returned";
+//     const cancellationKey = isReturned
+//       ? "oto_shipment_returned"
+//       : "oto_shipment_cancelled";
+
+//     updateData.cancellationReason = cancellationKey;
+//     updateData.cancelledBy = "system";
+//     updateData.cancelledAt = new Date();
+//     updateData.adminOverrideReason = isReturned
+//       ? `الشحنة ارتجعت من شركة الشحن (${deliveryCompany || "OTO"})`
+//       : `شركة الشحن (${deliveryCompany || "OTO"}) ألغت الشحنة`;
+
+//     if (wasPaid && existingOrder.payment?.paymentId) {
+//       if (existingOrder.refundStatus === "REFUNDED") {
+//         logger.info(
+//           `ℹ️ Refund already processed for order ${opalOrderId} (likely from Moyasar webhook). Skipping attemptRefund.`,
+//         );
+//         updateData.refundStatus = "REFUNDED";
+//         updateData.refundedAmount =
+//           existingOrder.refundedAmount || existingOrder.financials.totalAmount;
+//         updateData.refundedAt = existingOrder.refundedAt || new Date();
+//         updateData.refundPaymentId =
+//           existingOrder.refundPaymentId || existingOrder.payment.paymentId;
+//       } else {
+//         const { refundOk, refundPaymentId, lastError } = await attemptRefund(
+//           existingOrder.payment.paymentId,
+//           existingOrder.financials.totalAmount,
+//           `OTO ${status}: Order #${opalOrderId.slice(-6).toUpperCase()}`,
+//         );
+
+//         updateData.refundStatus = refundOk ? "REFUNDED" : "FAILED";
+//         updateData.refundRequestedAt = new Date();
+//         if (refundPaymentId) updateData.refundPaymentId = refundPaymentId;
+//         if (refundOk) {
+//           updateData.refundedAmount = existingOrder.financials.totalAmount;
+//           updateData.refundedAt = new Date();
+//         }
+
+//         if (!refundOk) {
+//           logger.error(
+//             `🚨 CRITICAL: OTO ${status} refund failed for order ${opalOrderId}. ` +
+//               `Payment ID: ${existingOrder.payment.paymentId}, ` +
+//               `Amount: ${existingOrder.financials.totalAmount} SAR. Last error: ${lastError}`,
+//           );
+//           eventEmitter.safeEmit(EVENTS.REFUND_FAILED, {
+//             paymentId: existingOrder.payment.paymentId,
+//             amount: existingOrder.financials.totalAmount,
+//             reason: cancellationKey,
+//             error: lastError,
+//             orderIds: [opalOrderId],
+//           });
+//         }
+//       }
+
+//       const wallet = await Wallet.findOne({ user: existingOrder.artist });
+//       if (wallet) {
+//         const artistEarning = existingOrder.financials.totalArtistEarning;
+
+//         if (!existingOrder.fundsReleased) {
+//           if (wallet.balance.pending >= artistEarning) {
+//             try {
+//               await wallet.debitPending(artistEarning);
+//               await Transaction.create([
+//                 {
+//                   wallet: wallet._id,
+//                   order: existingOrder._id,
+//                   user: existingOrder.artist,
+//                   type: "DEBIT_REFUND",
+//                   amount: -artistEarning,
+//                   description: `استرداد بسبب ${isReturned ? "ارتجاع الشحنة" : "إلغاء شركة الشحن"} - طلب #${opalOrderId.slice(-6).toUpperCase()}`,
+//                   balanceAfter: {
+//                     available: wallet.balance.available,
+//                     pending: wallet.balance.pending,
+//                   },
+//                   status: "COMPLETED",
+//                 },
+//               ]);
+//               logger.info(
+//                 `✅ Wallet reversed (pending) for order ${opalOrderId}`,
+//               );
+//             } catch (walletErr) {
+//               logger.error(
+//                 `❌ Wallet debit failed for ${opalOrderId}: ${walletErr.message}`,
+//               );
+//               updateData.needsManualClawback = true;
+//             }
+//           } else {
+//             logger.warn(
+//               `⚠️ Insufficient pending balance for ${opalOrderId} (needed: ${artistEarning}, have: ${wallet.balance.pending})`,
+//             );
+//             updateData.needsManualClawback = true;
+//           }
+//         } else {
+//           if (wallet.balance.available >= artistEarning) {
+//             try {
+//               await wallet.debit(artistEarning);
+//               await Transaction.create([
+//                 {
+//                   wallet: wallet._id,
+//                   order: existingOrder._id,
+//                   user: existingOrder.artist,
+//                   type: "DEBIT_CLAWBACK",
+//                   amount: -artistEarning,
+//                   description: `خصم بسبب ارتجاع شحنة طلب #${opalOrderId.slice(-6).toUpperCase()}`,
+//                   balanceAfter: {
+//                     available: wallet.balance.available,
+//                     pending: wallet.balance.pending,
+//                   },
+//                   status: "COMPLETED",
+//                 },
+//               ]);
+//               logger.info(
+//                 `✅ Wallet clawback (available) for order ${opalOrderId}`,
+//               );
+//             } catch (walletErr) {
+//               logger.error(
+//                 `❌ Wallet clawback failed for ${opalOrderId}: ${walletErr.message}`,
+//               );
+//               updateData.needsManualClawback = true;
+//             }
+//           } else {
+//             logger.error(
+//               `🚨 CRITICAL: Cannot clawback from artist wallet for order ${opalOrderId}. ` +
+//                 `Required: ${artistEarning}, Available: ${wallet.balance.available}. Manual intervention required.`,
+//             );
+//             updateData.needsManualClawback = true;
+//           }
+//         }
+//       }
+
+//       if (existingOrder.financials?.platformShippingExpense > 0) {
+//         await User.updateOne(
+//           { _id: existingOrder.artist, freeShippingUsed: { $gt: 0 } },
+//           { $inc: { freeShippingUsed: -1 } },
+//         );
+//       }
+
+//       otoCancellationDetails = {
+//         isReturned,
+//         refundOk: updateData.refundStatus === "REFUNDED",
+//         carrier:
+//           deliveryCompany ||
+//           existingOrder.shipping?.deliveryCompanyName ||
+//           "شركة الشحن",
+//         fundsWereReleased: existingOrder.fundsReleased,
+//       };
+//     } else {
+//       updateData.refundStatus = "NONE";
+//     }
+//   }
+
+//   if (Object.keys(updateData).length > 0) {
+//     await Order.findByIdAndUpdate(
+//       opalOrderId,
+//       { $set: updateData },
+//       { new: true, runValidators: false },
+//     );
+//   }
+
+//   logger.info(
+//     `✅ Order ${opalOrderId}: ${previousStatus} → ${applyStatus ? newStatus : previousStatus} ` +
+//       `(applied=${applyStatus}, otoStatus=${status}${wasPaid && newStatus === "CANCELLED" ? `, refund=${updateData.refundStatus}` : ""})`,
+//   );
+
+//   // ═══ Events ═══
+//   if (applyStatus && newStatus === "SHIPPED" && previousStatus !== "SHIPPED") {
+//     eventEmitter.safeEmit(EVENTS.ORDER_SHIPPED, {
+//       buyerId: existingOrder.buyer,
+//       artistId: existingOrder.artist,
+//       orderId: existingOrder._id,
+//       orderNumber: existingOrder._id.toString().slice(-6).toUpperCase(),
+//       carrier:
+//         existingOrder.shipping?.deliveryCompanyName ||
+//         existingOrder.shipping?.carrier ||
+//         "شركة الشحن",
+//     });
+//   } else if (
+//     applyStatus &&
+//     newStatus === "DELIVERED" &&
+//     previousStatus !== "DELIVERED"
+//   ) {
+//     eventEmitter.safeEmit(EVENTS.ORDER_DELIVERED, {
+//       buyerId: existingOrder.buyer,
+//       artistId: existingOrder.artist,
+//       orderId: existingOrder._id,
+//       orderNumber: existingOrder._id.toString().slice(-6).toUpperCase(),
+//     });
+//   } else if (
+//     applyStatus &&
+//     newStatus === "CANCELLED" &&
+//     previousStatus !== "CANCELLED" &&
+//     EVENTS?.ORDER_CANCELLED
+//   ) {
+//     eventEmitter.safeEmit(EVENTS.ORDER_CANCELLED, {
+//       buyerId: existingOrder.buyer,
+//       artistId: existingOrder.artist,
+//       orderId: existingOrder._id,
+//       orderNumber: existingOrder._id.toString().slice(-6).toUpperCase(),
+//       totalAmount: existingOrder.financials.totalAmount,
+//       reason: updateData.cancellationReason,
+//       refundInitiated: wasPaid && updateData.refundStatus === "REFUNDED",
+
+//       isOtoCancellation: true,
+//       isReturned: otoCancellationDetails?.isReturned,
+//       carrier: otoCancellationDetails?.carrier,
+//       fundsWereReleased: otoCancellationDetails?.fundsWereReleased,
+//     });
+//   }
+
+//   return res.status(200).json({ received: true });
+// });
+
+//! for retun by oto
 // @desc    Handle OTO Webhook
 // @route   POST /api/v1/webhooks/oto
 const handleOTOWebhook = catchAsync(async (req, res) => {
@@ -821,6 +1226,39 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
     deliveryCompany,
   } = payload;
 
+  // ═══════════════════════════════════════════════════
+  // 🚨 1. معالجة أخطاء الشحن (Shipment Error Handling)
+  // ═══════════════════════════════════════════════════
+  const isShipmentError =
+    !status &&
+    Boolean(
+      payload.errorCode ||
+      payload.deliveryCompanyResponse ||
+      payload.errorMessage,
+    );
+  if (isShipmentError) {
+    logger.error(`❌ OTO Shipment Error Webhook: ${JSON.stringify(payload)}`);
+    let errorOrderId = null;
+    if (orderId) {
+      const match = String(orderId).match(/([0-9a-fA-F]{24})$/);
+      if (match) errorOrderId = match[1];
+    }
+    if (errorOrderId) {
+      await Order.findByIdAndUpdate(errorOrderId, {
+        $set: {
+          "shipping.lastErrorCode": payload.errorCode || "UNKNOWN",
+          "shipping.lastErrorMessage":
+            payload.errorMessage ||
+            payload.deliveryCompanyResponse ||
+            "فشل غير معروف",
+          "shipping.lastErrorAt": new Date(),
+          "shipping.shipmentCreationFailed": true,
+        },
+      });
+    }
+    return res.status(200).json({ received: true, type: "shipmentError" });
+  }
+
   if (!orderId && !otoId) {
     logger.warn("⚠️ OTO Webhook: No orderId or otoId");
     return res.status(200).json({ received: true });
@@ -828,11 +1266,13 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
 
   let opalOrderId = null;
   if (orderId) {
-    const rawId = String(orderId).replace("OPAL-", "");
-    if (mongoose.Types.ObjectId.isValid(rawId)) {
-      opalOrderId = rawId;
+    const match = String(orderId).match(/([0-9a-fA-F]{24})$/);
+    if (match) {
+      opalOrderId = match[1];
     } else {
-      logger.info(`⏭️ Ignoring test webhook: ${rawId}`);
+      logger.info(
+        `⏭️ Ignoring test webhook (no valid ObjectId found): ${orderId}`,
+      );
       return res
         .status(200)
         .json({ received: true, note: "test webhook ignored" });
@@ -846,6 +1286,74 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
       return res.status(200).json({ received: true });
     }
     opalOrderId = foundOrder._id.toString();
+  }
+
+  // جلب الطلب مبكراً للتعامل مع حالات الإرجاع
+  const existingOrder = await Order.findById(opalOrderId);
+  if (!existingOrder) {
+    logger.warn(`⚠️ Order not found: ${opalOrderId}`);
+    return res.status(200).json({ received: true });
+  }
+
+  // ═══════════════════════════════════════════════════
+  // 🔄 2. منطق الإرجاع (Return Logic - MVP Approach)
+  // ═══════════════════════════════════════════════════
+  const RETURN_INITIATION_STATES = [
+    "returnProcessing",
+    "returnShipmentProcessing",
+    "newReturn",
+    "reverseShipmentCreated",
+  ];
+  const RETURN_COMPLETED_STATES = [
+    "returned",
+    "reverseReturned",
+    "reverseConfirmReturn",
+  ];
+
+  // 2a. حالة بداية الإرجاع (تجميد الفلوس فوراً)
+  if (RETURN_INITIATION_STATES.includes(status)) {
+    logger.info(`🔄 Return initiated for order ${opalOrderId}: ${status}`);
+    if (
+      !["CANCELLED", "REFUNDED", "COMPLETED"].includes(existingOrder.status)
+    ) {
+      await Order.findByIdAndUpdate(opalOrderId, {
+        $set: {
+          "shipping.returnStatus": status,
+          "shipping.returnRequestedAt": new Date(),
+          onHold: true,
+          holdReason: "oto_return_initiated",
+        },
+      });
+    }
+    return res.status(200).json({ received: true, action: "return_initiated" });
+  }
+
+  // 2b. حالة إلغاء الإرجاع (فك التجميد)
+  if (status === "reverseShipmentCanceled") {
+    logger.warn(`⚠️ Return cancelled for order ${opalOrderId}`);
+    if (existingOrder.holdReason === "oto_return_initiated") {
+      await Order.findByIdAndUpdate(opalOrderId, {
+        $set: {
+          "shipping.returnStatus": null,
+          onHold: false,
+          holdReason: null,
+        },
+      });
+    } else {
+      await Order.findByIdAndUpdate(opalOrderId, {
+        $set: { "shipping.returnStatus": null },
+      });
+    }
+    return res.status(200).json({ received: true, action: "return_cancelled" });
+  }
+
+  // 2c. حالة اكتمال الإرجاع (تحويلها لـ CANCELLED عشان تكمل مع اللوجيك الأساسي)
+  let isReturnCompletion = false;
+  let mutableStatus = status;
+  if (RETURN_COMPLETED_STATES.includes(status)) {
+    logger.info(`✅ Return completed for order ${opalOrderId}: ${status}`);
+    isReturnCompletion = true;
+    mutableStatus = "returned";
   }
 
   // ═══ خريطة الحالات ═══
@@ -867,15 +1375,9 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
     cancelled: "CANCELLED",
   };
 
-  const newStatus = statusMap[status];
+  const newStatus = statusMap[mutableStatus];
   if (!newStatus) {
     logger.warn(`⚠️ Unknown OTO status: ${status}`);
-    return res.status(200).json({ received: true });
-  }
-
-  const existingOrder = await Order.findById(opalOrderId);
-  if (!existingOrder) {
-    logger.warn(`⚠️ Order not found: ${opalOrderId}`);
     return res.status(200).json({ received: true });
   }
 
@@ -915,7 +1417,7 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
     "inTransit",
     "outForDelivery",
     "delivered",
-  ].includes(status);
+  ].includes(mutableStatus);
 
   if (incomingTrackingNumber || shipmentExists || shipmentLevelStatus) {
     if (incomingTrackingNumber)
@@ -950,7 +1452,7 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
   let otoCancellationDetails = null;
 
   if (applyStatus && newStatus === "CANCELLED") {
-    const isReturned = status === "returned";
+    const isReturned = isReturnCompletion || status === "returned";
     const cancellationKey = isReturned
       ? "oto_shipment_returned"
       : "oto_shipment_cancelled";
@@ -962,21 +1464,26 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
       ? `الشحنة ارتجعت من شركة الشحن (${deliveryCompany || "OTO"})`
       : `شركة الشحن (${deliveryCompany || "OTO"}) ألغت الشحنة`;
 
+    // تنظيف حالة الإرجاع الانتقالية لأن الطلب انتهى الآن
+    updateData["shipping.returnStatus"] = null;
+
     if (wasPaid && existingOrder.payment?.paymentId) {
       if (existingOrder.refundStatus === "REFUNDED") {
         logger.info(
           `ℹ️ Refund already processed for order ${opalOrderId} (likely from Moyasar webhook). Skipping attemptRefund.`,
         );
         updateData.refundStatus = "REFUNDED";
+        // ✅ التعديل 2: فلوس اللوحات بس — الشحن ما يتغيرش
         updateData.refundedAmount =
-          existingOrder.refundedAmount || existingOrder.financials.totalAmount;
+          existingOrder.refundedAmount || existingOrder.financials.subtotal;
         updateData.refundedAt = existingOrder.refundedAt || new Date();
         updateData.refundPaymentId =
           existingOrder.refundPaymentId || existingOrder.payment.paymentId;
       } else {
         const { refundOk, refundPaymentId, lastError } = await attemptRefund(
           existingOrder.payment.paymentId,
-          existingOrder.financials.totalAmount,
+          // ✅ التعديل 1: فلوس اللوحات بس — الشحن ما يتغيرش
+          existingOrder.financials.subtotal,
           `OTO ${status}: Order #${opalOrderId.slice(-6).toUpperCase()}`,
         );
 
@@ -984,7 +1491,8 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
         updateData.refundRequestedAt = new Date();
         if (refundPaymentId) updateData.refundPaymentId = refundPaymentId;
         if (refundOk) {
-          updateData.refundedAmount = existingOrder.financials.totalAmount;
+          // ✅ التعديل 3: فلوس اللوحات بس — الشحن ما يتغيرش
+          updateData.refundedAmount = existingOrder.financials.subtotal;
           updateData.refundedAt = new Date();
         }
 
@@ -992,11 +1500,12 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
           logger.error(
             `🚨 CRITICAL: OTO ${status} refund failed for order ${opalOrderId}. ` +
               `Payment ID: ${existingOrder.payment.paymentId}, ` +
-              `Amount: ${existingOrder.financials.totalAmount} SAR. Last error: ${lastError}`,
+              `Amount: ${existingOrder.financials.subtotal} SAR. Last error: ${lastError}`,
           );
           eventEmitter.safeEmit(EVENTS.REFUND_FAILED, {
             paymentId: existingOrder.payment.paymentId,
-            amount: existingOrder.financials.totalAmount,
+            // ✅ التعديل 4: فلوس اللوحات بس — عشان الأدمن يعرف المبلغ الصح
+            amount: existingOrder.financials.subtotal,
             reason: cancellationKey,
             error: lastError,
             orderIds: [opalOrderId],
@@ -1084,6 +1593,28 @@ const handleOTOWebhook = catchAsync(async (req, res) => {
         await User.updateOne(
           { _id: existingOrder.artist, freeShippingUsed: { $gt: 0 } },
           { $inc: { freeShippingUsed: -1 } },
+        );
+      }
+
+      if (isReturned) {
+        const artworkIds = existingOrder.items.map((item) => item.artwork);
+
+        const result = await Artwork.updateMany(
+          {
+            _id: { $in: artworkIds },
+            isSold: true,
+          },
+          {
+            $set: {
+              isSold: false,
+              reservedBy: null,
+              reservedUntil: null,
+            },
+          },
+        );
+
+        logger.info(
+          `🎨 Restored ${result.modifiedCount} artwork(s) to market for order ${opalOrderId}`,
         );
       }
 

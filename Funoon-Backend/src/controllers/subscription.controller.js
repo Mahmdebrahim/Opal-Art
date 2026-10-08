@@ -26,6 +26,7 @@ const {
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const RENEWAL_WINDOW_DAYS = 30;
 
+// ✅ مدة موحّدة لصلاحية فاتورة الاشتراك — تُستخدم في كل مكان (invoice expiry, cleanup queries, expiresAt)
 const PAYMENT_EXPIRE_MINUTES = Number(
   process.env.SUBSCRIPTION_PAYMENT_EXPIRE_MINUTES || 15,
 );
@@ -201,6 +202,7 @@ const calculateSubscriptionQuote = (user, targetPlanId) => {
     };
   }
 
+  // باقة أعلى = Upgrade
   if (targetRank > currentRank) {
     const yearlyDiff = targetPlan.price - currentPlan.price;
     const termDays = 365;
@@ -223,6 +225,7 @@ const calculateSubscriptionQuote = (user, targetPlanId) => {
     };
   }
 
+  // باقة أقل = ممنوع حالياً
   return {
     scenario: "downgrade_not_supported",
     canPurchase: false,
@@ -251,6 +254,7 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
   const user = await User.findById(userId);
   if (!user) throw new NotFoundError("المستخدم غير موجود");
 
+  // ✅ احسب الـ quote
   const quote = calculateSubscriptionQuote(user, planId);
 
   if (!quote.canPurchase) {
@@ -410,6 +414,11 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
     throw new BadRequestError("تعذّر حساب سعر الاشتراك بعد الخصم");
   }
 
+  // ═══════════════════════════════════════════════════
+  // ✅ تنظيف حجز كوبون قديم معلّق على باقة مختلفة
+  // (الـ unique index على {coupon, user} بيمنع حجز تاني
+  //  طالما الـ redemption القديم لسه موجود)
+  // ═══════════════════════════════════════════════════
   if (coupon) {
     const staleRedemption = await CouponRedemption.findOne({
       coupon: coupon._id,
@@ -520,10 +529,11 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
     };
     invoice = await MoyasarService.createInvoice({
       amount: Math.round(amountToPay * 100),
-      description: `أوبال جاليري - اشتراك ${plan.label} (${scenarioLabels[quote.scenario] || "اشتراك"})`,
+      description: `فُنون - اشتراك ${plan.label} (${scenarioLabels[quote.scenario] || "اشتراك"})`,
       callbackUrl: `${process.env.NGROK_URL}/api/v1/webhooks/moyasar`,
       successUrl: `${process.env.FRONTEND_URL}/subscription/success`,
       backUrl: `${process.env.FRONTEND_URL}/subscription/cancel`,
+      // ✅ جديد: خلي Moyasar نفسها ترفض الدفع لو الوقت عدّى
       expired_at: new Date(
         Date.now() + PAYMENT_EXPIRE_MINUTES * 60 * 1000,
       ).toISOString(),
@@ -591,6 +601,9 @@ const validateCoupon = catchAsync(async (req, res) => {
   );
 });
 
+// ═══════════════════════════════════════════════════
+// Get Subscription Quote (للفرونت)
+// ═══════════════════════════════════════════════════
 // @desc    Get subscription quote for a plan
 // @route   GET /api/v1/subscriptions/quote/:planId
 // @access  Private
@@ -808,6 +821,11 @@ const getCheckoutDetails = catchAsync(async (req, res) => {
 //     );
 
 //     if (!subPayment) {
+//       // ═══════════════════════════════════════════════════
+//       // ✅ جديد: السجل ممكن يكون اتحط EXPIRED (بسبب الـ cleanup)
+//       // قبل ما تأكيد الدفع يوصل من Moyasar. بما إن العميل
+//       // فعليًا دفع الفلوس، نفعّل الاشتراك بدل ما نتجاهله بصمت.
+//       // ═══════════════════════════════════════════════════
 //       const anyPayment = await SubscriptionPayment.findById(
 //         subscriptionPaymentId,
 //       ).session(session);
@@ -879,6 +897,9 @@ const getCheckoutDetails = catchAsync(async (req, res) => {
 
 //     await user.save({ session });
 
+//     // ═══════════════════════════════════════════════════
+//     // ✅ Wallet creation (لو مفيش)
+//     // ═══════════════════════════════════════════════════
 //     let wallet = await Wallet.findOne({ user: userId }).session(session);
 //     if (!wallet) {
 //       wallet = new Wallet({ user: userId });
@@ -999,6 +1020,9 @@ const getCheckoutDetails = catchAsync(async (req, res) => {
 //     return res.status(200).json({ received: true });
 //   }
 
+//   // ═══════════════════════════════════════════════════
+//   // ✅ PAID flow (زي ما هو — كود متين)
+//   // ═══════════════════════════════════════════════════
 //   const metadata = event.metadata || {};
 //   logger.info("📦 Metadata:", metadata);
 
@@ -1186,7 +1210,7 @@ const handleSubscriptionWebhook = catchAsync(async (req, res, next) => {
   const moyasarTransactionId = event.id;
 
   // ═══════════════════════════════════════════════════
-  //  IDEMPOTENCY CHECK
+  // ✅ IDEMPOTENCY CHECK - قبل أي حاجة وقبل الـ transaction
   // ═══════════════════════════════════════════════════
   if (moyasarTransactionId) {
     const existingPayment = await SubscriptionPayment.findOne({
@@ -1205,6 +1229,7 @@ const handleSubscriptionWebhook = catchAsync(async (req, res, next) => {
     }
   }
 
+  // ✅ Fallback لو مفيش subscriptionPaymentId في الـ metadata
   if (!subscriptionPaymentId) {
     const invoiceId = event.invoice_id || event.id;
     const found = await SubscriptionPayment.findOne({
@@ -1233,7 +1258,7 @@ const handleSubscriptionWebhook = catchAsync(async (req, res, next) => {
   }
 
   // ═══════════════════════════════════════════════════
-  //  IDEMPOTENCY CHECK
+  // ✅ IDEMPOTENCY CHECK - تاني بس بالـ subscriptionPaymentId
   // ═══════════════════════════════════════════════════
   const existingPayment = await SubscriptionPayment.findById(
     subscriptionPaymentId,
@@ -1257,14 +1282,19 @@ const handleSubscriptionWebhook = catchAsync(async (req, res, next) => {
       event.amount,
       existingPayment.amount,
     );
-    return res.status(200).json({
-      received: true,
-      action: refund.claimed
-        ? "auto_refund_triggered"
-        : "auto_refund_already_handled",
-    });
+    return res
+      .status(200)
+      .json({
+        received: true,
+        action: refund.claimed
+          ? "auto_refund_triggered"
+          : "auto_refund_already_handled",
+      });
   }
 
+  // ═══════════════════════════════════════════════════
+  // ✅ الآن نبدأ الـ transaction بأمان
+  // ═══════════════════════════════════════════════════
   const session = await mongoose.startSession();
   session.startTransaction();
 

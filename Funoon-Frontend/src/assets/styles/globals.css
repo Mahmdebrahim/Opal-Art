@@ -43,9 +43,6 @@
 }
 
 @media print {
-  /* بيخفي الـ sidebar والـ buttons لما يطبع */
-  /* بيخلي الصفحة عمود واحد */
-  /* بيحول الألوان لأبيض وأسود */
 }
 
 @media screen {
@@ -57,8 +54,6 @@
   html {
     scroll-padding-top: 6rem;
   }
-
-  /* عشان الـ section ما يختفيش تحت الـ navbar */
 }
 
 @layer base {
@@ -152,8 +147,6 @@
 }
 
 /* ── Button Fill Hover Effects ── */
-
-/* Fill من اليمين للشمال (RTL-friendly) */
 .btn-fill-rtl {
   position: relative;
   overflow: hidden;
@@ -174,7 +167,6 @@
   transform: translateX(0);
 }
 
-/* Fill من تحت لفوق */
 .btn-fill-up {
   position: relative;
   overflow: hidden;
@@ -195,7 +187,6 @@
   transform: translateY(0);
 }
 
-/* Fill من اليسار للشمال */
 .btn-fill-ltr {
   position: relative;
   overflow: hidden;
@@ -230,7 +221,6 @@
   box-sizing: border-box;
 }
 
-/* ─── 1. حل الضيق: مدّد كل الـ containers ─── */
 .moyasar-wrapper.mysr-form-fixedWidth,
 .moyasar-wrapper.mysr-form-moyasarForm,
 .moyasar-wrapper .mysr-form-method,
@@ -252,7 +242,6 @@
   text-align: right !important;
 }
 
-/* ─── 3. الـ inputs (styling بس، من غير layout) ─── */
 .moyasar-wrapper input {
   border: 1px solid var(--color-outline-variant, #e7e5e4) !important;
   border-radius: 0 !important;
@@ -273,7 +262,6 @@
   color: #a8a29e !important;
 }
 
-/* ─── 4. زرار الدفع ─── */
 .moyasar-wrapper .mysr-form-button,
 .moyasar-wrapper button[type="submit"],
 .moyasar-wrapper button {
@@ -295,7 +283,6 @@
   opacity: 0.92 !important;
 }
 
-/* ─── 5. الفوتر + رسائل الـ validation ─── */
 .moyasar-wrapper .mysr-form-footer {
   margin-top: 16px !important;
   text-align: center !important;
@@ -310,13 +297,11 @@
   font-size: 11px !important;
 }
 
-/* ─── 6. شيل الـ rounded corners الافتراضية بس ─── */
 .moyasar-wrapper input,
 .moyasar-wrapper button {
   border-radius: 0 !important;
 }
 
-/* ─── الشاشات الكبيرة: أكبر شوية ─── */
 @media (min-width: 1024px) {
   .moyasar-wrapper input {
     font-size: 16px !important;

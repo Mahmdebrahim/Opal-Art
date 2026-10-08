@@ -129,7 +129,7 @@ const orderSchema = new mongoose.Schema(
     payment: {
       provider: { type: String, default: "Moyasar" },
       paymentId: { type: String },
-      invoiceId: { type: String }, 
+      invoiceId: { type: String },
       method: { type: String },
       paidAt: { type: Date },
     },
@@ -141,10 +141,10 @@ const orderSchema = new mongoose.Schema(
       deliveryOptionName: { type: String },
 
       avgDeliveryTime: { type: String },
-      pickupCutOffTime: { type: String }, 
+      pickupCutOffTime: { type: String },
       maxFreeWeight: { type: Number },
-      extraWeightPerKg: { type: Number }, 
-      returnFee: { type: Number }, 
+      extraWeightPerKg: { type: Number },
+      returnFee: { type: Number },
 
       pickupDropoff: { type: String },
       deliveryType: { type: String },
@@ -165,6 +165,16 @@ const orderSchema = new mongoose.Schema(
       shippedAt: { type: Date },
       deliveredAt: { type: Date },
       estimatedDelivery: { type: Date },
+
+      returnStatus: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      returnRequestedAt: {
+        type: Date,
+        default: null,
+      },
     },
 
     // ═══ Fund Release & Holds ═══
@@ -203,7 +213,11 @@ const orderSchema = new mongoose.Schema(
     refundRequestedAt: {
       type: Date,
     },
-
+    needsManualClawback: {
+      type: Boolean,
+      default: false,
+      index: true, // عشان الأدمن يقدر يفلتر الطلبات دي بسرعة من الداشبورد
+    },
     adminOverrideBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
