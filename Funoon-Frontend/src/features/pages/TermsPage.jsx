@@ -4,13 +4,11 @@ import {
   ChevronRight,
   FileText,
   Calendar,
-  Shield,
   FileCheck,
   ArrowUp,
   Mail,
-  Palette,
+  AlertTriangle,
 } from "lucide-react";
-import Button from "../../components/Ui/Button";
 
 // ═══════════════════════════════════════════════════
 // جدول المحتويات
@@ -18,20 +16,21 @@ import Button from "../../components/Ui/Button";
 const SECTIONS = [
   { id: "platform", num: "1", title: "تعريف المنصة" },
   { id: "accounts", num: "2", title: "أنواع الحسابات" },
-  { id: "subscriptions", num: "3", title: "باقات الاشتراك" },
-  { id: "artworks", num: "4", title: "عرض وبيع الأعمال الفنية" },
-  { id: "payment", num: "5", title: "عملية الشراء والدفع" },
-  { id: "shipping", num: "6", title: "الشحن والتوصيل" },
-  { id: "funds", num: "7", title: "إطلاق الأموال والمحفظات" },
-  { id: "withdrawal", num: "8", title: "السحب" },
-  { id: "reviews", num: "9", title: "التقييمات والمراجعات" },
-  { id: "prohibited", num: "10", title: "السلوك المحظور" },
-  { id: "suspension", num: "11", title: "الحظر وتعليق الحسابات" },
-  { id: "ip", num: "12", title: "الملكية الفكرية" },
-  { id: "privacy", num: "13", title: "الخصوصية وحماية البيانات" },
-  { id: "disclaimer", num: "14", title: "إخلاء المسؤولية" },
-  { id: "changes", num: "15", title: "التعديلات" },
-  { id: "law", num: "16", title: "القانون المختص" },
+  { id: "compliance", num: "3", title: "الالتزامات النظامية للفنانين" },
+  { id: "subscriptions", num: "4", title: "باقات الاشتراك" },
+  { id: "artworks", num: "5", title: "عرض وبيع الأعمال الفنية" },
+  { id: "payment", num: "6", title: "عملية الشراء والدفع" },
+  { id: "shipping", num: "7", title: "الشحن والتوصيل" },
+  { id: "funds", num: "8", title: "إطلاق الأموال والمحفظات" },
+  { id: "withdrawal", num: "9", title: "السحب" },
+  { id: "reviews", num: "10", title: "التقييمات والمراجعات" },
+  { id: "prohibited", num: "11", title: "السلوك المحظور" },
+  { id: "suspension", num: "12", title: "الحظر وتعليق الحسابات" },
+  { id: "ip", num: "13", title: "الملكية الفكرية" },
+  { id: "privacy", num: "14", title: "الخصوصية وحماية البيانات" },
+  { id: "disclaimer", num: "15", title: "إخلاء المسؤولية" },
+  { id: "changes", num: "16", title: "التعديلات" },
+  { id: "law", num: "17", title: "القانون المختص" },
 ];
 
 export default function TermsPage() {
@@ -76,7 +75,7 @@ export default function TermsPage() {
               <span>
                 آخر تحديث:{" "}
                 <strong className="text-[var(--color-on-surface)]">
-                  سبتمبر 2026
+                  أكتوبر 2026
                 </strong>
               </span>
             </div>
@@ -180,9 +179,134 @@ export default function TermsPage() {
               </Subsection>
             </Section>
 
-            {/* ═══ 3. Subscriptions ═══ */}
-            <Section id="subscriptions" num="3" title="باقات الاشتراك">
-              <Subsection title="3.1 أوبال كلاسيك (Opal Classic)">
+            {/* ═══ 3. Compliance ═══ */}
+            <Section
+              id="compliance"
+              num="3"
+              title="الالتزامات النظامية والفنية للفنانين"
+            >
+              <Subsection title="3.1 الالتزامات النظامية والضريبية">
+                <p className="mb-3">
+                  تلتزم منصة أوبال جاليري بالأنظمة واللوائح المعمول بها في
+                  المملكة العربية السعودية. ولضمان حقوق جميع الأطراف وسلامة
+                  العمليات المالية، يُشترط على كل فنان يرغب في الانضمام للمنصة
+                  أو الاستمرار في عرض أعماله الالتزام التام بما يلي:
+                </p>
+                <ul>
+                  <li>
+                    يجب أن يمتلك الفنان وثيقة سارية ومعتمدة تثبت أحقيته لمزاولة
+                    النشاط، وتكون إما <strong>وثيقة العمل الحر</strong> أو{" "}
+                    <strong>السجل التجاري</strong> (أو ما يعادلهما من وثائق
+                    رسمية).
+                  </li>
+                  <li>
+                    يُعد امتلاك وتقديم هذه الوثائق شرطاً أساسياً وجوهرياً لتفعيل
+                    حساب الفنان، والسماح له برفع وبيع الأعمال الفنية، واستقبال
+                    المدفوعات، وطلب السحب.
+                  </li>
+                  <li>
+                    يحق لإدارة المنصة طلب تحديث أو إعادة إرسال الصور الرسمية
+                    للوثائق في أي وقت للتأكد من سريانها ومطابقتها للأنظمة.
+                  </li>
+                  <li>
+                    <strong>جزائية المخالفة:</strong> في حال طلب المنصة للوثائق
+                    الرسمية وعدم تقديمها خلال المهلة المحددة، أو ثبوت عدم امتلاك
+                    الفنان لها، يُعد ذلك مخالفة صريحة وجسيمة للشروط. ويحق للمنصة
+                    في هذه الحالة <strong>حظر الحساب فوراً</strong>، وإخفاء جميع
+                    الأعمال الفنية، وتجميد الأرباح المعلقة، وإلغاء الطلبات
+                    المعلقة وفقاً لما ورد في بند "الحظر وتعليق الحسابات".
+                  </li>
+                </ul>
+              </Subsection>
+
+              {/* ═══ NEW: أصالة الأعمال وحقوق الملكية ═══ */}
+              <Subsection title="3.2 أصالة الأعمال الفنية وحقوق الملكية">
+                <p className="mb-3">
+                  تُعد أصالة الأعمال الفنية حجر الأساس في منصة أوبال جاليري.
+                  لذلك يقرّ الفنان ويوافق صراحةً على الالتزام التام بالشروط
+                  التالية عند عرض أو بيع أي عمل فني عبر المنصة:
+                </p>
+                <ul>
+                  <li>
+                    <strong>الأصالة والملكية:</strong> يقرّ الفنان بأن كل عمل
+                    فني يرفعه على المنصة هو <strong>عمل أصلي 100%</strong> من
+                    إبداعه الخاص، وأنه المالك الحصري والوحيد لجميع حقوق الملكية
+                    الفكرية الخاصة به، أو أنه حاصل على كافة الأذونات والموافقات
+                    الخطية اللازمة من أصحاب الحقوق إن وُجدوا.
+                  </li>
+                  <li>
+                    <strong>حظر النسخ والتقليد:</strong> يُحظر حظراً باتاً رفع
+                    أو عرض أي أعمال فنية منسوخة، مقلّدة، مستوحاة بشكل مباشر من
+                    أعمال فنانين آخرين، أو مولّدة بالذكاء الاصطناعي ونُسبت
+                    للفنان كعمل يدوي أصلي. كما يُحظر استخدام صور أو تصاميم أو
+                    عناصر بصرية محمية بحقوق ملكية فكرية لطرف ثالث دون إذن كتابي
+                    مسبق.
+                  </li>
+                  <li>
+                    <strong>المسؤولية الكاملة:</strong> يتحمل الفنان{" "}
+                    <strong>المسؤولية القانونية والمالية الكاملة</strong> عن أي
+                    ادعاء أو نزاع أو مطالبة تتعلق بأصالة أعماله أو انتهاكها
+                    لحقوق الملكية الفكرية لأي طرف ثالث (بما في ذلك حقوق المؤلف،
+                    العلامات التجارية، أو حقوق النشر).
+                  </li>
+                  <li>
+                    <strong>إخلاء مسؤولية المنصة:</strong> منصة أوبال جاليري
+                    تعمل كوسيط تقني لعرض وبيع الأعمال الفنية،{" "}
+                    <strong>وليست مسؤولة</strong> عن التحقق من أصالة كل عمل بشكل
+                    مستقل. وفي حال ثبوت أي مخالفة أو ادعاء بانتهاك حقوق الملكية،
+                    يلتزم الفنان بتعويض المنصة تعويضاً كاملاً عن أي أضرار أو
+                    خسائر أو مصاريف قانونية تتحملها نتيجة لذلك.
+                  </li>
+                  <li>
+                    <strong>الإزالة الفورية:</strong> يحق للمنصة، ودون إشعار
+                    مسبق أو التزام بأي تعويض، إزالة أي عمل فني يشتبه في عدم
+                    أصالته أو انتهاكه لحقوق طرف ثالث بمجرد وصول بلاغ موثق أو
+                    إشعار رسمي من صاحب الحق.
+                  </li>
+                  <li>
+                    <strong>جزائية مخالفة الأصالة:</strong> في حال ثبوت أن
+                    الفنان قام برفع أعمال منسوخة أو منتهكة لحقوق الملكية
+                    الفكرية، يُعد ذلك من أخطر المخالفات، ويحق للمنصة:
+                    <ul className="mt-2 mr-4 space-y-1">
+                      <li>
+                        • <strong>حظر الحساب نهائياً</strong> دون إنذار مسبق.
+                      </li>
+                      <li>
+                        • <strong>إزالة جميع أعمال الفنان</strong> من المعرض
+                        فوراً.
+                      </li>
+                      <li>
+                        • <strong>تجميد ومصادرة أي أرصدة معلقة</strong> في
+                        المحفظة كغرامة.
+                      </li>
+                      <li>
+                        • <strong>إلغاء أي طلبات معلقة</strong> واسترداد المبالغ
+                        للمشترين.
+                      </li>
+                      <li>
+                        • <strong>إبلاغ الجهات المختصة</strong> (مثل الهيئة
+                        السعودية للملكية الفكرية) في حال استلزم الأمر.
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                  <p className="text-sm text-amber-900 flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>
+                      <strong>تنبيه هام:</strong> عند قبولك لهذه الشروط، فإنك
+                      تُقر بأن كل عمل فني ترفعه هو إبداعك الشخصي الأصيل، وأنك
+                      على استعداد تام لتحمل كافة العواقب القانونية والمالية في
+                      حال ثبوت خلاف ذلك.
+                    </span>
+                  </p>
+                </div>
+              </Subsection>
+            </Section>
+
+            {/* ═══ 4. Subscriptions ═══ */}
+            <Section id="subscriptions" num="4" title="باقات الاشتراك">
+              <Subsection title="4.1 أوبال كلاسيك (Opal Classic)">
                 <ul>
                   <li>اشتراك سنوي</li>
                   <li>رفع عدد محدود من الأعمال الفنية</li>
@@ -192,7 +316,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="3.2 أوبال بلس (Opal Plus)">
+              <Subsection title="4.2 أوبال بلس (Opal Plus)">
                 <ul>
                   <li>اشتراك سنوي بسعر أعلى</li>
                   <li>عدد أعمال أكبر + إحصائيات تفصيلية لأداء اللوحات</li>
@@ -200,7 +324,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="3.3 أوبال برستيج (Opal Prestige)">
+              <Subsection title="4.3 أوبال برستيج (Opal Prestige)">
                 <ul>
                   <li>اشتراك سنوي بالسعر الأعلى</li>
                   <li>
@@ -211,7 +335,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="3.4 التجديد والترقية">
+              <Subsection title="4.4 التجديد والترقية">
                 <ul>
                   <li>
                     التجديد متاح قبل انتهاء الاشتراك بـ{" "}
@@ -226,9 +350,9 @@ export default function TermsPage() {
               </Subsection>
             </Section>
 
-            {/* ═══ 4. Artworks ═══ */}
-            <Section id="artworks" num="4" title="عرض وبيع الأعمال الفنية">
-              <Subsection title="4.1 مسؤولية الفنان">
+            {/* ═══ 5. Artworks ═══ */}
+            <Section id="artworks" num="5" title="عرض وبيع الأعمال الفنية">
+              <Subsection title="5.1 مسؤولية الفنان">
                 <ul>
                   <li>
                     الفنان هو المسؤول الوحيد عن أصالة العمل الفني وحقوق الملكية
@@ -244,7 +368,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="4.2 مراجعة الأعمال">
+              <Subsection title="5.2 مراجعة الأعمال">
                 <ul>
                   <li>
                     جميع الأعمال تخضع لمراجعة فريق المنصة قبل الظهور في المعرض
@@ -260,7 +384,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="4.3 التسعير">
+              <Subsection title="5.3 التسعير">
                 <ul>
                   <li>الفنان يحدد سعر العمل بحرية</li>
                   <li>المنصة تقتطع عمولتها تلقائياً عند إتمام البيع</li>
@@ -269,9 +393,9 @@ export default function TermsPage() {
               </Subsection>
             </Section>
 
-            {/* ═══ 5. Payment ═══ */}
-            <Section id="payment" num="5" title="عملية الشراء والدفع">
-              <Subsection title="5.1 الدفع">
+            {/* ═══ 6. Payment ═══ */}
+            <Section id="payment" num="6" title="عملية الشراء والدفع">
+              <Subsection title="6.1 الدفع">
                 <ul>
                   <li>
                     جميع المدفوعات تتم عبر بوابة <strong>Moyasar</strong>{" "}
@@ -284,7 +408,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="5.2 تأكيد الطلب">
+              <Subsection title="6.2 تأكيد الطلب">
                 <ul>
                   <li>يتم إنشاء الطلب فور إتمام الدفع بنجاح</li>
                   <li>يُرسل تأكيد بالبريد الإلكتروني للمشتري والفنان</li>
@@ -292,7 +416,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="5.3 الإلغاء والاسترداد">
+              <Subsection title="6.3 الإلغاء والاسترداد">
                 <ul>
                   <li>
                     يمكن للمشتري إلغاء الطلب قبل بدء الشحن واسترداد المبلغ
@@ -304,9 +428,9 @@ export default function TermsPage() {
               </Subsection>
             </Section>
 
-            {/* ═══ 6. Shipping ═══ */}
-            <Section id="shipping" num="6" title="الشحن والتوصيل">
-              <Subsection title="6.1 عملية الشحن">
+            {/* ═══ 7. Shipping ═══ */}
+            <Section id="shipping" num="7" title="الشحن والتوصيل">
+              <Subsection title="7.1 عملية الشحن">
                 <ul>
                   <li> الشحن يتم عبر شركات شحن معتمدة من خلال (OTO)</li>
                   <li>الفنان مسؤول عن تجهيز وتغليف العمل الفني بشكل آمن</li>
@@ -314,21 +438,21 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="6.2 التتبع">
+              <Subsection title="7.2 التتبع">
                 <ul>
                   <li>يتم توفير رقم تتبع وبوليصة شحن لكل طلب</li>
                   <li>يمكن للمشتري والفنان تتبع حالة الشحنة في أي وقت</li>
                 </ul>
               </Subsection>
 
-              <Subsection title="6.3 التوصيل">
+              <Subsection title="7.3 التوصيل">
                 <ul>
                   <li>مدة التوصيل تعتمد على شركة الشحن والمدينة</li>
                   <li>عند التوصيل، تبدأ فترة ضمان الاستلام (72 ساعة)</li>
                 </ul>
               </Subsection>
 
-              <Subsection title="6.4 الشحن المجاني">
+              <Subsection title="7.4 الشحن المجاني">
                 <ul>
                   <li>
                     متاح لفناني باقة <strong>أوبال برستيج</strong> فقط
@@ -339,9 +463,9 @@ export default function TermsPage() {
               </Subsection>
             </Section>
 
-            {/* ═══ 7. Funds ═══ */}
-            <Section id="funds" num="7" title="إطلاق الأموال والمحفظات">
-              <Subsection title="7.1 فترة الضمان">
+            {/* ═══ 8. Funds ═══ */}
+            <Section id="funds" num="8" title="إطلاق الأموال والمحفظات">
+              <Subsection title="8.1 فترة الضمان">
                 <ul>
                   <li>
                     بعد توصيل الطلب، تُحجز أموال الفنان لمدة{" "}
@@ -354,7 +478,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="7.2 إطلاق الأموال">
+              <Subsection title="8.2 إطلاق الأموال">
                 <ul>
                   <li>
                     بعد انتهاء فترة الضمان (أو عند تأكيد المشتري)، تُطلق الأموال
@@ -364,7 +488,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="7.3 تجميد الأموال">
+              <Subsection title="8.3 تجميد الأموال">
                 <ul>
                   <li>للمنصة حق تجميد أموال أي طلب في حال وجود بلاغ أو نزاع</li>
                   <li>يتم إشعار الفنان بالتجميد وسببه</li>
@@ -373,9 +497,9 @@ export default function TermsPage() {
               </Subsection>
             </Section>
 
-            {/* ═══ 8. Withdrawal ═══ */}
-            <Section id="withdrawal" num="8" title="السحب">
-              <Subsection title="8.1 طلب السحب">
+            {/* ═══ 9. Withdrawal ═══ */}
+            <Section id="withdrawal" num="9" title="السحب">
+              <Subsection title="9.1 طلب السحب">
                 <ul>
                   <li>يمكن للفنان طلب سحب رصيده المتاح إلى حسابه البنكي</li>
                   <li>يجب إضافة حساب بنكي سعودي والتحقق منه أولاً</li>
@@ -385,7 +509,7 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="8.2 معالجة السحب">
+              <Subsection title="9.2 معالجة السحب">
                 <ul>
                   <li>جميع طلبات السحب تخضع لمراجعة فريق المنصة</li>
                   <li>
@@ -395,15 +519,15 @@ export default function TermsPage() {
                 </ul>
               </Subsection>
 
-              <Subsection title="8.3 حدود السحب">
+              <Subsection title="9.3 حدود السحب">
                 <ul>
                   <li>الحد الأقصى: طلبان سحب أسبوعياً</li>
                 </ul>
               </Subsection>
             </Section>
 
-            {/* ═══ 9. Reviews ═══ */}
-            <Section id="reviews" num="9" title="التقييمات والمراجعات">
+            {/* ═══ 10. Reviews ═══ */}
+            <Section id="reviews" num="10" title="التقييمات والمراجعات">
               <ul>
                 <li>يمكن للمشتري تقييم الطلب بعد اكتماله</li>
                 <li>التقييمات تظهر في الصفحة العامة للفنان</li>
@@ -411,8 +535,8 @@ export default function TermsPage() {
               </ul>
             </Section>
 
-            {/* ═══ 10. Prohibited ═══ */}
-            <Section id="prohibited" num="10" title="السلوك المحظور">
+            {/* ═══ 11. Prohibited ═══ */}
+            <Section id="prohibited" num="11" title="السلوك المحظور">
               <p className="mb-3">يُحظر على جميع المستخدمين:</p>
               <ul>
                 <li>رفع محتوى ينتهك حقوق الملكية الفكرية</li>
@@ -424,10 +548,15 @@ export default function TermsPage() {
               </ul>
             </Section>
 
-            {/* ═══ 11. Suspension ═══ */}
-            <Section id="suspension" num="11" title="الحظر وتعليق الحسابات">
+            {/* ═══ 12. Suspension ═══ */}
+            <Section id="suspension" num="12" title="الحظر وتعليق الحسابات">
               <ul>
                 <li>للمنصة حق حظر أي حساب يخالف الشروط دون إشعار مسبق</li>
+                <li>
+                  <strong>يُحظر الحساب فوراً</strong> ودون إنذار في حال عدم
+                  امتلاك الفنان للوثائق النظامية المطلوبة (وثيقة العمل الحر أو
+                  السجل التجاري) أو عدم تقديمها عند طلبها من إدارة المنصة
+                </li>
                 <li>
                   عند الحظر: تُخفى جميع أعمال الفنان، وتُلغى طلبات السحب
                   المعلقة، وتُجمد المحفظة
@@ -439,8 +568,8 @@ export default function TermsPage() {
               </ul>
             </Section>
 
-            {/* ═══ 12. IP ═══ */}
-            <Section id="ip" num="12" title="الملكية الفكرية">
+            {/* ═══ 13. IP ═══ */}
+            <Section id="ip" num="13" title="الملكية الفكرية">
               <ul>
                 <li>الفنان يحتفظ بجميع حقوق الملكية الفكرية لأعماله</li>
                 <li>
@@ -454,8 +583,8 @@ export default function TermsPage() {
               </ul>
             </Section>
 
-            {/* ═══ 13. Privacy ═══ */}
-            <Section id="privacy" num="13" title="الخصوصية وحماية البيانات">
+            {/* ═══ 14. Privacy ═══ */}
+            <Section id="privacy" num="14" title="الخصوصية وحماية البيانات">
               <ul>
                 <li>
                   نجمع فقط البيانات اللازمة لتقديم الخدمة (الاسم، البريد،
@@ -481,8 +610,8 @@ export default function TermsPage() {
               </p>
             </Section>
 
-            {/* ═══ 14. Disclaimer ═══ */}
-            <Section id="disclaimer" num="14" title="إخلاء المسؤولية">
+            {/* ═══ 15. Disclaimer ═══ */}
+            <Section id="disclaimer" num="15" title="إخلاء المسؤولية">
               <ul>
                 <li>
                   المنصة وسيط بين الفنان والمشتري وليست طرفاً في العملية الفنية
@@ -494,12 +623,12 @@ export default function TermsPage() {
                 <li>
                   لا نتحمل مسؤولية التلف أثناء الشحن (يُغطى بتأمين شركة الشحن)
                 </li>
-                <li>المنصة مقدمة "كما هي" دون ضمانات صريحة أو ضمنية</li>
+                {/* <li>المنصة مقدمة "كما هي" دون ضمانات صريحة أو ضمنية</li> */}
               </ul>
             </Section>
 
-            {/* ═══ 15. Changes ═══ */}
-            <Section id="changes" num="15" title="التعديلات">
+            {/* ═══ 16. Changes ═══ */}
+            <Section id="changes" num="16" title="التعديلات">
               <ul>
                 <li>نحتفظ بحق تعديل هذه الشروط في أي وقت</li>
                 <li>
@@ -511,8 +640,8 @@ export default function TermsPage() {
               </ul>
             </Section>
 
-            {/* ═══ 16. Law ═══ */}
-            <Section id="law" num="16" title="القانون المختص">
+            {/* ═══ 17. Law ═══ */}
+            <Section id="law" num="17" title="القانون المختص">
               <ul>
                 <li>تخضع هذه الشروط لأنظمة المملكة العربية السعودية</li>
                 <li>

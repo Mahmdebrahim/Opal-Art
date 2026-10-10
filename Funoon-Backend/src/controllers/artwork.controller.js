@@ -853,31 +853,33 @@ const listAllArtworks = catchAsync(async (req, res, next) => {
     case "priority":
       sortStage = { subscriptionPriority: -1, createdAt: -1 };
       break;
+
     case "newest":
-      sortStage = { createdAt: -1 };
+      sortStage = { createdAt: -1, subscriptionPriority: -1 };
       break;
+
     case "price_asc":
-      sortStage = { subscriptionPriority: -1, price: 1 };
+      sortStage = { price: 1, subscriptionPriority: -1 };
       break;
+
     case "price_desc":
-      sortStage = { subscriptionPriority: -1, price: -1 };
+      sortStage = { price: -1, subscriptionPriority: -1 };
       break;
+
     case "popular":
       sortStage = {
-        subscriptionPriority: -1,
         favoritesCount: -1,
         viewsCount: -1,
+        subscriptionPriority: -1,
       };
       break;
+
     default:
       sortStage = { subscriptionPriority: -1, createdAt: -1 };
   }
 
   basePipeline.push({ $sort: sortStage });
 
-  // ═══════════════════════════════════════════════════
-  // Count: aggregation بسيطة بدون favorites/project
-  // ═══════════════════════════════════════════════════
   const countPipeline = [...basePipeline, { $count: "total" }];
   const countResult = await Artwork.aggregate(countPipeline);
   const total = countResult[0]?.total || 0;
@@ -1015,13 +1017,13 @@ const getMyArtworks = catchAsync(async (req, res, next) => {
 });
 
 // ═══════════════════════════════════════════════════
-// In-memory cache للـ filters (5 دقايق TTL)
+// In-memory cache for filter options (5 minutes TTL)
 // ═══════════════════════════════════════════════════
 const filterCache = {
   data: null,
   expiresAt: 0,
 };
-const CACHE_TTL = 5 * 60 * 1000; // 5 دقايق
+const CACHE_TTL = 5 * 60 * 1000;
 
 const invalidateFilterCache = () => {
   filterCache.data = null;

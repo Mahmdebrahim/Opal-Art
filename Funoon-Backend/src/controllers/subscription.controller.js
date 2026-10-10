@@ -529,7 +529,7 @@ const purchaseSubscription = catchAsync(async (req, res, next) => {
     };
     invoice = await MoyasarService.createInvoice({
       amount: Math.round(amountToPay * 100),
-      description: `فُنون - اشتراك ${plan.label} (${scenarioLabels[quote.scenario] || "اشتراك"})`,
+      description: `أوبال جاليري - اشتراك ${plan.label} (${scenarioLabels[quote.scenario] || "اشتراك"})`,
       callbackUrl: `${process.env.NGROK_URL}/api/v1/webhooks/moyasar`,
       successUrl: `${process.env.FRONTEND_URL}/subscription/success`,
       backUrl: `${process.env.FRONTEND_URL}/subscription/cancel`,
@@ -1282,14 +1282,12 @@ const handleSubscriptionWebhook = catchAsync(async (req, res, next) => {
       event.amount,
       existingPayment.amount,
     );
-    return res
-      .status(200)
-      .json({
-        received: true,
-        action: refund.claimed
-          ? "auto_refund_triggered"
-          : "auto_refund_already_handled",
-      });
+    return res.status(200).json({
+      received: true,
+      action: refund.claimed
+        ? "auto_refund_triggered"
+        : "auto_refund_already_handled",
+    });
   }
 
   // ═══════════════════════════════════════════════════

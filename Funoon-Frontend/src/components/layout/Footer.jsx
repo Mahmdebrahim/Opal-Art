@@ -29,7 +29,7 @@ export default function Footer() {
               {/* <img src={opalLogoWhite} alt="Opal" className="h-15 w-auto" /> */}
               <img
                 className="h-15 w-auto"
-                src="/images/opalLogoWhite.webp"
+                src="/images/opal-logo.webp"
                 alt="أوبال جاليري"
                 width={418}
                 height={361}

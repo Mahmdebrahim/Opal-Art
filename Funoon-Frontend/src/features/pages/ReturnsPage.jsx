@@ -334,7 +334,7 @@ export default function ReturnsPage() {
                   </h3>
                 </div>
                 <ol className="space-y-2">
-                  <li>سجّل دخولك إلى حسابك على منصة فُنون.</li>
+                  <li>سجّل دخولك إلى حسابك على منصة أوبال جاليري.</li>
                   <li>
                     انتقل إلى صفحة <strong>"طلباتي"</strong>.
                   </li>
@@ -395,7 +395,10 @@ export default function ReturnsPage() {
                     <Mail className="w-3.5 h-3.5" />
                     support@opalgallery.net
                   </a>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-secondary)]" dir="rtl">
+                  <span
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--color-secondary)]"
+                    dir="rtl"
+                  >
                     <Headphones className="w-3.5 h-3.5" />
                     واتساب: 966565905901+
                   </span>

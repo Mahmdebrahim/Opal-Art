@@ -637,7 +637,7 @@ const cleanupExpiredOrdersForArtists = async (artistIds, session = null) => {
 //     // ═══════════════════════════════════════════════════
 //     const invoiceData = {
 //       amount: grandTotal * 100,
-//       description: `فُنون - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
+//       description: `أوبال جاليري - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
 //       callbackUrl: `${process.env.NGROK_URL}/api/v1/webhooks/moyasar`,
 //       successUrl: `${process.env.FRONTEND_URL}/payment/success`,
 //       backUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
@@ -1498,7 +1498,7 @@ const checkout = catchAsync(async (req, res, next) => {
 
     const invoiceData = {
       amount: grandTotal * 100,
-      description: `فُنون - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
+      description: `أوبال جاليري - ${orders.length === 1 ? "لوحة واحدة" : `${orders.length} لوحات`} (طلب #${orders[0]._id.toString().slice(-6).toUpperCase()})`,
       successUrl: `${process.env.FRONTEND_URL}/payment/success`,
       backUrl: `${process.env.FRONTEND_URL}/payment/cancel`,
       expired_at: new Date(Date.now() + INVOICE_DURATION).toISOString(),
@@ -1634,7 +1634,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   // ✅ Handle "refunded" events (manual refund من Moyasar)
   // ═══════════════════════════════════════════════════
   if (event.status === "refunded") {
-    logger.info(`💰 Moyasar refund event: id=${event.id}, amount=${event.refunded}`);
+    logger.info(
+      `💰 Moyasar refund event: id=${event.id}, amount=${event.refunded}`,
+    );
 
     const paymentId = event.id;
     const invoiceId = event.invoice_id;
@@ -1726,7 +1728,10 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   }
 
   // Idempotency check
-  const existingOrders = await Order.find({ _id: { $in: orderIds }, status: "PAID" });
+  const existingOrders = await Order.find({
+    _id: { $in: orderIds },
+    status: "PAID",
+  });
   if (existingOrders.length === orderIds.length) {
     return res.status(200).json({ received: true });
   }
@@ -1744,11 +1749,14 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   if (bannedBuyer) {
     logger.warn(`🚫 Moyasar webhook blocked: buyer is banned`);
     const totalAmount = pendingOrdersForCheck.reduce(
-      (sum, o) => sum + o.financials.totalAmount, 0,
+      (sum, o) => sum + o.financials.totalAmount,
+      0,
     );
 
     const { refundOk, lastError } = await attemptRefund(
-      paymentId, totalAmount, "Buyer account banned during checkout",
+      paymentId,
+      totalAmount,
+      "Buyer account banned during checkout",
     );
 
     for (const o of pendingOrdersForCheck) {
@@ -1765,9 +1773,11 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     if (!refundOk && paymentId) {
       logger.error(`🚨 CRITICAL: Buyer ban refund failed after 3 attempts`);
       eventEmitter.safeEmit(EVENTS.REFUND_FAILED, {
-        paymentId, amount: totalAmount,
+        paymentId,
+        amount: totalAmount,
         reason: "buyer_banned_during_checkout",
-        error: lastError, orderIds,
+        error: lastError,
+        orderIds,
       });
     }
 
@@ -1804,7 +1814,8 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     }
 
     return res.status(200).json({
-      received: true, blocked: "banned_buyer",
+      received: true,
+      blocked: "banned_buyer",
       refundStatus: refundOk ? "REFUNDED" : "FAILED",
     });
   }
@@ -1814,11 +1825,14 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   if (bannedArtists.length > 0) {
     logger.warn(`🚫 Moyasar webhook blocked: banned artist(s)`);
     const totalAmount = pendingOrdersForCheck.reduce(
-      (sum, o) => sum + o.financials.totalAmount, 0,
+      (sum, o) => sum + o.financials.totalAmount,
+      0,
     );
 
     const { refundOk, lastError } = await attemptRefund(
-      paymentId, totalAmount, "Artist account(s) banned during checkout",
+      paymentId,
+      totalAmount,
+      "Artist account(s) banned during checkout",
     );
 
     for (const o of pendingOrdersForCheck) {
@@ -1835,9 +1849,11 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     if (!refundOk && paymentId) {
       logger.error(`🚨 CRITICAL: Artist ban refund failed after 3 attempts`);
       eventEmitter.safeEmit(EVENTS.REFUND_FAILED, {
-        paymentId, amount: totalAmount,
+        paymentId,
+        amount: totalAmount,
         reason: "artist_banned_during_checkout",
-        error: lastError, orderIds,
+        error: lastError,
+        orderIds,
       });
     }
 
@@ -1865,7 +1881,8 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
     );
 
     return res.status(200).json({
-      received: true, blocked: "banned_artist",
+      received: true,
+      blocked: "banned_artist",
       refundStatus: refundOk ? "REFUNDED" : "FAILED",
     });
   }
@@ -1880,7 +1897,8 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
   try {
     for (const orderId of orderIds) {
       const pendingOrder = await Order.findOne({
-        _id: orderId, status: "PENDING_PAYMENT",
+        _id: orderId,
+        status: "PENDING_PAYMENT",
       }).session(session);
 
       if (!pendingOrder) {
@@ -1897,7 +1915,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
           deadOrder.refundStatus !== "REFUNDED" &&
           deadOrder.refundStatus !== "FAILED"
         ) {
-          logger.warn(`🚨 Paid-after-cancellation detected for order ${orderId}`);
+          logger.warn(
+            `🚨 Paid-after-cancellation detected for order ${orderId}`,
+          );
           const { refundOk, lastError } = await attemptRefund(
             deadOrder.payment.paymentId,
             deadOrder.financials.totalAmount,
@@ -1922,7 +1942,8 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
               paymentId: deadOrder.payment.paymentId,
               amount: deadOrder.financials.totalAmount,
               reason: "late_webhook_after_cancel",
-              error: lastError, orderIds: [orderId],
+              error: lastError,
+              orderIds: [orderId],
             });
           }
         }
@@ -1936,7 +1957,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       for (const item of pendingOrder.items) {
         const artwork = await Artwork.findOneAndUpdate(
           {
-            _id: item.artwork, isSold: false, isActive: true,
+            _id: item.artwork,
+            isSold: false,
+            isActive: true,
             $or: [
               { reservedBy: pendingOrder.buyer },
               { reservedBy: null },
@@ -1944,8 +1967,11 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
             ],
           },
           {
-            isSold: true, reservedBy: null, reservedUntil: null,
-            isFeatured: false, featuredAt: null,
+            isSold: true,
+            reservedBy: null,
+            reservedUntil: null,
+            isFeatured: false,
+            featuredAt: null,
           },
           { new: true, session },
         );
@@ -1965,7 +1991,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
 
       if (!allSold) {
         // ═══ artwork sold to another buyer — with retry! ═══
-        console.log(`⚠️ Order ${orderId}: artwork "${soldArtworkTitle}" already sold`);
+        console.log(
+          `⚠️ Order ${orderId}: artwork "${soldArtworkTitle}" already sold`,
+        );
 
         const { refundOk, lastError } = await attemptRefund(
           paymentId,
@@ -1985,7 +2013,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
               "payment.paidAt": new Date(),
               refundStatus: refundOk ? "REFUNDED" : "FAILED",
               refundPaymentId: paymentId,
-              refundedAmount: refundOk ? pendingOrder.financials.totalAmount : null,
+              refundedAmount: refundOk
+                ? pendingOrder.financials.totalAmount
+                : null,
               refundedAt: refundOk ? new Date() : null,
             },
           },
@@ -2007,7 +2037,8 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
             paymentId,
             amount: pendingOrder.financials.totalAmount,
             reason: "artwork_sold_to_another_buyer",
-            error: lastError, orderIds: [orderId],
+            error: lastError,
+            orderIds: [orderId],
           });
         }
 
@@ -2030,7 +2061,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
 
       processedOrders.push(order);
 
-      let wallet = await Wallet.findOne({ user: order.artist }).session(session);
+      let wallet = await Wallet.findOne({ user: order.artist }).session(
+        session,
+      );
       if (!wallet) {
         wallet = await Wallet.create([{ user: order.artist }], { session });
         wallet = wallet[0];
@@ -2039,17 +2072,21 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       await wallet.creditPending(order.financials.totalArtistEarning, session);
 
       await Transaction.create(
-        [{
-          wallet: wallet._id, order: order._id, user: order.artist,
-          type: "CREDIT_SALE",
-          amount: order.financials.totalArtistEarning,
-          description: `بيع ${order.items.length === 1 ? "لوحة واحدة" : `${order.items.length} لوحات`} - طلب #${order._id.toString().slice(-6).toUpperCase()}`,
-          balanceAfter: {
-            available: wallet.balance.available,
-            pending: wallet.balance.pending,
+        [
+          {
+            wallet: wallet._id,
+            order: order._id,
+            user: order.artist,
+            type: "CREDIT_SALE",
+            amount: order.financials.totalArtistEarning,
+            description: `بيع ${order.items.length === 1 ? "لوحة واحدة" : `${order.items.length} لوحات`} - طلب #${order._id.toString().slice(-6).toUpperCase()}`,
+            balanceAfter: {
+              available: wallet.balance.available,
+              pending: wallet.balance.pending,
+            },
+            status: "COMPLETED",
           },
-          status: "COMPLETED",
-        }],
+        ],
         { session },
       );
     }
@@ -2059,7 +2096,11 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       metadata.buyerId ||
       (await Order.findById(orderIds[0]).select("buyer").lean())?.buyer;
     if (buyerId) {
-      await Cart.findOneAndUpdate({ user: buyerId }, { $set: { items: [] } }, { session });
+      await Cart.findOneAndUpdate(
+        { user: buyerId },
+        { $set: { items: [] } },
+        { session },
+      );
     }
 
     await session.commitTransaction();
@@ -2075,7 +2116,9 @@ const handleMoyasarWebhook = catchAsync(async (req, res, next) => {
       error?.hasErrorLabel?.("TransientTransactionError");
 
     if (isTransient) {
-      return res.status(500).json({ received: false, retry: true, error: error.message });
+      return res
+        .status(500)
+        .json({ received: false, retry: true, error: error.message });
     }
     return res.status(200).json({ received: true, error: error.message });
   }
